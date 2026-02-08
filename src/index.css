@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+/* Force Html5Qrcode video to fill container */
+#reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: inherit !important;
+}
+
+/* Hide potential shaded region overlay if present */
+#qr-shaded-region {
+  display: none !important;
+}
+
+@keyframes varredura {
+
+  0%,
+  100% {
+    top: 10%;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  50% {
+    top: 90%;
+  }
+}
