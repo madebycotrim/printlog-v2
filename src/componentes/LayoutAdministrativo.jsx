@@ -7,7 +7,10 @@ import {
     FileText,
     LogOut,
     Menu,
-    Shield
+    Shield,
+    IdCard,
+    QrCode,
+    Layers
 } from 'lucide-react';
 
 export default function LayoutAdministrativo({ children, titulo, subtitulo, acoes }) {
@@ -18,9 +21,9 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
     const itensMenu = [
         { icone: LayoutDashboard, texto: 'Painel', rota: '/painel' },
+        { icone: Layers, texto: 'Turmas', rota: '/turmas' },
         { icone: Users, texto: 'Alunos', rota: '/alunos' },
         { icone: FileText, texto: 'Relatórios', rota: '/relatorios' },
-        // Adicionar mais rotas conforme necessário
     ];
 
     const aoSair = async () => {
@@ -33,8 +36,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     };
 
     return (
-        // Altura calculada para descontar o Header Global (~64px/4rem) e evitar scroll duplo
-        <div className="flex h-[calc(100vh-64px)] bg-slate-50 font-sans overflow-hidden">
+        <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
             {/* Overlay Mobile */}
             {menuAberto && (
                 <div
@@ -56,7 +58,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         </div>
                         <div>
                             <h1 className="font-black text-2xl tracking-tighter leading-none">SCAE<span className="text-blue-500">.</span></h1>
-                            <p className="text-[10px] text-blue-400 font-bold tracking-widest uppercase mt-0.5">Admin v2.5</p>
+                            <p className="text-[10px] text-blue-400 font-bold tracking-widest uppercase mt-0.5">CEM 03 de Taguatinga</p>
                         </div>
                     </div>
 
@@ -91,6 +93,18 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                 </button>
                             );
                         })}
+
+                        {/* Separator */}
+                        <div className="my-4 border-t border-white/5 mx-4"></div>
+
+                        {/* Operational Mode */}
+                        <button
+                            onClick={() => navegar('/portaria')}
+                            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 text-emerald-400/60 hover:bg-emerald-500/10 hover:text-emerald-400 group"
+                        >
+                            <QrCode size={20} className="transition-colors group-hover:text-emerald-400" />
+                            <span className="font-medium text-sm tracking-wide group-hover:text-emerald-300">Portaria (Leitor)</span>
+                        </button>
                     </nav>
                 </div>
 

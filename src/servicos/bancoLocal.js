@@ -1,11 +1,11 @@
 import { openDB } from 'idb';
 
 const NOME_BANCO = 'SCAE_DB';
-const VERSAO_BANCO = 1;
+const VERSAO_BANCO = 2;
 
 export const iniciarBanco = async () => {
     return openDB(NOME_BANCO, VERSAO_BANCO, {
-        upgrade(banco) {
+        upgrade(banco, oldVersion, newVersion, transaction) {
             // Store para alunos (leitura para validação)
             if (!banco.objectStoreNames.contains('alunos')) {
                 banco.createObjectStore('alunos', { keyPath: 'matricula' });
@@ -16,7 +16,12 @@ export const iniciarBanco = async () => {
                 const store = banco.createObjectStore('registros_acesso', { keyPath: 'id' });
                 store.createIndex('sincronizado', 'sincronizado');
                 store.createIndex('timestamp', 'timestamp');
-                store.createIndex('aluno_matricula', 'aluno_matricula'); // New index for performance
+                store.createIndex('aluno_matricula', 'aluno_matricula');
+            }
+
+            // v2 - Store para Turmas
+            if (!banco.objectStoreNames.contains('turmas')) {
+                banco.createObjectStore('turmas', { keyPath: 'id' });
             }
         },
     });
