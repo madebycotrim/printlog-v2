@@ -155,59 +155,62 @@ export default function Turmas() {
                                         // Status Colors
                                         const attendanceText = t.percentual >= 75 ? 'text-emerald-600' : t.percentual >= 60 ? 'text-amber-600' : 'text-red-600';
 
-                                        // Design V10: Color Block Header (School & Minimalist)
+                                        // Design V12: Structured Minimalist (Organized & Clean)
                                         return (
                                             <div
                                                 key={t.id}
-                                                className="bg-white rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group overflow-hidden border border-slate-100 flex flex-col"
+                                                className={`bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:border-slate-200 transition-all duration-300 group flex flex-col h-44 relative overflow-hidden`}
                                             >
-                                                {/* Header: Solid Color Identifier */}
-                                                <div className={`h-12 px-5 flex items-center justify-between ${isMatutino ? 'bg-amber-400' : isVespertino ? 'bg-sky-500' : 'bg-indigo-600'}`}>
-                                                    <div className="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-widest drop-shadow-sm">
-                                                        {getTurnoIcon(parsed.turno)}
+                                                {/* Top Indicator Line */}
+                                                <div className={`absolute top-0 left-0 w-1.5 h-full ${isMatutino ? 'bg-amber-400' : isVespertino ? 'bg-sky-400' : 'bg-indigo-400'}`}></div>
+
+                                                {/* Header Portion */}
+                                                <div className="pl-6 pr-5 pt-5 pb-2 flex justify-between items-start">
+                                                    <div className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-slate-50 ${isMatutino ? 'text-amber-600' : isVespertino ? 'text-sky-600' : 'text-indigo-600'}`}>
                                                         {parsed.turno.toUpperCase()}
                                                     </div>
                                                     <button
                                                         onClick={(e) => removerTurma(t.id, e)}
-                                                        className="text-white/70 hover:text-white p-1.5 rounded-full hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100"
+                                                        className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                                                         title="Excluir Turma"
                                                     >
-                                                        <Trash2 size={16} />
+                                                        <Trash2 size={14} />
                                                     </button>
                                                 </div>
 
-                                                {/* Body: Clean Stats & Big Letter */}
-                                                <div className="p-5 flex-1 flex flex-col relative">
-
-                                                    {/* Central Letter */}
-                                                    <div className="flex-1 flex flex-col items-center justify-center py-2">
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Turma</span>
-                                                        <span className="text-6xl font-black text-slate-800 tracking-tighter leading-none">
+                                                {/* Main Content: Organized Grid */}
+                                                <div className="pl-6 pr-5 flex-1 flex flex-col justify-center">
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="text-sm font-bold text-slate-400 uppercase tracking-tight">Turma</span>
+                                                        <span className="text-5xl font-black text-slate-800 tracking-tighter leading-none">
                                                             {parsed.letra}
                                                         </span>
                                                     </div>
+                                                </div>
 
-                                                    {/* Footer Stats Row */}
-                                                    <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                                                        <div className="flex gap-4">
-                                                            <div className="flex flex-col">
-                                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Alunos</span>
-                                                                <span className="text-sm font-bold text-slate-600">{t.totalAlunos}</span>
-                                                            </div>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Frequência</span>
-                                                                <span className={`text-sm font-bold ${attendanceText}`}>{t.percentual}%</span>
+                                                {/* Footer: Stats & Action Separated */}
+                                                <div className="pl-6 pr-5 pb-5 pt-3 border-t border-slate-50 flex items-center justify-between">
+                                                    <div className="flex gap-6">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Alunos</span>
+                                                            <span className="text-xs font-bold text-slate-600">{t.totalAlunos}</span>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Freq.</span>
+                                                            <div className={`text-xs font-bold flex items-center gap-1 ${attendanceText}`}>
+                                                                {t.percentual}%
+                                                                <div className={`w-1.5 h-1.5 rounded-full ${t.percentual >= 75 ? 'bg-emerald-500' : t.percentual >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}></div>
                                                             </div>
                                                         </div>
-
-                                                        <button
-                                                            onClick={() => abrirListaAlunos(t)}
-                                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isMatutino ? 'text-amber-500 bg-amber-50 hover:bg-amber-100' : isVespertino ? 'text-sky-600 bg-sky-50 hover:bg-sky-100' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'}`}
-                                                            title="Visualizar Alunos"
-                                                        >
-                                                            <ArrowRight size={16} />
-                                                        </button>
                                                     </div>
+
+                                                    <button
+                                                        onClick={() => abrirListaAlunos(t)}
+                                                        className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all"
+                                                        title="Detalhes"
+                                                    >
+                                                        <ArrowRight size={14} />
+                                                    </button>
                                                 </div>
                                             </div>
                                         );
