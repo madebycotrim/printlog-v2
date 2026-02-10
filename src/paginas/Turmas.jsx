@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { bancoLocal } from '../servicos/bancoLocal';
 import LayoutAdministrativo from '../componentes/LayoutAdministrativo';
-import { Plus, Trash2, Users, Layers, X } from 'lucide-react';
+import ModalListaAlunos from '../componentes/ModalListaAlunos';
+import { Plus, Trash2, Users, Layers, X, List, TrendingUp, Sun, Moon, Sunset, ArrowRight } from 'lucide-react';
 
 export default function Turmas() {
     const [turmas, definirTurmas] = useState([]);
     const [modalAberto, definirModalAberto] = useState(false);
+    const [modalAlunosAberto, definirModalAlunosAberto] = useState(false);
+    const [turmaSelecionada, definirTurmaSelecionada] = useState(null);
+    const [alunosDaTurma, definirAlunosDaTurma] = useState([]);
     const [novaTurma, definirNovaTurma] = useState({ serie: '', turno: '', letra: '' });
     const [carregando, definirCarregando] = useState(true);
 
@@ -16,9 +20,46 @@ export default function Turmas() {
     const carregarTurmas = async () => {
         const banco = await bancoLocal.iniciarBanco();
         const todasTurmas = await banco.getAll('turmas');
+        const todosAlunos = await banco.getAll('alunos');
+        const alunosPresentes = await bancoLocal.listarAlunosPresentes();
+
+        // Processar dados para cada turma
+        const turmasComDados = todasTurmas.map(turma => {
+            const alunosTurma = todosAlunos.filter(a => a.turma_id === turma.id);
+            const totalAlunos = alunosTurma.length;
+
+            // Contar quantos alunos dessa turma estão presentes
+            const presentesTurma = alunosPresentes.filter(p => p.turma_id === turma.id).length;
+
+            const percentual = totalAlunos > 0 ? Math.round((presentesTurma / totalAlunos) * 100) : 0;
+
+            // Parse ID: "3ª A - Matutino" -> { serie: "3ª", letra: "A", turno: "Matutino" }
+            let serie = '?', letra = '?', turno = 'Indefinido';
+            try {
+                if (turma.id) {
+                    const parts = turma.id.split(' - ');
+                    const info = parts[0] ? parts[0].split(' ') : [];
+                    serie = info[0] || '?';
+                    letra = info[1] || '?';
+                    turno = parts[1] || 'Indefinido';
+                }
+            } catch (e) {
+                console.error("Erro ao analisar turma:", turma.id, e);
+            }
+
+            return {
+                ...turma,
+                totalAlunos,
+                presentes: presentesTurma,
+                percentual,
+                listaAlunos: alunosTurma,
+                parsed: { serie, letra, turno }
+            };
+        });
+
         // Ordenar logicamente (1º, 2º, 3º...)
-        todasTurmas.sort((a, b) => a.id.localeCompare(b.id));
-        definirTurmas(todasTurmas);
+        turmasComDados.sort((a, b) => a.id.localeCompare(b.id));
+        definirTurmas(turmasComDados);
         definirCarregando(false);
     };
 
@@ -41,11 +82,18 @@ export default function Turmas() {
         carregarTurmas();
     };
 
-    const removerTurma = async (id) => {
+    const removerTurma = async (id, e) => {
+        e.stopPropagation();
         if (!confirm(`Tem certeza que deseja remover a turma ${id}?`)) return;
         const banco = await bancoLocal.iniciarBanco();
         await banco.delete('turmas', id);
         carregarTurmas();
+    };
+
+    const abrirListaAlunos = (turma) => {
+        definirTurmaSelecionada(turma);
+        definirAlunosDaTurma(turma.listaAlunos || []);
+        definirModalAlunosAberto(true);
     };
 
     const AcoesHeader = (
@@ -57,41 +105,131 @@ export default function Turmas() {
         </button>
     );
 
+    const getTurnoIcon = (turno) => {
+        if (!turno) return <Sun size={14} className="text-slate-400" />;
+        if (turno === 'Matutino') return <Sun size={14} className="text-orange-500" />;
+        if (turno === 'Vespertino') return <Sunset size={14} className="text-orange-600" />;
+        return <Moon size={14} className="text-indigo-500" />;
+    };
+
+    const getProgressColor = (percent) => {
+        if (percent >= 75) return 'bg-emerald-500';
+        if (percent >= 50) return 'bg-amber-500';
+        return 'bg-rose-500';
+    };
+
     return (
         <LayoutAdministrativo titulo="Gerenciar Turmas" subtitulo="Organização das séries e turmas da escola" acoes={AcoesHeader}>
 
             {carregando ? (
-                <div className="p-8 text-center text-slate-500 animate-pulse">Carregando turmas...</div>
+                <div className="p-8 text-center text-slate-500 animate-pulse text-sm">Carregando...</div>
             ) : turmas.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-16 bg-white rounded-2xl border border-slate-100 shadow-sm text-center">
-                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                        <Layers size={32} className="text-slate-300" />
+                <div className="flex flex-col items-center justify-center p-16 bg-white rounded-xl border border-slate-100 shadow-sm text-center">
+                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                        <Layers size={24} className="text-slate-300" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-700">Nenhuma turma cadastrada</h3>
-                    <p className="text-slate-500 max-w-md mt-2">Clique em "Nova Turma" para começar a organizar os alunos.</p>
+                    <h3 className="text-sm font-semibold text-slate-700">Nenhuma turma</h3>
+                    <p className="text-xs text-slate-400 max-w-xs mt-1">Crie uma nova turma para começar.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {turmas.map((t) => (
-                        <div key={t.id} className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow group relative">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
-                                    <Users size={24} />
-                                </div>
-                                <span className="text-xs font-bold text-slate-300 bg-slate-50 px-2 py-1 rounded">2026</span>
-                            </div>
-                            <h3 className="text-2xl font-black text-slate-800">{t.id}</h3>
-                            <p className="text-sm text-slate-500 font-medium">Ensino Médio</p>
+                <div className="space-y-8">
+                    {['1ª', '2ª', '3ª'].map(serie => {
+                        const turmasDaSerie = turmas.filter(t => t.parsed?.serie === serie);
+                        if (turmasDaSerie.length === 0) return null;
 
-                            <button
-                                onClick={() => removerTurma(t.id)}
-                                className="absolute top-4 right-4 p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                                title="Remover Turma"
-                            >
-                                <Trash2 size={18} />
-                            </button>
-                        </div>
-                    ))}
+                        return (
+                            <div key={serie} className="animate-[fadeIn_0.5s_ease-out]">
+                                <div className="flex items-center gap-3 mb-6 px-2">
+                                    <h2 className="text-xl font-bold text-slate-700">{serie} Série</h2>
+                                    <div className="h-px bg-slate-200 flex-1"></div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                    {turmasDaSerie.map((t) => {
+                                        const parsed = t.parsed || { serie: '?', letra: '?', turno: '' };
+
+                                        // Dynamic Colors based on Shift
+                                        const isMatutino = parsed.turno === 'Matutino';
+                                        const isVespertino = parsed.turno === 'Vespertino';
+
+                                        const accentColor = isMatutino ? 'text-amber-400' :
+                                            isVespertino ? 'text-sky-400' :
+                                                'text-indigo-400';
+
+                                        const borderColor = isMatutino ? 'border-amber-500' :
+                                            isVespertino ? 'border-sky-500' :
+                                                'border-indigo-500';
+
+                                        // Status Colors
+                                        const attendanceText = t.percentual >= 75 ? 'text-emerald-600' : t.percentual >= 60 ? 'text-amber-600' : 'text-red-600';
+
+                                        return (
+                                            <div
+                                                key={t.id}
+                                                className="bg-white rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex overflow-hidden border border-slate-200 h-36"
+                                            >
+                                                {/* Left Sidebar (Gradient + Accent Border) */}
+                                                <div className={`w-28 bg-gradient-to-br from-slate-900 to-slate-800 flex flex-col items-center justify-center p-2 relative shrink-0 border-r-4 ${borderColor}`}>
+                                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Turma</span>
+                                                    <span className={`text-5xl font-black tracking-tighter ${accentColor} drop-shadow-md`}>{parsed.letra}</span>
+                                                    <div className={`absolute bottom-3 opacity-90 ${accentColor}`}>
+                                                        {getTurnoIcon(parsed.turno)}
+                                                    </div>
+                                                </div>
+
+                                                {/* Right Content (Details) */}
+                                                <div className="flex-1 p-5 flex flex-col justify-between relative bg-white">
+                                                    {/* Header / Meta */}
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{parsed.turno}</span>
+                                                            <span className="text-lg font-bold text-slate-700 leading-tight">{parsed.serie} Série</span>
+                                                        </div>
+
+                                                        {/* Hover Delete Action */}
+                                                        <button
+                                                            onClick={(e) => removerTurma(t.id, e)}
+                                                            className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                            title="Excluir Turma"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Stats Row */}
+                                                    <div className="flex items-center gap-6 mt-2">
+                                                        <div className="flex items-center gap-2 group/stat" title="Total de Alunos">
+                                                            <div className="p-1.5 rounded-md bg-slate-50 text-slate-400 group-hover/stat:text-blue-500 group-hover/stat:bg-blue-50 transition-colors">
+                                                                <Users size={14} />
+                                                            </div>
+                                                            <span className="text-sm font-bold text-slate-600">{t.totalAlunos}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 group/stat" title="Frequência Média">
+                                                            <div className={`p-1.5 rounded-md bg-slate-50 ${attendanceText} opacity-80 group-hover/stat:opacity-100 bg-opacity-10 transition-colors`}>
+                                                                <TrendingUp size={14} />
+                                                            </div>
+                                                            <span className={`text-sm font-bold ${attendanceText}`}>{t.percentual}%</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Action Button (Styled) */}
+                                                    <div className="mt-auto pt-3 flex justify-end">
+                                                        <button
+                                                            onClick={() => abrirListaAlunos(t)}
+                                                            className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 group/btn"
+                                                        >
+                                                            VISUALIZAR ALUNOS
+                                                            <ArrowRight size={14} className="group-hover/btn:translate-x-0.5 transition-transform" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 
@@ -205,6 +343,15 @@ export default function Turmas() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Modal Lista de Alunos */}
+            {modalAlunosAberto && turmaSelecionada && (
+                <ModalListaAlunos
+                    turma={turmaSelecionada}
+                    alunos={alunosDaTurma}
+                    aoFechar={() => definirModalAlunosAberto(false)}
+                />
             )}
         </LayoutAdministrativo>
     );

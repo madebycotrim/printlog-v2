@@ -76,12 +76,10 @@ Para garantir a validade jurídica dos horários registrados offline:
 
 ---
 
-### 4.2 Feedback por Voz (TTS) e Visual
+### 4.2 Feedback Sonoro e Visual
 
-* **Voz:** o sistema anuncia o nome do aluno ao validar
-
-  * Ex: *"Entrada confirmada, Maria Silva"*
-
+* **Sonoro:** o sistema emite bipes distintos para sucesso ou erro
+* **Visual:** feedbacks de cor em tela cheia (Verde/Vermelho/Amarelo)
 * **Cor do Dia:** moldura colorida dinâmica que muda diariamente, servindo como validação rápida contra prints antigos
 
 ---
@@ -119,17 +117,21 @@ Autenticação obrigatória via Google Workspace SEEDF:
 | matricula     | TEXT (PK) | Código SIGE do aluno |
 | nome_completo | TEXT      | Nome institucional   |
 | turma_id      | TEXT (FK) | Vínculo com a turma  |
+| status        | TEXT      | Status da matrícula  |
+| foto_url      | TEXT      | URL da foto (opc)    |
 
 ---
 
 ### Tabela: `registros_acesso`
 
-| Coluna    | Tipo      | Descrição                       |
-| --------- | --------- | ------------------------------- |
-| id        | UUID (PK) | Identificador único do registro |
-| aluno_id  | TEXT (FK) | Matrícula do aluno              |
-| tipo      | TEXT      | ENTRADA / SAIDA                 |
-| criado_em | DATETIME  | Timestamp corrigido             |
+| Coluna            | Tipo      | Descrição                       |
+| ----------------- | --------- | ------------------------------- |
+| id                | TEXT (PK) | Identificador único do registro |
+| aluno_matricula   | TEXT (FK) | Matrícula do aluno              |
+| tipo_movimentacao | TEXT      | ENTRADA / SAIDA                 |
+| timestamp         | DATETIME  | Data/Hora do registro           |
+| sincronizado      | BOOLEAN   | Status de sync                  |
+| autorizado_por    | TEXT      | Responsável (se manual)         |
 
 ---
 

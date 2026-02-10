@@ -28,8 +28,19 @@ export default function Alunos() {
         }
     };
 
+    // Carregar Turmas para o Select
+    const [turmasDisponiveis, definirTurmasDisponiveis] = useState([]);
+
+    const carregarTurmas = async () => {
+        const banco = await bancoLocal.iniciarBanco();
+        const turmas = await banco.getAll('turmas');
+        turmas.sort((a, b) => a.id.localeCompare(b.id)); // Order alphabetically
+        definirTurmasDisponiveis(turmas);
+    };
+
     useEffect(() => {
         carregarAlunos();
+        carregarTurmas();
     }, []);
 
     const aoSincronizar = async () => {
@@ -199,13 +210,23 @@ export default function Alunos() {
                             </div>
                             <div className="mb-8">
                                 <label className="block text-sm font-bold mb-2 text-slate-700">Turma</label>
-                                <input
-                                    required
-                                    className="w-full border border-slate-300 p-3 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all"
-                                    placeholder="Ex: 3A"
-                                    value={novoAluno.turma_id}
-                                    onChange={e => definirNovoAluno({ ...novoAluno, turma_id: e.target.value })}
-                                />
+                                {turmasDisponiveis.length > 0 ? (
+                                    <select
+                                        required
+                                        className="w-full border border-slate-300 p-3 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all bg-white appearance-none"
+                                        value={novoAluno.turma_id}
+                                        onChange={e => definirNovoAluno({ ...novoAluno, turma_id: e.target.value })}
+                                    >
+                                        <option value="">Selecione a turma...</option>
+                                        {turmasDisponiveis.map(t => (
+                                            <option key={t.id} value={t.id}>{t.id}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <div className="p-3 bg-orange-50 border border-orange-100 rounded-xl text-orange-800 text-sm font-medium">
+                                        ⚠️ Nenhuma turma encontrada. Cadastre em "Turmas" primeiro.
+                                    </div>
+                                )}
                             </div>
                             <div className="flex justify-end gap-3">
                                 <button

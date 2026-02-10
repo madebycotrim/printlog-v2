@@ -1,14 +1,16 @@
 import { openDB } from 'idb';
 
 const NOME_BANCO = 'SCAE_DB';
-const VERSAO_BANCO = 2;
+const VERSAO_BANCO = 3;
 
 export const iniciarBanco = async () => {
     return openDB(NOME_BANCO, VERSAO_BANCO, {
         upgrade(banco, oldVersion, newVersion, transaction) {
             // Store para alunos (leitura para validação)
             if (!banco.objectStoreNames.contains('alunos')) {
-                banco.createObjectStore('alunos', { keyPath: 'matricula' });
+                const store = banco.createObjectStore('alunos', { keyPath: 'matricula' });
+                store.createIndex('turma_id', 'turma_id'); // Optimization for filtering by class
+                store.createIndex('status', 'status'); // Access control
             }
 
             // Store para registros offline
@@ -21,7 +23,22 @@ export const iniciarBanco = async () => {
 
             // v2 - Store para Turmas
             if (!banco.objectStoreNames.contains('turmas')) {
-                banco.createObjectStore('turmas', { keyPath: 'id' });
+                const store = banco.createObjectStore('turmas', { keyPath: 'id' });
+                // v3 indexes
+                store.createIndex('ano_letivo', 'ano_letivo');
+                store.createIndex('serie', 'serie');
+                store.createIndex('turno', 'turno');
+            } else if (oldVersion < 3) {
+                // Add indexes to existing store if upgrading
+                const store = transaction.objectStore('turmas');
+                if (!store.indexNames.contains('ano_letivo')) store.createIndex('ano_letivo', 'ano_letivo');
+                if (!store.indexNames.contains('serie')) store.createIndex('serie', 'serie');
+                if (!store.indexNames.contains('turno')) store.createIndex('turno', 'turno');
+            }
+
+            // v3 - Configurações
+            if (!banco.objectStoreNames.contains('configuracoes')) {
+                banco.createObjectStore('configuracoes', { keyPath: 'chave' });
             }
         },
     });
