@@ -6,6 +6,7 @@ import Turmas from './paginas/Turmas';
 import Login from './paginas/Login';
 import Alunos from './paginas/Alunos';
 import Relatorios from './paginas/Relatorios';
+import GeradorCrachas from './paginas/GeradorCrachas';
 import { Home, Users, Printer, LogOut, QrCode, FileText } from 'lucide-react';
 
 function Layout({ children }) {
@@ -35,6 +36,8 @@ function App() {
             <Route path="/turmas" element={<Turmas />} />
             <Route path="/alunos" element={<Alunos />} />
             <Route path="/relatorios" element={<Relatorios />} />
+            <Route path="/relatorios" element={<Relatorios />} />
+            <Route path="/gerador" element={<GeradorCrachas />} />
             <Route path="/" element={<Navigate to="/portaria" />} />
           </Routes>
         </Layout>

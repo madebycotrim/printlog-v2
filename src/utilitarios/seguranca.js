@@ -1,45 +1,43 @@
-import { jwtVerify } from 'jose';
+import { jwtVerify, importSPKI } from 'jose';
 
-// Chave Secreta Compartilhada (Em produção, usar variável de ambiente)
-// IMPORTANTE: Para validação offline segura com chave simétrica (HMAC),
-// a chave precisa estar no cliente. O ideal seria chave Assimétrica (Pública/Privada),
-// mas seguindo o requisito de HMAC (Simétrico):
-const SEGRED0_HMAC = new TextEncoder().encode(
-    'SCAE_SEGURANCA_MAXIMA_2024_TAGUATINGA_DF_KEY'
-);
+// CHAVE PÚBLICA (Pode ser exposta no Frontend)
+// Usada apenas para VERIFICAR se o crachá é autêntico.
+// A Chave Privada (usada para CRIAR) NÃO ESTÁ AQUI.
+const PUBLIC_KEY_PEM = `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0L1RGo2U4y/fEf9pPPSzel054RjU
+e+tBpomAsM/b++Ks6RJH9CVhJqr+mswyno+LroQV+wL6N4FlUBGqflh71w==
+-----END PUBLIC KEY-----`;
 
 export const validarQRSeguro = async (token) => {
     try {
-        // Tenta verificar se é um JWT válido assinado com nossa chave
-        const { payload } = await jwtVerify(token, SEGRED0_HMAC);
+        // 1. Importar Chave Pública
+        const alg = 'ES256'; // ECDSA P-256
+        const publicKey = await importSPKI(PUBLIC_KEY_PEM, alg);
 
-        // Verifica expiração extra se necessário (jwtVerify já checa 'exp')
+        // 2. Verificar Assinatura
+        const { payload } = await jwtVerify(token, publicKey, {
+            algorithms: ['ES256'],
+            issuer: 'SCAE-CEM03-OFFICIAL',
+            audience: 'SCAE-LEITOR'
+        });
 
         return {
             valido: true,
-            matricula: payload.sub, // 'sub' guarda a matrícula
+            matricula: payload.sub,
             dados: payload
         };
     } catch (erro) {
         console.error("Erro na validação do token:", erro);
+
+        let mensagemErro = 'Token Inválido';
+        if (erro.code === 'ERR_JWT_EXPIRED') mensagemErro = 'QR Code Expirado';
+        if (erro.code === 'ERR_JWS_SIGNATURE_VERIFICATION_FAILED') mensagemErro = 'Assinatura Falsa';
+
         return {
             valido: false,
-            erro: erro.code || 'TOKEN_INVALIDO'
+            erro: mensagemErro,
+            detalhes: erro.code
         };
     }
 };
 
-// Função para gerar token (apenas para testes/simulação local)
-import { SignJWT } from 'jose';
-
-export const gerarTokenTeste = async (matricula) => {
-    const token = await new SignJWT({ sub: matricula })
-        .setProtectedHeader({ alg: 'HS256' })
-        .setIssuedAt()
-        .setIssuer('SCAE-LOCAL')
-        .setAudience('SCAE-LEITOR')
-        .setExpirationTime('1y') // Crachás valem por 1 ano
-        .sign(SEGRED0_HMAC);
-
-    return token;
-};

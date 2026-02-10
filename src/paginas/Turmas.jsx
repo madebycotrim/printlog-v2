@@ -99,7 +99,7 @@ export default function Turmas() {
     const AcoesHeader = (
         <button
             onClick={() => definirModalAberto(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-bold shadow-md shadow-blue-600/20"
+            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition font-bold shadow-lg shadow-blue-900/20 hover:shadow-blue-900/30 active:scale-95"
         >
             <Plus size={20} /> Nova Turma
         </button>
@@ -152,74 +152,60 @@ export default function Turmas() {
                                         const isMatutino = parsed.turno === 'Matutino';
                                         const isVespertino = parsed.turno === 'Vespertino';
 
-                                        const accentColor = isMatutino ? 'text-amber-400' :
-                                            isVespertino ? 'text-sky-400' :
-                                                'text-indigo-400';
-
-                                        const borderColor = isMatutino ? 'border-amber-500' :
-                                            isVespertino ? 'border-sky-500' :
-                                                'border-indigo-500';
-
                                         // Status Colors
                                         const attendanceText = t.percentual >= 75 ? 'text-emerald-600' : t.percentual >= 60 ? 'text-amber-600' : 'text-red-600';
 
+                                        // Design V10: Color Block Header (School & Minimalist)
                                         return (
                                             <div
                                                 key={t.id}
-                                                className="bg-white rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex overflow-hidden border border-slate-200 h-36"
+                                                className="bg-white rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group overflow-hidden border border-slate-100 flex flex-col"
                                             >
-                                                {/* Left Sidebar (Gradient + Accent Border) */}
-                                                <div className={`w-28 bg-gradient-to-br from-slate-900 to-slate-800 flex flex-col items-center justify-center p-2 relative shrink-0 border-r-4 ${borderColor}`}>
-                                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Turma</span>
-                                                    <span className={`text-5xl font-black tracking-tighter ${accentColor} drop-shadow-md`}>{parsed.letra}</span>
-                                                    <div className={`absolute bottom-3 opacity-90 ${accentColor}`}>
+                                                {/* Header: Solid Color Identifier */}
+                                                <div className={`h-12 px-5 flex items-center justify-between ${isMatutino ? 'bg-amber-400' : isVespertino ? 'bg-sky-500' : 'bg-indigo-600'}`}>
+                                                    <div className="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-widest drop-shadow-sm">
                                                         {getTurnoIcon(parsed.turno)}
+                                                        {parsed.turno.toUpperCase()}
                                                     </div>
+                                                    <button
+                                                        onClick={(e) => removerTurma(t.id, e)}
+                                                        className="text-white/70 hover:text-white p-1.5 rounded-full hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100"
+                                                        title="Excluir Turma"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
                                                 </div>
 
-                                                {/* Right Content (Details) */}
-                                                <div className="flex-1 p-5 flex flex-col justify-between relative bg-white">
-                                                    {/* Header / Meta */}
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{parsed.turno}</span>
-                                                            <span className="text-lg font-bold text-slate-700 leading-tight">{parsed.serie} Série</span>
-                                                        </div>
+                                                {/* Body: Clean Stats & Big Letter */}
+                                                <div className="p-5 flex-1 flex flex-col relative">
 
-                                                        {/* Hover Delete Action */}
-                                                        <button
-                                                            onClick={(e) => removerTurma(t.id, e)}
-                                                            className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                                                            title="Excluir Turma"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
+                                                    {/* Central Letter */}
+                                                    <div className="flex-1 flex flex-col items-center justify-center py-2">
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Turma</span>
+                                                        <span className="text-6xl font-black text-slate-800 tracking-tighter leading-none">
+                                                            {parsed.letra}
+                                                        </span>
                                                     </div>
 
-                                                    {/* Stats Row */}
-                                                    <div className="flex items-center gap-6 mt-2">
-                                                        <div className="flex items-center gap-2 group/stat" title="Total de Alunos">
-                                                            <div className="p-1.5 rounded-md bg-slate-50 text-slate-400 group-hover/stat:text-blue-500 group-hover/stat:bg-blue-50 transition-colors">
-                                                                <Users size={14} />
+                                                    {/* Footer Stats Row */}
+                                                    <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                                                        <div className="flex gap-4">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Alunos</span>
+                                                                <span className="text-sm font-bold text-slate-600">{t.totalAlunos}</span>
                                                             </div>
-                                                            <span className="text-sm font-bold text-slate-600">{t.totalAlunos}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 group/stat" title="Frequência Média">
-                                                            <div className={`p-1.5 rounded-md bg-slate-50 ${attendanceText} opacity-80 group-hover/stat:opacity-100 bg-opacity-10 transition-colors`}>
-                                                                <TrendingUp size={14} />
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Frequência</span>
+                                                                <span className={`text-sm font-bold ${attendanceText}`}>{t.percentual}%</span>
                                                             </div>
-                                                            <span className={`text-sm font-bold ${attendanceText}`}>{t.percentual}%</span>
                                                         </div>
-                                                    </div>
 
-                                                    {/* Action Button (Styled) */}
-                                                    <div className="mt-auto pt-3 flex justify-end">
                                                         <button
                                                             onClick={() => abrirListaAlunos(t)}
-                                                            className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 group/btn"
+                                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isMatutino ? 'text-amber-500 bg-amber-50 hover:bg-amber-100' : isVespertino ? 'text-sky-600 bg-sky-50 hover:bg-sky-100' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'}`}
+                                                            title="Visualizar Alunos"
                                                         >
-                                                            VISUALIZAR ALUNOS
-                                                            <ArrowRight size={14} className="group-hover/btn:translate-x-0.5 transition-transform" />
+                                                            <ArrowRight size={16} />
                                                         </button>
                                                     </div>
                                                 </div>

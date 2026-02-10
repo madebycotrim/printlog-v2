@@ -13,7 +13,7 @@
 
 O **SCAE v3.0** não é apenas um leitor de QR Codes, mas uma **Plataforma de Governança Inteligente**.
 
-Ele foi projetado para garantir a segurança dos estudantes do **CEM 03**, fornecendo dados em tempo real para a coordenação e ferramentas preditivas para a redução da evasão escolar, operando com resiliência total em cenários sem conectividade.
+Ele foi projetado para garantir a segurança dos estudantes do **CEM 03**, fornecendo dados em tempo real para a coordenação, ferramentas preditivas para a redução da evasão escolar e relatórios exportáveis (CSV), operando com resiliência total em cenários sem conectividade.
 
 ---
 
@@ -76,9 +76,9 @@ Para garantir a validade jurídica dos horários registrados offline:
 
 ---
 
-### 4.2 Feedback Sonoro e Visual
+### 4.2 Feedback Sonoro (TTS) e Visual
 
-* **Sonoro:** o sistema emite bipes distintos para sucesso ou erro
+* **Voz (TTS):** o sistema anuncia o nome do aluno ao validar ("Bom dia, João")
 * **Visual:** feedbacks de cor em tela cheia (Verde/Vermelho/Amarelo)
 * **Cor do Dia:** moldura colorida dinâmica que muda diariamente, servindo como validação rápida contra prints antigos
 
@@ -86,12 +86,16 @@ Para garantir a validade jurídica dos horários registrados offline:
 
 ## 🔐 5. Segurança e Antifraude
 
-### 5.1 QR Code Assinado (HMAC)
+### 5.1 QR Code Assinado (ECDSA P-256)
 
-Diferente de QRs estáticos, o SCAE v3.0 utiliza assinaturas criptográficas:
+O SCAE v3.0 utiliza assinaturas criptográficas assimétricas de alta segurança:
 
-* **Payload:** `matricula:timestamp:assinatura_hmac`
-* **Segurança:** impede que o estudante gere seu próprio código ou utilize códigos de terceiros
+*   **Algoritmo:** ECDSA P-256 (ES256)
+*   **Chaves:**
+    *   **Privada:** Mantida offline/segura (gera o crachá)
+    *   **Pública:** Embutida no leitor (valida o crachá)
+*   **Payload:** `matricula` + `timestamp` + `assinatura`
+*   **Segurança:** Impossível forjar crachás sem a chave privada. O Leitor verifica a assinatura offline.
 
 ---
 

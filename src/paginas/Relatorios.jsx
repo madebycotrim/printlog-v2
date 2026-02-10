@@ -70,13 +70,53 @@ export default function Relatorios() {
         gerarRelatorios();
     }, []);
 
+    const exportarCSV = () => {
+        if (!dados) return;
+
+        // 1. Cabeçalho
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Turma;Total Alunos;Presentes;Ausentes;%\n";
+
+        // 2. Dados por Turma
+        dados.porTurma.forEach(t => {
+            const porcentagem = t.total > 0 ? Math.round((t.presentes / t.total) * 100) : 0;
+            csvContent += `${t.turma};${t.total};${t.presentes};${t.total - t.presentes};${porcentagem}%\n`;
+        });
+
+        // 3. Espaço
+        csvContent += "\n\nRelatorio de Atrasos\n";
+        csvContent += "Nome;Turma;Hora Entrada\n";
+
+        // 4. Dados Atrasos
+        dados.alunosAtrasados.forEach(a => {
+            csvContent += `${a.nome_completo};${a.turma_id};${format(new Date(a.hora), 'HH:mm:ss')}\n`;
+        });
+
+        // 5. Download
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `relatorio_scae_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const AcoesHeader = (
-        <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition font-medium shadow-md md:hidden"
-        >
-            <Download size={18} /> Imprimir
-        </button>
+        <div className="flex gap-2">
+            <button
+                onClick={exportarCSV}
+                className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition font-medium shadow-md"
+            >
+                <FileText size={18} /> Baixar CSV
+            </button>
+            <button
+                onClick={() => window.print()}
+                className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition font-medium shadow-md md:hidden"
+            >
+                <Download size={18} /> Imprimir
+            </button>
+        </div>
     );
 
     if (carregando) return <div className="p-8 text-center text-slate-500 animate-pulse">Gerando relatórios e análises...</div>;

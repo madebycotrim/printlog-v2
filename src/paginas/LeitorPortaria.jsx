@@ -12,6 +12,28 @@ import { obterCorDoDia } from '../utilitarios/validacaoVisual';
 import { validarQRSeguro } from '../utilitarios/seguranca';
 import { obterDataCorrigida } from '../utilitarios/relogio';
 
+// v3.0 - TTS (Text-to-Speech)
+const anunciarNome = (nome) => {
+    if (!('speechSynthesis' in window)) return;
+
+    // Cancelar falas anteriores
+    window.speechSynthesis.cancel();
+
+    // Criar nova fala
+    const mensagem = new SpeechSynthesisUtterance(nome.toLowerCase()); // Lowercase ajuda na pronúncia às vezes
+    mensagem.lang = 'pt-BR';
+    mensagem.rate = 1.1; // Um pouco mais rápido que o normal
+    mensagem.pitch = 1.0;
+
+    // Tentar encontrar voz em português
+    const vozes = window.speechSynthesis.getVoices();
+    const vozPT = vozes.find(v => v.lang.includes('PT') || v.lang.includes('br'));
+    if (vozPT) mensagem.voice = vozPT;
+
+    window.speechSynthesis.speak(mensagem);
+};
+
+
 // Hook de status online robusto
 function usarStatusConexao() {
     const [estaOnline, definirEstaOnline] = useState(navigator.onLine);
@@ -142,6 +164,10 @@ export default function LeitorPortaria() {
                 return;
             }
 
+            // Define saudação para TTS
+            const horaAtual = new Date().getHours();
+            const saudacao = horaAtual < 12 ? 'Bom dia, ' : horaAtual < 18 ? 'Boa tarde, ' : 'Boa noite, ';
+
             // 3. Registrar Acesso
             // Lógica simples: Se tem registro hoje par (entrada, saída), próximo é entrada. Se ímpar (entrada), próximo é saída.
             const hoje = format(obterDataCorrigida(), 'yyyy-MM-dd');
@@ -163,6 +189,8 @@ export default function LeitorPortaria() {
             await bancoLocal.salvarRegistro(registro);
 
             tocarBeep('sucesso');
+            anunciarNome(saudacao + aluno.nome_completo.split(' ')[0]); // "Bom dia, João"
+
             definirUltimoResultado({
                 status: 'sucesso',
                 mensagem: `${tipo} REGISTRADA`,
