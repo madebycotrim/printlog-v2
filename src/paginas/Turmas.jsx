@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { bancoLocal } from '../servicos/bancoLocal';
 import LayoutAdministrativo from '../componentes/LayoutAdministrativo';
 import ModalListaAlunos from '../componentes/ModalListaAlunos';
-import { Plus, Trash2, Users, Layers, X, List, TrendingUp, Sun, Moon, Sunset, ArrowRight } from 'lucide-react';
+import { Plus, Trash2, Users, Layers, X, List, TrendingUp, Sun, Moon, Sunset, ArrowRight, GraduationCap, Clock, CheckCircle2, XCircle, ChevronRight } from 'lucide-react';
 
 export default function Turmas() {
     const [turmas, definirTurmas] = useState([]);
@@ -144,7 +144,7 @@ export default function Turmas() {
                                     <div className="h-px bg-slate-200 flex-1"></div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                <div className="flex flex-wrap gap-3">
                                     {turmasDaSerie.map((t) => {
                                         const parsed = t.parsed || { serie: '?', letra: '?', turno: '' };
 
@@ -152,65 +152,73 @@ export default function Turmas() {
                                         const isMatutino = parsed.turno === 'Matutino';
                                         const isVespertino = parsed.turno === 'Vespertino';
 
-                                        // Status Colors
-                                        const attendanceText = t.percentual >= 75 ? 'text-emerald-600' : t.percentual >= 60 ? 'text-amber-600' : 'text-red-600';
+                                        // Design V34: UX Polished (Empty States & Hover Cues)
+                                        const isEmpty = t.totalAlunos === 0;
 
-                                        // Design V12: Structured Minimalist (Organized & Clean)
                                         return (
                                             <div
                                                 key={t.id}
-                                                className={`bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:border-slate-200 transition-all duration-300 group flex flex-col h-44 relative overflow-hidden`}
+                                                className="group relative flex flex-col min-w-[150px] max-w-[190px] flex-grow pt-7 pb-1" // Increased top padding for the tag
                                             >
-                                                {/* Top Indicator Line */}
-                                                <div className={`absolute top-0 left-0 w-1.5 h-full ${isMatutino ? 'bg-amber-400' : isVespertino ? 'bg-sky-400' : 'bg-indigo-400'}`}></div>
+                                                {/* The Integrated Tab (Delete) - Hidden by default, Slides Up on Hover */}
+                                                <button
+                                                    onClick={(e) => removerTurma(t.id, e)}
+                                                    className="absolute top-8 right-4 z-0 flex h-8 w-10 items-center justify-center rounded-t-lg border border-b-0 border-slate-200 bg-slate-50 text-slate-400 opacity-0 transition-all duration-300 ease-out group-hover:-translate-y-8 group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200"
+                                                    title="Excluir Turma"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
 
-                                                {/* Header Portion */}
-                                                <div className="pl-6 pr-5 pt-5 pb-2 flex justify-between items-start">
-                                                    <div className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-slate-50 ${isMatutino ? 'text-amber-600' : isVespertino ? 'text-sky-600' : 'text-indigo-600'}`}>
-                                                        {parsed.turno.toUpperCase()}
-                                                    </div>
-                                                    <button
-                                                        onClick={(e) => removerTurma(t.id, e)}
-                                                        className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                                                        title="Excluir Turma"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
+                                                {/* Main Card Content - Placed IN FRONT */}
+                                                <div
+                                                    onClick={() => abrirListaAlunos(t)}
+                                                    className="relative z-10 flex flex-col justify-between overflow-hidden rounded-xl rounded-tr-none border border-slate-200 bg-white p-4 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md select-none cursor-pointer"
+                                                >
+                                                    {/* Shift Accent Line (Top) */}
+                                                    <div className={`absolute top-0 left-0 right-0 h-1 ${isMatutino ? 'bg-amber-400' : isVespertino ? 'bg-sky-400' : 'bg-indigo-500'}`}></div>
 
-                                                {/* Main Content: Organized Grid */}
-                                                <div className="pl-6 pr-5 flex-1 flex flex-col justify-center">
-                                                    <div className="flex items-baseline gap-2">
-                                                        <span className="text-sm font-bold text-slate-400 uppercase tracking-tight">Turma</span>
-                                                        <span className="text-5xl font-black text-slate-800 tracking-tighter leading-none">
-                                                            {parsed.letra}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Footer: Stats & Action Separated */}
-                                                <div className="pl-6 pr-5 pb-5 pt-3 border-t border-slate-50 flex items-center justify-between">
-                                                    <div className="flex gap-6">
+                                                    {/* Header: Identity */}
+                                                    <div className="flex items-start justify-between mb-4 pt-1">
                                                         <div className="flex flex-col">
-                                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Alunos</span>
-                                                            <span className="text-xs font-bold text-slate-600">{t.totalAlunos}</span>
+                                                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Turma</span>
+                                                            <span className="text-4xl font-black text-slate-800 leading-none mt-1">{parsed.letra}</span>
                                                         </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Freq.</span>
-                                                            <div className={`text-xs font-bold flex items-center gap-1 ${attendanceText}`}>
-                                                                {t.percentual}%
-                                                                <div className={`w-1.5 h-1.5 rounded-full ${t.percentual >= 75 ? 'bg-emerald-500' : t.percentual >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}></div>
-                                                            </div>
+                                                        <div className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${isMatutino ? 'bg-amber-50 text-amber-700 border-amber-100' : isVespertino ? 'bg-sky-50 text-sky-700 border-sky-100' : 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
+                                                            {isMatutino ? <Sun size={10} /> : isVespertino ? <Sunset size={10} /> : <Moon size={10} />}
+                                                            {parsed.turno}
                                                         </div>
                                                     </div>
 
-                                                    <button
-                                                        onClick={() => abrirListaAlunos(t)}
-                                                        className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all"
-                                                        title="Detalhes"
-                                                    >
-                                                        <ArrowRight size={14} />
-                                                    </button>
+                                                    {/* Middle: Series Info */}
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <span className="text-xs font-bold text-slate-500">{parsed.serie} Série</span>
+                                                        <div className="flex items-center gap-1 text-xs font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">
+                                                            <Users size={12} />
+                                                            {t.totalAlunos}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Bottom: Stats Bar OR Empty State */}
+                                                    <div>
+                                                        <div className="mb-1.5 flex items-end justify-between text-[10px] font-bold uppercase tracking-wide">
+                                                            <span className="text-slate-400">{isEmpty ? 'Status' : 'Presença'}</span>
+                                                            <span className={isEmpty ? 'text-slate-300' : (t.percentual >= 75 ? 'text-emerald-600' : 'text-rose-600')}>
+                                                                {isEmpty ? 'Sem Alunos' : `${t.percentual}%`}
+                                                            </span>
+                                                        </div>
+                                                        {/* Progress Bar Container */}
+                                                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                                                            <div
+                                                                className={`h-full rounded-full transition-all duration-500 ${isEmpty ? 'bg-slate-200' : (t.percentual >= 75 ? 'bg-emerald-500' : 'bg-rose-500')}`}
+                                                                style={{ width: isEmpty ? '0%' : `${t.percentual}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Hover Interaction Cue (Chevron) */}
+                                                    <div className="absolute bottom-2 right-2 opacity-0 transition-all duration-300 transform translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 text-slate-300">
+                                                        <ChevronRight size={16} />
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
@@ -219,6 +227,133 @@ export default function Turmas() {
                             </div>
                         );
                     })}
+
+
+
+                    {/* Modal Nova Turma */}
+                    {
+                        modalAberto && (
+                            <div
+                                className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity"
+                                onClick={(e) => {
+                                    // Close only if clicking the backdrop itself
+                                    if (e.target === e.currentTarget) definirModalAberto(false);
+                                }}
+                            >
+                                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-[scaleIn_0.2s_ease-out]">
+                                    <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-start">
+                                        <div>
+                                            <h2 className="text-xl font-bold text-slate-800">Nova Turma</h2>
+                                            <p className="text-sm text-slate-500">Monte a identificação da turma selecionando as opções.</p>
+                                        </div>
+                                        <button
+                                            onClick={() => definirModalAberto(false)}
+                                            className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-200 rounded-lg transition-colors"
+                                        >
+                                            <X size={24} />
+                                        </button>
+                                    </div>
+
+                                    <div className="p-6 space-y-6">
+                                        {/* 1. Série */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">1. Série (Ano)</label>
+                                            <div className="grid grid-cols-3 gap-3">
+                                                {['1ª', '2ª', '3ª'].map(s => (
+                                                    <button
+                                                        key={s}
+                                                        type="button"
+                                                        onClick={() => definirNovaTurma(prev => ({ ...prev, serie: s }))}
+                                                        className={`p-3 rounded-xl border-2 font-black text-lg transition-all ${novaTurma.serie === s
+                                                            ? 'border-blue-500 bg-blue-50 text-blue-600 shadow-sm'
+                                                            : 'border-slate-100 text-slate-400 hover:border-slate-200 hover:bg-slate-50'
+                                                            }`}
+                                                    >
+                                                        {s}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* 2. Turno */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">2. Turno</label>
+                                            <div className="grid grid-cols-3 gap-3">
+                                                {[
+                                                    { id: 'Matutino', label: 'Manhã', icon: '☀️' },
+                                                    { id: 'Vespertino', label: 'Tarde', icon: '🌤️' },
+                                                    { id: 'Noturno', label: 'Noite', icon: '🌙' }
+                                                ].map(t => (
+                                                    <button
+                                                        key={t.id}
+                                                        type="button"
+                                                        onClick={() => definirNovaTurma(prev => ({ ...prev, turno: t.id }))}
+                                                        className={`p-3 rounded-xl border-2 font-bold text-sm transition-all flex flex-col items-center gap-1 ${novaTurma.turno === t.id
+                                                            ? 'border-orange-400 bg-orange-50 text-orange-600 shadow-sm'
+                                                            : 'border-slate-100 text-slate-400 hover:border-slate-200 hover:bg-slate-50'
+                                                            }`}
+                                                    >
+                                                        <span className="text-xl">{t.icon}</span>
+                                                        {t.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* 3. Turma (Letra) */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">3. Turma</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'].map(l => (
+                                                    <button
+                                                        key={l}
+                                                        type="button"
+                                                        onClick={() => definirNovaTurma(prev => ({ ...prev, letra: l }))}
+                                                        className={`w-10 h-10 rounded-lg border-2 font-bold transition-all ${novaTurma.letra === l
+                                                            ? 'border-slate-800 bg-slate-800 text-white shadow-lg'
+                                                            : 'border-slate-100 text-slate-400 hover:border-slate-300 hover:text-slate-600'
+                                                            }`}
+                                                    >
+                                                        {l}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Visualização e Ação */}
+                                        <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                                            <div className="flex flex-col">
+                                                <span className="text-xs text-slate-400 font-bold uppercase">Resultado</span>
+                                                <span className="text-2xl font-black text-slate-800">
+                                                    {novaTurma.serie && novaTurma.letra
+                                                        ? `${novaTurma.serie} ${novaTurma.letra} - ${novaTurma.turno || '?'}`
+                                                        : 'Selecionar...'}
+                                                </span>
+                                            </div>
+                                            <button
+                                                onClick={adicionarTurma}
+                                                disabled={!novaTurma.serie || !novaTurma.letra || !novaTurma.turno}
+                                                className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                            >
+                                                <Plus size={20} /> Criar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    {/* Modal Lista de Alunos */}
+                    {
+                        modalAlunosAberto && turmaSelecionada && (
+                            <ModalListaAlunos
+                                turma={turmaSelecionada}
+                                alunos={alunosDaTurma}
+                                aoFechar={() => definirModalAlunosAberto(false)}
+                            />
+                        )
+                    }
                 </div>
             )}
 
