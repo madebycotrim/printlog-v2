@@ -27,10 +27,10 @@ export const validarQRSeguro = async (token) => {
             dados: payload
         };
     } catch (erro) {
-        console.error("Erro na validação do token:", erro);
+        console.error("Erro na validação do token:", erro.code, erro.message);
 
         let mensagemErro = 'Token Inválido';
-        if (erro.code === 'ERR_JWT_EXPIRED') mensagemErro = 'QR Code Expirado';
+        if (erro.code === 'ERR_JWT_EXPIRED' || erro.code === 'JWTExpired') mensagemErro = 'QR Code Expirado';
         if (erro.code === 'ERR_JWS_SIGNATURE_VERIFICATION_FAILED') mensagemErro = 'Assinatura Falsa';
 
         return {

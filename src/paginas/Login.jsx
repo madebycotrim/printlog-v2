@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { usarAutenticacao } from '../contexts/ContextoAutenticacao';
+import { useAutenticacao } from '../contexts/ContextoAutenticacao';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Zap, WifiOff, Lock, LayoutGrid, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function PaginaLogin() {
-    const { entrar } = usarAutenticacao();
+    const { entrar } = useAutenticacao();
     const navegar = useNavigate();
     const [carregando, definirCarregando] = useState(false);
     const [erroLogin, definirErroLogin] = useState('');

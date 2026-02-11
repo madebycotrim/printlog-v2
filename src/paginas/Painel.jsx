@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { bancoLocal } from '../servicos/bancoLocal';
 import { servicoSincronizacao } from '../servicos/sincronizacao';
-import { api } from '../servicos/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -27,7 +26,7 @@ export default function Painel() {
     const [alunosPresentes, definirAlunosPresentes] = useState([]);
     const [ultimosAcessos, definirUltimosAcessos] = useState([]);
     const [dadosPorTurma, definirDadosPorTurma] = useState([]);
-    const [carregando, definirCarregando] = useState(true);
+    const [, definirCarregando] = useState(true);
     const [modoEvacuacao, definirModoEvacuacao] = useState(false);
 
     const carregarDados = async () => {
@@ -243,7 +242,7 @@ export default function Painel() {
                             Ocupação por Turma (Top 5)
                         </h3>
                         <div className="space-y-4">
-                            {dadosPorTurma.map((item, idx) => (
+                            {dadosPorTurma.map((item) => (
                                 <div key={item.turma} className="group">
                                     <div className="flex justify-between text-sm mb-1">
                                         <span className="font-bold text-slate-600">{item.turma}</span>

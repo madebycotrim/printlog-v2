@@ -1,4 +1,4 @@
-import { differenceInMilliseconds } from 'date-fns';
+// import { differenceInMilliseconds } from 'date-fns';
 
 const CHAVE_DESLOCAMENTO = 'scae_relogio_offset';
 

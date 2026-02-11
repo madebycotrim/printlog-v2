@@ -3,7 +3,7 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 const ID_PROJETO_FIREBASE = 'scae-b7f8c';
 
 async function processarRequisicao(contexto) {
-    const { request: requisicao, env: ambiente, next: proximo } = contexto;
+    const { request: requisicao, next: proximo } = contexto;
 
     // Permitir OPTIONS (Preverificação CORS)
     if (requisicao.method === 'OPTIONS') {

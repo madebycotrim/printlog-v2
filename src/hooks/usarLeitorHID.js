@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-export function usarLeitorHID(aoLerCodigo) {
+export function useLeitorHID(aoLerCodigo) {
     const [conectado, definirConectado] = useState(false);
     const [dispositivo, definirDispositivo] = useState(null);
     const bufferRef = useRef('');
@@ -29,14 +29,15 @@ export function usarLeitorHID(aoLerCodigo) {
     };
 
     // Lidar com os dados brutos do HID
-    const lidarComEntrada = (evento) => {
-        const { data: dados } = evento;
+    const lidarComEntrada = () => {
+        // Implementação futura para leitura direta de HID
+        // const { data: dados } = evento;
         // A maioria dos leitores envia caracteres ASCII ou Scancodes
         // Esta implementação é genérica e pode precisar de ajustes baseados no hardware específico
         // Assume que o leitor envia dados convertíveis para Uint8Array
 
-        const arrayBytes = new Uint8Array(dados.buffer);
-        let caractere = '';
+        // const arrayBytes = new Uint8Array(dados.buffer);
+        // let caractere = '';
 
         // Tentativa simplificada de decodificação (para leitores em modo teclado/HID POS)
         // Nota: Scancodes de teclado USB são complexos para decodificar manualmente sem uma tabela grande

@@ -4,7 +4,8 @@ import { autenticacao } from '../servicos/firebase';
 
 const ContextoAutenticacao = createContext();
 
-export function usarAutenticacao() {
+// eslint-disable-next-line react-refresh/only-export-components
+export function useAutenticacao() {
     return useContext(ContextoAutenticacao);
 }
 

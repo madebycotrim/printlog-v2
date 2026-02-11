@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { usarAutenticacao } from '../contexts/ContextoAutenticacao';
+import { useAutenticacao } from '../contexts/ContextoAutenticacao';
 import {
     LayoutDashboard,
     Users,
@@ -14,22 +14,22 @@ import {
 } from 'lucide-react';
 
 export default function LayoutAdministrativo({ children, titulo, subtitulo, acoes }) {
-    const { usuarioAtual, sair } = usarAutenticacao();
+    const { usuarioAtual, sair } = useAutenticacao();
     const navegar = useNavigate();
     const localizacao = useLocation();
     const [menuAberto, definirMenuAberto] = useState(false);
 
     const itensMenu = [
         { icone: LayoutDashboard, texto: 'Painel', rota: '/painel' },
-        { icone: Layers, texto: 'Turmas', rota: '/turmas' },
         { icone: Users, texto: 'Alunos', rota: '/alunos' },
+        { icone: Layers, texto: 'Turmas', rota: '/turmas' },
         { icone: FileText, texto: 'Relatórios', rota: '/relatorios' },
     ];
 
     const aoSair = async () => {
         try {
             await sair();
-            navegar('/');
+            navegar('/login');
         } catch (erro) {
             console.error('Erro ao sair', erro);
         }

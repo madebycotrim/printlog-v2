@@ -20,21 +20,26 @@ export default function ModalListaAlunos({ turma, alunos, aoFechar }) {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-[scaleIn_0.2s_ease-out] flex flex-col max-h-[85vh]">
 
                 {/* Cabeçalho */}
-                <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm">{turma.id}</span>
+                <div className="p-6 flex items-start gap-4 bg-blue-50 border-b border-blue-100">
+                    <div className="p-3 rounded-xl bg-white shadow-sm shrink-0">
+                        <User className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                        <h2 className="text-xl font-bold text-slate-800 leading-tight">
+                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-lg mr-2 inline-block">
+                                {turma.interpretado ? `${turma.interpretado.serie} ${turma.interpretado.letra} - ${turma.interpretado.turno}` : turma.id}
+                            </span>
                             Lista de Alunos
                         </h2>
-                        <p className="text-sm text-slate-500">
-                            Total de {alunos.length} aluno{alunos.length !== 1 && 's'} matriculados
+                        <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+                            Gerencie os alunos matriculados nesta turma. Total: {alunos.length}.
                         </p>
                     </div>
                     <button
                         onClick={aoFechar}
-                        className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-200 rounded-lg transition-colors"
+                        className="text-slate-400 hover:text-slate-600 bg-white/50 hover:bg-white p-1 rounded-lg transition-colors"
                     >
-                        <X size={24} />
+                        <X size={20} />
                     </button>
                 </div>
 
