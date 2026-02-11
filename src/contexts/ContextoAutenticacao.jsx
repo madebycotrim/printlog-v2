@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { auth } from '../servicos/firebase';
+import { autenticacao } from '../servicos/firebase';
 
 const ContextoAutenticacao = createContext();
 
@@ -13,7 +13,7 @@ export function ProvedorAutenticacao({ children }) {
     const [carregando, definirCarregando] = useState(true);
 
     useEffect(() => {
-        const cancelarInscricao = onAuthStateChanged(auth, async (usuario) => {
+        const cancelarInscricao = onAuthStateChanged(autenticacao, async (usuario) => {
             if (usuario) {
                 // Atualiza token se necessário
                 const token = await usuario.getIdToken();
@@ -26,18 +26,18 @@ export function ProvedorAutenticacao({ children }) {
         return cancelarInscricao;
     }, []);
 
-    const entrar = (params = {}) => {
+    const entrar = (parametros = {}) => {
         const provedor = new GoogleAuthProvider();
         // Opcional: Forçar seleção de conta e permitir restrição de domínio
         provedor.setCustomParameters({
             prompt: 'select_account',
-            ...params
+            ...parametros
         });
-        return signInWithPopup(auth, provedor);
+        return signInWithPopup(autenticacao, provedor);
     };
 
     const sair = () => {
-        return signOut(auth);
+        return signOut(autenticacao);
     };
 
     const valor = {

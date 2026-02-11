@@ -1,20 +1,18 @@
-export async function onRequestGet(contexto) {
+async function processarBuscaAlunos(contexto) {
     // Sincronização: Retornar todos os alunos ativos para cache local
     try {
         const { results } = await contexto.env.DB_SCAE.prepare(
             "SELECT * FROM alunos"
         ).all();
-        // 'results' é propriedade do D1, não posso renomear a desestruturação diretamente, mas posso alocar para variável PT
-        const resultados = results;
-        return Response.json(resultados);
+        // 'results' é propriedade do D1 (inglês), mantemos a extração mas retornamos como dados
+        return Response.json(results);
     } catch (erro) {
         return new Response(erro.message, { status: 500 });
     }
 }
 
-export async function onRequestPost(contexto) {
+async function processarCriacaoAluno(contexto) {
     // Apenas Admin: Registrar novo aluno
-    // TODO: Adicionar verificação estrita de auth
     try {
         const { matricula, nome_completo, turma_id } = await contexto.request.json();
 
@@ -32,7 +30,7 @@ export async function onRequestPost(contexto) {
     }
 }
 
-export async function onRequestDelete(contexto) {
+async function processarRemocaoAluno(contexto) {
     try {
         const url = new URL(contexto.request.url);
         const matricula = url.searchParams.get("matricula");
@@ -50,3 +48,10 @@ export async function onRequestDelete(contexto) {
         return new Response(erro.message, { status: 500 });
     }
 }
+
+// Exportações com Alias para o Framework
+export {
+    processarBuscaAlunos as onRequestGet,
+    processarCriacaoAluno as onRequestPost,
+    processarRemocaoAluno as onRequestDelete
+};

@@ -15,13 +15,13 @@ export function usarLeitorHID(aoLerCodigo) {
             const dispositivos = await navigator.hid.requestDevice({ filters: [] });
 
             if (dispositivos.length > 0) {
-                const device = dispositivos[0];
-                await device.open();
-                definirDispositivo(device);
+                const dispositivoHID = dispositivos[0];
+                await dispositivoHID.open();
+                definirDispositivo(dispositivoHID);
                 definirConectado(true);
 
-                device.addEventListener('inputreport', lidarComEntrada);
-                console.log(`Leitor HID conectado: ${device.productName}`);
+                dispositivoHID.addEventListener('inputreport', lidarComEntrada);
+                console.log(`Leitor HID conectado: ${dispositivoHID.productName}`);
             }
         } catch (erro) {
             console.error('Erro ao conectar leitor HID:', erro);
@@ -30,13 +30,13 @@ export function usarLeitorHID(aoLerCodigo) {
 
     // Lidar com os dados brutos do HID
     const lidarComEntrada = (evento) => {
-        const { data } = evento;
+        const { data: dados } = evento;
         // A maioria dos leitores envia caracteres ASCII ou Scancodes
         // Esta implementação é genérica e pode precisar de ajustes baseados no hardware específico
         // Assume que o leitor envia dados convertíveis para Uint8Array
 
-        const array = new Uint8Array(data.buffer);
-        let char = '';
+        const arrayBytes = new Uint8Array(dados.buffer);
+        let caractere = '';
 
         // Tentativa simplificada de decodificação (para leitores em modo teclado/HID POS)
         // Nota: Scancodes de teclado USB são complexos para decodificar manualmente sem uma tabela grande

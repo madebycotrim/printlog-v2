@@ -1,74 +1,71 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 
-const FIREBASE_PROJECT_ID = 'scae-cem03'; // TODO: Get from env if possible, or hardcode for now as per user plan
+const ID_PROJETO_FIREBASE = 'scae-b7f8c';
 
-export async function onRequest(context) {
-    const { request, env } = context;
+async function processarRequisicao(contexto) {
+    const { request: requisicao, env: ambiente, next: proximo } = contexto;
 
-    // Allow OPTIONS (CORS preflight)
-    if (request.method === 'OPTIONS') {
-        return context.next();
+    // Permitir OPTIONS (Preverificação CORS)
+    if (requisicao.method === 'OPTIONS') {
+        return proximo();
     }
 
     try {
-        const authHeader = request.headers.get('Authorization');
+        const cabecalhoAutenticacao = requisicao.headers.get('Authorization');
 
-        // DEV BYPASS: Allow localhost to skip auth checks if needed for rapid testing
-        const url = new URL(request.url);
+        // DEV BYPASS: Permitir localhost pular checagens de autenticação se necessário para testes rápidos
+        const url = new URL(requisicao.url);
         if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
-            // Em dev, se não tiver token, deixa passar (mas sem user context)
-            if (!authHeader) {
-                console.warn('DEV MODE: Bypass de Auth para Localhost');
-                return context.next();
+            // Em dev, se não tiver token, deixa passar (mas sem contexto de usuário)
+            if (!cabecalhoAutenticacao) {
+                console.warn('MODO DEV: Bypass de Auth para Localhost');
+                return proximo();
             }
         }
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            // Allow unauthenticated GET for now? Or strict? 
-            // Plan says "Protect API Routes".
-            // But Access Sync sends POST.
-            // Student Sync sends GET.
-            // Deployment verification might fail if I block everything immediately without token.
-            // But I implemented `api.js` to send token.
-            // Let's be strict.
-            throw new Error('Missing or invalid Authorization header');
+        if (!cabecalhoAutenticacao || !cabecalhoAutenticacao.startsWith('Bearer ')) {
+            // Rejeitar se não houver token (exceto no bypass acima)
+            throw new Error('Cabeçalho de autorização ausente ou inválido');
         }
 
-        const token = authHeader.split(' ')[1];
+        const token = cabecalhoAutenticacao.split(' ')[1];
 
-        // 1. Verify Token Signature & Claims
-        const JWKS = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
+        // 1. Verificar Assinatura do Token e Reivindicações (Claims)
+        const CONJUNTO_CHAVES_JSON = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
 
-        const { payload } = await jwtVerify(token, JWKS, {
-            issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
-            audience: FIREBASE_PROJECT_ID,
+        const { payload: dadosToken } = await jwtVerify(token, CONJUNTO_CHAVES_JSON, {
+            issuer: `https://securetoken.google.com/${ID_PROJETO_FIREBASE}`,
+            audience: ID_PROJETO_FIREBASE,
         });
 
-        // 2. Enforce Domain Restriction
-        const email = payload.email || '';
+        // 2. Impor Restrição de Domínio
+        const email = dadosToken.email || '';
 
-        // Allow ONLY specific domains or dev/admin emails
-        const allowedDomains = ['@edu.se.df.gov.br'];
-        const allowedEmails = ['madebycotrim@gmail.com'];
+        // Permitir APENAS domínios específicos ou emails de admin/dev
+        const dominiosPermitidos = ['@edu.se.df.gov.br'];
+        const emailsPermitidos = ['madebycotrim@gmail.com'];
 
-        const isAllowed = allowedDomains.some(domain => email.endsWith(domain)) || allowedEmails.includes(email);
+        const acessoPermitido = dominiosPermitidos.some(dominio => email.endsWith(dominio)) || emailsPermitidos.includes(email);
 
-        if (!isAllowed) {
-            // Log attempt
-            console.warn(`Blocked login attempt from: ${email}`);
-            throw new Error('Email unauthorized. Use an institutional account.');
+        if (!acessoPermitido) {
+            // Registrar tentativa bloqueada
+            console.warn(`Tentativa de login bloqueada de: ${email}`);
+            throw new Error('Email não autorizado. Use uma conta institucional.');
         }
 
-        // Attach user to context for downstream functions
-        context.data.user = payload;
+        // Anexar usuário ao contexto para funções subsequentes
+        contexto.data.user = dadosToken;
 
-        return context.next();
+        return proximo();
 
-    } catch (err) {
-        console.error('Auth Error:', err.message);
-        return new Response(JSON.stringify({ error: err.message }), {
+    } catch (erro) {
+        console.error('Erro de Autenticação:', erro.message);
+        return new Response(JSON.stringify({ erro: erro.message }), {
             status: 401,
             headers: { 'Content-Type': 'application/json' }
         });
     }
 }
+
+// Exportação com Alias para o Framework
+export { processarRequisicao as onRequest };

@@ -1,4 +1,4 @@
-import { auth } from './firebase';
+import { autenticacao } from './firebase';
 
 const URL_BASE = '/api';
 
@@ -7,9 +7,10 @@ async function obterCabecalhos() {
         'Content-Type': 'application/json',
     };
 
-    if (auth.currentUser) {
-        const token = await auth.currentUser.getIdToken();
-        console.log('[API] Token obtido:', token.substring(0, 10) + '...');
+    if (autenticacao.currentUser) {
+        const token = await autenticacao.currentUser.getIdToken();
+        const email = autenticacao.currentUser.email;
+        console.log(`[API] Token obtido para: ${email}`);
         cabecalhos['Authorization'] = `Bearer ${token}`;
     } else {
         console.warn('[API] Usuário não autenticado. Nenhum token enviado.');
@@ -22,7 +23,11 @@ export const api = {
     obter: async (rota) => {
         const cabecalhos = await obterCabecalhos();
         const resposta = await fetch(`${URL_BASE}${rota}`, { headers: cabecalhos });
-        if (!resposta.ok) throw new Error(`Erro na API: ${resposta.statusText}`);
+        if (!resposta.ok) {
+            const textoErro = await resposta.text();
+            console.error(`[API] Erro ${resposta.status} em GET ${rota}:`, textoErro);
+            throw new Error(`Erro na API: ${resposta.statusText} - ${textoErro}`);
+        }
         return resposta.json();
     },
 
@@ -33,7 +38,11 @@ export const api = {
             headers: cabecalhos,
             body: JSON.stringify(dados)
         });
-        if (!resposta.ok) throw new Error(`Erro na API: ${resposta.statusText}`);
+        if (!resposta.ok) {
+            const textoErro = await resposta.text();
+            console.error(`[API] Erro ${resposta.status} em POST ${rota}:`, textoErro);
+            throw new Error(`Erro na API: ${resposta.statusText} - ${textoErro}`);
+        }
         // Tratar 201 Created ou 200 OK
         const texto = await resposta.text();
         try {
@@ -49,7 +58,11 @@ export const api = {
             method: 'DELETE',
             headers: cabecalhos
         });
-        if (!resposta.ok) throw new Error(`Erro na API: ${resposta.statusText}`);
+        if (!resposta.ok) {
+            const textoErro = await resposta.text();
+            console.error(`[API] Erro ${resposta.status}:`, textoErro);
+            throw new Error(`Erro na API: ${resposta.statusText} - ${textoErro}`);
+        }
         return true;
     }
 };

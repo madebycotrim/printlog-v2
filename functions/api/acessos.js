@@ -1,4 +1,4 @@
-export async function onRequestPost(contexto) {
+async function processarSincronizacaoAcessos(contexto) {
     // Sincronizar registros offline
     try {
         const registros = await contexto.request.json();
@@ -30,3 +30,6 @@ export async function onRequestPost(contexto) {
         return new Response(erro.message, { status: 500 });
     }
 }
+
+// Exportações com Alias para o Framework
+export { processarSincronizacaoAcessos as onRequestPost };

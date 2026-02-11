@@ -25,10 +25,10 @@ export const importadorPlanilhas = {
         let indiceTurma = -1;
 
         // Tenta encontrar colunas pelo nome (padrão SIGE/i-Educar)
-        cabecalhos.forEach((col, index) => {
-            if (col.includes('matr') || col.includes('cod') || col.includes('id')) indiceMatricula = index;
-            if (col.includes('nome') || col.includes('aluno')) indiceNome = index;
-            if (col.includes('turma') || col.includes('serie') || col.includes('ano')) indiceTurma = index;
+        cabecalhos.forEach((coluna, indice) => {
+            if (coluna.includes('matr') || coluna.includes('cod') || coluna.includes('id')) indiceMatricula = indice;
+            if (coluna.includes('nome') || coluna.includes('aluno')) indiceNome = indice;
+            if (coluna.includes('turma') || coluna.includes('serie') || coluna.includes('ano')) indiceTurma = indice;
         });
 
         const alunos = [];

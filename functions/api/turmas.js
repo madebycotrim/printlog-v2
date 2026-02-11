@@ -1,25 +1,28 @@
-export async function onRequestGet(contexto) {
+async function processarBuscaTurmas(contexto) {
     try {
         const { results } = await contexto.env.DB_SCAE.prepare(
             "SELECT * FROM turmas ORDER BY id"
         ).all();
+        // Mapeando para 'resultados' para manter padrão PT-BR no retorno se necessário, 
+        // mas o D1 retorna 'results'. Vamos manter 'results' na extração e retornar direto ou mapear.
+        // O código original retornava results direto.
         return Response.json(results);
     } catch (erro) {
         return new Response(erro.message, { status: 500 });
     }
 }
 
-export async function onRequestPost(contexto) {
+async function processarCriacaoTurma(contexto) {
     try {
-        const { id, criado_em } = await contexto.request.json();
+        const { id, serie, letra, turno, ano_letivo, criado_em } = await contexto.request.json();
 
         if (!id) {
             return new Response("ID da turma obrigatório", { status: 400 });
         }
 
         await contexto.env.DB_SCAE.prepare(
-            "INSERT INTO turmas (id, criado_em) VALUES (?, ?)"
-        ).bind(id, criado_em || new Date().toISOString()).run();
+            "INSERT INTO turmas (id, serie, letra, turno, ano_letivo, criado_em) VALUES (?, ?, ?, ?, ?, ?)"
+        ).bind(id, serie, letra, turno, ano_letivo, criado_em || new Date().toISOString()).run();
 
         return new Response("Turma criada", { status: 201 });
     } catch (erro) {
@@ -27,7 +30,7 @@ export async function onRequestPost(contexto) {
     }
 }
 
-export async function onRequestDelete(contexto) {
+async function processarRemocaoTurma(contexto) {
     try {
         const url = new URL(contexto.request.url);
         const id = url.searchParams.get("id");
@@ -45,3 +48,10 @@ export async function onRequestDelete(contexto) {
         return new Response(erro.message, { status: 500 });
     }
 }
+
+// Exportações com Alias para o Framework (Cloudflare Pages Functions exige esses nomes)
+export {
+    processarBuscaTurmas as onRequestGet,
+    processarCriacaoTurma as onRequestPost,
+    processarRemocaoTurma as onRequestDelete
+};

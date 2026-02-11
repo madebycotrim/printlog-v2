@@ -98,19 +98,19 @@ export default function LeitorPortaria() {
 
     const { conectar: conectarHID, conectado: hidConectado, nomeDispositivo } = usarLeitorHID(aoLerHID);
 
-    const processarEntrada = async (inputCodigo) => {
+    const processarEntrada = async (codigoEntrada) => {
         if (!scannerAtivo || processando) return;
         definirScannerAtivo(false);
         definirProcessando(true);
 
         try {
-            let matriculaFinal = inputCodigo;
+            let matriculaFinal = codigoEntrada;
             let autentico = false;
 
             // Tentar validar como JWT (Token Seguro)
-            if (inputCodigo.length > 20 && inputCodigo.includes('.')) {
+            if (codigoEntrada.length > 20 && codigoEntrada.includes('.')) {
                 try {
-                    const resultadoValidacao = await validarQRSeguro(inputCodigo);
+                    const resultadoValidacao = await validarQRSeguro(codigoEntrada);
                     if (resultadoValidacao.valido) {
                         matriculaFinal = resultadoValidacao.matricula;
                         autentico = true;
@@ -214,7 +214,7 @@ export default function LeitorPortaria() {
         } catch (erro) {
             console.error(erro);
             tocarBeep('erro');
-            definirUltimoResultado({ status: 'erro', mensagem: 'ERRO DO SISTEMA', matriculaAlvo: inputCodigo });
+            definirUltimoResultado({ status: 'erro', mensagem: 'ERRO DO SISTEMA', matriculaAlvo: codigoEntrada });
             resetarScannerEm(3000);
         } finally {
             definirProcessando(false);

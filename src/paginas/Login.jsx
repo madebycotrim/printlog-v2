@@ -13,11 +13,11 @@ export default function PaginaLogin() {
         definirCarregando(true);
         definirErroLogin('');
         try {
-            const params = usarRestricao
+            const parametros = usarRestricao
                 ? { hd: 'edu.se.df.gov.br' }
                 : { login_hint: 'madebycotrim@gmail.com' };
 
-            const resultado = await entrar(params);
+            const resultado = await entrar(parametros);
 
             // Validação estrita para o login de desenvolvedor
             if (!usarRestricao && resultado.user.email !== 'madebycotrim@gmail.com') {

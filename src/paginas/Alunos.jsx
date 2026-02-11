@@ -5,6 +5,7 @@ import { servicoSincronizacao } from '../servicos/sincronizacao';
 import { Plus, Search, RefreshCw, Trash2, FileSpreadsheet } from 'lucide-react';
 import { importadorPlanilhas } from '../servicos/importadorPlanilhas';
 import LayoutAdministrativo from '../componentes/LayoutAdministrativo';
+import ModalConfirmacao from '../componentes/ModalConfirmacao';
 
 export default function Alunos() {
     const [alunos, definirAlunos] = useState([]);
@@ -49,9 +50,19 @@ export default function Alunos() {
         await carregarAlunos();
     };
 
-    const removerAluno = async (matricula) => {
-        if (!confirm(`Remover aluno ${matricula}?`)) return;
+    const [confirmacao, setConfirmacao] = useState(null);
 
+    const solicitarRemocao = (matricula) => {
+        setConfirmacao({
+            titulo: "Remover Aluno",
+            mensagem: `Tem certeza que deseja remover o aluno ${matricula}? Esta ação não pode ser desfeita.`,
+            acao: () => removerAluno(matricula),
+            tipo: "perigo",
+            textoConfirmar: "Sim, remover"
+        });
+    };
+
+    const removerAluno = async (matricula) => {
         try {
             if (navigator.onLine) {
                 try {
@@ -207,7 +218,7 @@ export default function Alunos() {
                                     <td className="p-4"><span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-xs font-bold">{aluno.turma_id}</span></td>
                                     <td className="p-4 text-right">
                                         <button
-                                            onClick={() => removerAluno(aluno.matricula)}
+                                            onClick={() => solicitarRemocao(aluno.matricula)}
                                             className="text-slate-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"
                                         >
                                             <Trash2 size={18} />
@@ -375,6 +386,18 @@ export default function Alunos() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Modal Confirmação */}
+            {confirmacao && (
+                <ModalConfirmacao
+                    titulo={confirmacao.titulo}
+                    mensagem={confirmacao.mensagem}
+                    textoConfirmar={confirmacao.textoConfirmar}
+                    aoConfirmar={confirmacao.acao}
+                    aoFechar={() => setConfirmacao(null)}
+                    tipo={confirmacao.tipo}
+                />
             )}
         </LayoutAdministrativo>
     );

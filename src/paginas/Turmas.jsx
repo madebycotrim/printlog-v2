@@ -3,6 +3,7 @@ import { bancoLocal } from '../servicos/bancoLocal';
 import { api } from '../servicos/api';
 import LayoutAdministrativo from '../componentes/LayoutAdministrativo';
 import ModalListaAlunos from '../componentes/ModalListaAlunos';
+import ModalConfirmacao from '../componentes/ModalConfirmacao';
 import { Plus, Trash2, Users, Layers, X, Sun, Moon, Sunset, XCircle, ChevronRight } from 'lucide-react';
 
 export default function Turmas() {
@@ -35,18 +36,24 @@ export default function Turmas() {
 
             const percentual = totalAlunos > 0 ? Math.round((presentesTurma / totalAlunos) * 100) : 0;
 
-            // Parse ID: "3ª A - Matutino" -> { serie: "3ª", letra: "A", turno: "Matutino" }
-            let serie = '?', letra = '?', turno = 'Indefinido';
-            try {
-                if (turma.id) {
-                    const parts = turma.id.split(' - ');
-                    const info = parts[0] ? parts[0].split(' ') : [];
-                    serie = info[0] || '?';
-                    letra = info[1] || '?';
-                    turno = parts[1] || 'Indefinido';
+            // Tenta usar os campos salvos, se não existirem (legado), tenta parsear o ID
+            let serie = turma.serie;
+            let letra = turma.letra;
+            let turno = turma.turno;
+
+            if (!serie || !letra || !turno) {
+                try {
+                    if (turma.id) {
+                        const partes = turma.id.split(' - ');
+                        const informacoes = partes[0] ? partes[0].split(' ') : [];
+                        serie = informacoes[0] || '?';
+                        letra = informacoes[1] || '?';
+                        turno = partes[1] || 'Indefinido';
+                    }
+                } catch (e) {
+                    console.error("Erro ao analisar turma legado:", turma.id, e);
+                    serie = '?'; letra = '?'; turno = 'Indefinido';
                 }
-            } catch (e) {
-                console.error("Erro ao analisar turma:", turma.id, e);
             }
 
             return {
@@ -55,12 +62,17 @@ export default function Turmas() {
                 presentes: presentesTurma,
                 percentual,
                 listaAlunos: alunosTurma,
-                parsed: { serie, letra, turno }
+                interpretado: { serie, letra, turno }
             };
         });
 
-        // Ordenar logicamente (1º, 2º, 3º...)
-        turmasComDados.sort((a, b) => a.id.localeCompare(b.id));
+        // Ordenar logicamente (1º, 2º, 3º...) -> Depois Letra
+        turmasComDados.sort((a, b) => {
+            const sA = a.interpretado.serie.localeCompare(b.interpretado.serie);
+            if (sA !== 0) return sA;
+            return a.interpretado.letra.localeCompare(b.interpretado.letra);
+        });
+
         definirTurmas(turmasComDados);
         definirCarregando(false);
     };
@@ -69,52 +81,43 @@ export default function Turmas() {
         if (!novaTurma.serie || !novaTurma.letra || !novaTurma.turno) return;
         definirErroCadastro('');
 
-        const idFormatado = `${novaTurma.serie} ${novaTurma.letra} - ${novaTurma.turno}`;
         const banco = await bancoLocal.iniciarBanco();
-
-        // 1. Verificar duplicidade exata (ID)
-        const existente = await banco.get('turmas', idFormatado);
-        if (existente) {
-            definirErroCadastro('Esta turma exata já está cadastrada.');
-            return;
-        }
-
-        // 2. Verificar duplicidade de Série + Letra (Regra Estrita)
-        // PERMITIR se o turno for diferente.
         const todasTurmas = await banco.getAll('turmas');
-        const duplicataSemantica = todasTurmas.find(t => {
-            const parts = t.id.split(' - '); // ["3ª A", "Matutino"]
-            const serieExistente = parts[0]; // "3ª A"
-            const turnoExistente = parts[1]; // "Matutino"
 
-            const novaSerie = `${novaTurma.serie} ${novaTurma.letra}`;
+        // 1. Verificar duplicidade SEMÂNTICA (Série + Letra + Turno + Ano)
+        const duplicata = todasTurmas.find(t => {
+            // Verifica campos novos
+            if (t.serie && t.letra && t.turno) {
+                return t.serie === novaTurma.serie &&
+                    t.letra === novaTurma.letra &&
+                    t.turno === novaTurma.turno;
+            }
 
-            // Só é duplicata se a Série+Letra bater E o Turno também bater
-            // Como o ID já cobre "Série Letra - Turno", essa verificação extra
-            // servia para impedir "3ª A Matutino" e "3ª A Vespertino".
-            // O usuário pediu para REMOVER essa restrição.
+            // Verifica legado (parseando ID)
+            const partes = t.id.split(' - ');
+            const serieExistente = partes[0]?.split(' ')[0];
+            const letraExistente = partes[0]?.split(' ')[1];
+            const turnoExistente = partes[1];
 
-            // Portanto, se o ID for diferente (verificado no passo 1),
-            // mas a Série+Letra for igual, DEVEMOS PERMITIR se o turno for diferente.
-
-            // A única restrição real agora é NÃO ter dois turnos iguais para a mesma turma.
-            // O que na prática... é o mesmo ID.
-
-            // Então, esta verificação extra pode ser removida ou ajustada para garantir
-            // integridade caso a formatação do ID mude.
-
-            return false; // Desabilitando a proibição de turnos diferentes
+            return serieExistente === novaTurma.serie &&
+                letraExistente === novaTurma.letra &&
+                turnoExistente === novaTurma.turno;
         });
 
-        if (duplicataSemantica) {
-            // Código Inacessível com return false acima, mantido para clareza da mudança
-            const parts = duplicataSemantica.id.split(' - ');
-            const turnoExistente = parts[1] || 'Outro Turno';
-            definirErroCadastro(`A turma ${novaTurma.serie} ${novaTurma.letra} já existe no turno ${turnoExistente}.`);
+        if (duplicata) {
+            definirErroCadastro(`A turma ${novaTurma.serie} ${novaTurma.letra} (${novaTurma.turno}) já está cadastrada.`);
             return;
         }
 
-        const novaTurmaObj = { id: idFormatado, criado_em: new Date().toISOString() };
+        const novoId = crypto.randomUUID();
+        const novaTurmaObj = {
+            id: novoId,
+            serie: novaTurma.serie,
+            letra: novaTurma.letra,
+            turno: novaTurma.turno,
+            ano_letivo: new Date().getFullYear(),
+            criado_em: new Date().toISOString()
+        };
 
         // Lógica Híbrida/Offline
         try {
@@ -139,15 +142,23 @@ export default function Turmas() {
         carregarTurmas();
     };
 
-    const removerTurma = async (id, e) => {
-        e.stopPropagation();
-        if (!confirm(`Tem certeza que deseja remover a turma ${id}?`)) return;
+    const [confirmacao, setConfirmacao] = useState(null); // { titulo, mensagem, acao }
 
+    const solicitarRemocao = (id, e) => {
+        e.stopPropagation();
+        setConfirmacao({
+            titulo: "Excluir Turma",
+            mensagem: `Tem certeza que deseja remover a turma ${id}? Esta ação não pode ser desfeita e removerá todos os vínculos.`,
+            acao: () => removerTurma(id),
+            tipo: "perigo",
+            textoConfirmar: "Sim, remover"
+        });
+    };
+
+    const removerTurma = async (id) => {
         try {
             if (navigator.onLine) {
-                await api.remover(`/turmas?id=${encodeURIComponent(id)}`); // Assuming API expects ID in query or path? 
-                // Wait, functions/api/turmas.js (Step 24) handles POST and GET. Does it handle DELETE?
-                // I need to check functions/api/turmas.js again.
+                await api.remover(`/turmas?id=${encodeURIComponent(id)}`);
                 console.log('Turma removida da nuvem.');
             }
         } catch (erro) {
@@ -184,7 +195,7 @@ export default function Turmas() {
             {carregando ? (
                 <div className="p-8 text-center text-slate-500 animate-pulse text-sm">Carregando...</div>
             ) : turmas.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-16 bg-white rounded-xl border border-slate-100 shadow-sm text-center">
+                <div className="flex flex-col items-center justify-center p-16 text-center">
                     <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                         <Layers size={24} className="text-slate-300" />
                     </div>
@@ -205,15 +216,9 @@ export default function Turmas() {
                                 </div>
 
                                 <div className="flex flex-wrap gap-3">
-                                    {turmasDaSerie.map((t) => {
-                                        const parsed = t.parsed || { serie: '?', letra: '?', turno: '' };
-
-                                        // Dynamic Colors based on Shift
-                                        const isMatutino = parsed.turno === 'Matutino';
-                                        const isVespertino = parsed.turno === 'Vespertino';
-
-                                        // Design V34: UX Polished (Empty States & Hover Cues)
-                                        const isEmpty = t.totalAlunos === 0;
+                                    {['1ª', '2ª', '3ª'].map(serie => {
+                                        const turmasDaSerie = turmas.filter(t => t.interpretado?.serie === serie);
+                                        if (turmasDaSerie.length === 0) return null;
 
                                         return (
                                             <div
@@ -222,7 +227,7 @@ export default function Turmas() {
                                             >
                                                 {/* The Integrated Tab (Delete) - Hidden by default, Slides Up on Hover */}
                                                 <button
-                                                    onClick={(e) => removerTurma(t.id, e)}
+                                                    onClick={(e) => solicitarRemocao(t.id, e)}
                                                     className="absolute top-8 right-4 z-0 flex h-8 w-10 items-center justify-center rounded-t-lg border border-b-0 border-slate-200 bg-slate-50 text-slate-400 opacity-0 transition-all duration-300 ease-out group-hover:-translate-y-8 group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200"
                                                     title="Excluir Turma"
                                                 >
@@ -235,23 +240,23 @@ export default function Turmas() {
                                                     className="relative z-10 flex flex-col justify-between overflow-hidden rounded-xl rounded-tr-none border border-slate-200 bg-white p-4 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md select-none cursor-pointer"
                                                 >
                                                     {/* Shift Accent Line (Top) */}
-                                                    <div className={`absolute top-0 left-0 right-0 h-1 ${isMatutino ? 'bg-amber-400' : isVespertino ? 'bg-sky-400' : 'bg-indigo-500'}`}></div>
+                                                    <div className={`absolute top-0 left-0 right-0 h-1 ${ehMatutino ? 'bg-amber-400' : ehVespertino ? 'bg-sky-400' : 'bg-indigo-500'}`}></div>
 
                                                     {/* Header: Identity */}
                                                     <div className="flex items-start justify-between mb-4 pt-1">
                                                         <div className="flex flex-col">
                                                             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Turma</span>
-                                                            <span className="text-4xl font-black text-slate-800 leading-none mt-1">{parsed.letra}</span>
+                                                            <span className="text-4xl font-black text-slate-800 leading-none mt-1">{interpretado.letra}</span>
                                                         </div>
-                                                        <div className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${isMatutino ? 'bg-amber-50 text-amber-700 border-amber-100' : isVespertino ? 'bg-sky-50 text-sky-700 border-sky-100' : 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
-                                                            {isMatutino ? <Sun size={10} /> : isVespertino ? <Sunset size={10} /> : <Moon size={10} />}
-                                                            {parsed.turno}
+                                                        <div className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${ehMatutino ? 'bg-amber-50 text-amber-700 border-amber-100' : ehVespertino ? 'bg-sky-50 text-sky-700 border-sky-100' : 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
+                                                            {ehMatutino ? <Sun size={10} /> : ehVespertino ? <Sunset size={10} /> : <Moon size={10} />}
+                                                            {interpretado.turno}
                                                         </div>
                                                     </div>
 
                                                     {/* Middle: Series Info */}
                                                     <div className="flex items-center justify-between mb-4">
-                                                        <span className="text-xs font-bold text-slate-500">{parsed.serie} Série</span>
+                                                        <span className="text-xs font-bold text-slate-500">{interpretado.serie} Série</span>
                                                         <div className="flex items-center gap-1 text-xs font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">
                                                             <Users size={12} />
                                                             {t.totalAlunos}
@@ -261,16 +266,16 @@ export default function Turmas() {
                                                     {/* Bottom: Stats Bar OR Empty State */}
                                                     <div>
                                                         <div className="mb-1.5 flex items-end justify-between text-[10px] font-bold uppercase tracking-wide">
-                                                            <span className="text-slate-400">{isEmpty ? 'Status' : 'Presença'}</span>
-                                                            <span className={isEmpty ? 'text-slate-300' : (t.percentual >= 75 ? 'text-emerald-600' : 'text-rose-600')}>
-                                                                {isEmpty ? 'Sem Alunos' : `${t.percentual}%`}
+                                                            <span className="text-slate-400">{estahVazia ? 'Status' : 'Presença'}</span>
+                                                            <span className={estahVazia ? 'text-slate-300' : (t.percentual >= 75 ? 'text-emerald-600' : 'text-rose-600')}>
+                                                                {estahVazia ? 'Sem Alunos' : `${t.percentual}%`}
                                                             </span>
                                                         </div>
                                                         {/* Progress Bar Container */}
                                                         <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                                                             <div
-                                                                className={`h-full rounded-full transition-all duration-500 ${isEmpty ? 'bg-slate-200' : (t.percentual >= 75 ? 'bg-emerald-500' : 'bg-rose-500')}`}
-                                                                style={{ width: isEmpty ? '0%' : `${t.percentual}%` }}
+                                                                className={`h-full rounded-full transition-all duration-500 ${estahVazia ? 'bg-slate-200' : (t.percentual >= 75 ? 'bg-emerald-500' : 'bg-rose-500')}`}
+                                                                style={{ width: estahVazia ? '0%' : `${t.percentual}%` }}
                                                             ></div>
                                                         </div>
                                                     </div>
@@ -547,6 +552,18 @@ export default function Turmas() {
                     turma={turmaSelecionada}
                     alunos={alunosDaTurma}
                     aoFechar={() => definirModalAlunosAberto(false)}
+                />
+            )}
+
+            {/* Modal de Confirmação Genérico */}
+            {confirmacao && (
+                <ModalConfirmacao
+                    titulo={confirmacao.titulo}
+                    mensagem={confirmacao.mensagem}
+                    textoConfirmar={confirmacao.textoConfirmar}
+                    aoConfirmar={confirmacao.acao}
+                    aoFechar={() => setConfirmacao(null)}
+                    tipo={confirmacao.tipo}
                 />
             )}
         </LayoutAdministrativo>
