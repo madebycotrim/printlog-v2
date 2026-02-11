@@ -49,21 +49,54 @@ export default function Alunos() {
         await carregarAlunos();
     };
 
+    const removerAluno = async (matricula) => {
+        if (!confirm(`Remover aluno ${matricula}?`)) return;
+
+        try {
+            if (navigator.onLine) {
+                try {
+                    await api.remover(`/alunos?matricula=${matricula}`);
+                    console.log('Aluno removido da nuvem.');
+                } catch (e) {
+                    console.error('Erro ao remover da nuvem:', e);
+                }
+            }
+
+            const banco = await bancoLocal.iniciarBanco();
+            await banco.delete('alunos', matricula);
+            carregarAlunos();
+        } catch (erro) {
+            console.error(erro);
+            alert('Erro ao remover aluno');
+        }
+    };
+
     const aoSalvarAluno = async (evento) => {
         evento.preventDefault();
         try {
             // 1. Salvar na API (se online)
-            await api.enviar('/alunos', novoAluno);
+            if (navigator.onLine) {
+                try {
+                    await api.enviar('/alunos', novoAluno);
+                    console.log('Aluno salvo na nuvem.');
+                } catch (apiErro) {
+                    console.error('Erro ao salvar na nuvem (fallback local):', apiErro);
+                }
+            } else {
+                console.log('Offline: Salvando aluno localmente.');
+            }
 
-            // 2. Atualizar Local
+            // 2. Atualizar Local (Sempre, para UI e redundância)
             await bancoLocal.salvarAlunos([novoAluno]);
 
             definirModalAberto(false);
             definirNovoAluno({ matricula: '', nome_completo: '', turma_id: '' });
             carregarAlunos();
-            alert('Aluno salvo com sucesso!');
+
+            // Feedback mais discreto ou toast seria ideal, mas alert serve por enquanto
+            // alert('Aluno salvo com sucesso!'); 
         } catch (erro) {
-            alert('Erro: ' + erro.message);
+            alert('Erro crítico ao salvar: ' + erro.message);
         }
     };
 
@@ -173,7 +206,12 @@ export default function Alunos() {
                                     <td className="p-4 font-medium text-slate-800 uppercase">{aluno.nome_completo}</td>
                                     <td className="p-4"><span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-xs font-bold">{aluno.turma_id}</span></td>
                                     <td className="p-4 text-right">
-                                        <button className="text-slate-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
+                                        <button
+                                            onClick={() => removerAluno(aluno.matricula)}
+                                            className="text-slate-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))

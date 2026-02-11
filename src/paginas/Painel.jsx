@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { bancoLocal } from '../servicos/bancoLocal';
 import { servicoSincronizacao } from '../servicos/sincronizacao';
+import { api } from '../servicos/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -32,6 +33,18 @@ export default function Painel() {
     const carregarDados = async () => {
         try {
             const banco = await bancoLocal.iniciarBanco();
+
+            // v3.0 - Sync Down (Baixar dados novos se online)
+            if (navigator.onLine) {
+                try {
+                    // Sincroniza alunos (novos cadastros)
+                    await servicoSincronizacao.sincronizarAlunos();
+                    console.log('Painel: Dados sincronizados com a nuvem.');
+                } catch (e) {
+                    console.warn('Painel: Falha ao sincronizar (usando cache local):', e);
+                }
+            }
+
             const totalAlunos = await banco.count('alunos');
 
             // Alunos Presentes (Lógica Otimizada)

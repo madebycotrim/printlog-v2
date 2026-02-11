@@ -6,10 +6,14 @@
   "scripts": {
     "dev": "vite",
     "dev:live": "cross-env VITE_PROXY_TARGET=https://scae.pages.dev npm run dev",
+    "dev:local": "cross-env VITE_PROXY_TARGET=http://localhost:8788 npm run dev",
+    "dev:api:local": "wrangler pages dev public --port 8788",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "db:setup:local": "wrangler d1 execute scae_db --local --file=./schema.sql",
+    "db:setup:remote": "wrangler d1 execute scae_db --remote --file=./schema.sql --yes"
   },
   "dependencies": {
     "date-fns": "^4.1.0",

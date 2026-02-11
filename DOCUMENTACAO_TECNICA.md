@@ -187,9 +187,23 @@ git clone https://github.com/usuario/scae-v3.git
 npm install
 
 # 3. Aplicar migrações ao banco remoto
-npx wrangler d1 migrations apply DB_SCAE --remote
+npm run db:setup:remote
 
-# 4. Deploy da aplicação
+# 5. Modos de Desenvolvimento
+
+O projeto suporta 3 modos de desenvolvimento:
+
+### Modo 1: Local Completo (Recomendado para novas features)
+Frontend local + Backend local + Banco local.
+1. Iniciar Backend: `npm run dev:api:local`
+2. Iniciar Frontend: `npm run dev:local`
+
+### Modo 2: Live (Frontend apenas)
+Frontend local + **Backend Produção**.
+1. Iniciar: `npm run dev:live`
+*Nota: Requer autenticação Google válida.*
+
+# 6. Deploy da aplicação
 npm run build
 npx wrangler pages deploy dist
 ```

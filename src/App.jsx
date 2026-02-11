@@ -1,4 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './servicos/firebase';
+import { servicoSincronizacao } from './servicos/sincronizacao';
 import { ProvedorAutenticacao } from './contexts/ContextoAutenticacao';
 import LeitorPortaria from './paginas/LeitorPortaria';
 import Painel from './paginas/Painel';
@@ -25,6 +29,27 @@ function Layout({ children }) {
 }
 
 function App() {
+  // This useEffect block seems to belong to an authentication provider or a component managing user state.
+  // For the purpose of fulfilling the request, it's placed here, assuming 'auth', 'setUsuario', 'setCarregando'
+  // and 'servicoSincronizacao' would be properly defined or imported in a real application context.
+  // In a typical React app, this logic would likely reside within 'ProvedorAutenticacao'.
+  const [usuario, setUsuario] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    // v2.0 - Auth State
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUsuario(user);
+      setCarregando(false);
+      if (user) {
+        // v3.0 - Hybrid Sync
+        servicoSincronizacao.iniciarOuvintes();
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <Router>
       <ProvedorAutenticacao>

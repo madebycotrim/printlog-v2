@@ -31,3 +31,22 @@ export async function onRequestPost(contexto) {
         return new Response(erro.message, { status: 500 });
     }
 }
+
+export async function onRequestDelete(contexto) {
+    try {
+        const url = new URL(contexto.request.url);
+        const matricula = url.searchParams.get("matricula");
+
+        if (!matricula) {
+            return new Response("Matrícula obrigatória", { status: 400 });
+        }
+
+        await contexto.env.DB_SCAE.prepare(
+            "DELETE FROM alunos WHERE matricula = ?"
+        ).bind(matricula).run();
+
+        return new Response("Aluno removido", { status: 200 });
+    } catch (erro) {
+        return new Response(erro.message, { status: 500 });
+    }
+}

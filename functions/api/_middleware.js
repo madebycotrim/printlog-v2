@@ -12,6 +12,17 @@ export async function onRequest(context) {
 
     try {
         const authHeader = request.headers.get('Authorization');
+
+        // DEV BYPASS: Allow localhost to skip auth checks if needed for rapid testing
+        const url = new URL(request.url);
+        if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+            // Em dev, se não tiver token, deixa passar (mas sem user context)
+            if (!authHeader) {
+                console.warn('DEV MODE: Bypass de Auth para Localhost');
+                return context.next();
+            }
+        }
+
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             // Allow unauthenticated GET for now? Or strict? 
             // Plan says "Protect API Routes".

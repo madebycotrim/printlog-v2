@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../servicos/api';
 import { Shield, Zap, Wifi, WifiOff, Search, X, Check, AlertTriangle, User, Palette, Lock, Unlock } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { bancoLocal } from '../servicos/bancoLocal';
@@ -187,6 +188,17 @@ export default function LeitorPortaria() {
             };
 
             await bancoLocal.salvarRegistro(registro);
+
+            // v3.0 - Hybrid Sync (Fire-and-Forget)
+            // Tenta enviar para API imediatamente sem bloquear. 
+            // Se falhar, o ServiceWorker/Sincronizacao pega depois.
+            if (navigator.onLine) {
+                api.enviar('/acessos', [registro]).then(() => {
+                    // Se sucesso, marca como sincronizado localmente
+                    bancoLocal.marcarComoSincronizado([registro.id]);
+                    console.log('Acesso sincronizado em background.');
+                }).catch(e => console.warn('Falha no envio imediato (será tentado depois):', e));
+            }
 
             tocarBeep('sucesso');
             anunciarNome(saudacao + aluno.nome_completo.split(' ')[0]); // "Bom dia, João"
