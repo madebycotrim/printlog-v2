@@ -80,15 +80,34 @@ export default function Turmas() {
         }
 
         // 2. Verificar duplicidade de Série + Letra (Regra Estrita)
-        // Impede "3ª A Matutino" se já existir "3ª A Vespertino"
+        // PERMITIR se o turno for diferente.
         const todasTurmas = await banco.getAll('turmas');
         const duplicataSemantica = todasTurmas.find(t => {
             const parts = t.id.split(' - '); // ["3ª A", "Matutino"]
-            const identificador = parts[0]; // "3ª A"
-            return identificador === `${novaTurma.serie} ${novaTurma.letra}`;
+            const serieExistente = parts[0]; // "3ª A"
+            const turnoExistente = parts[1]; // "Matutino"
+
+            const novaSerie = `${novaTurma.serie} ${novaTurma.letra}`;
+
+            // Só é duplicata se a Série+Letra bater E o Turno também bater
+            // Como o ID já cobre "Série Letra - Turno", essa verificação extra
+            // servia para impedir "3ª A Matutino" e "3ª A Vespertino".
+            // O usuário pediu para REMOVER essa restrição.
+
+            // Portanto, se o ID for diferente (verificado no passo 1),
+            // mas a Série+Letra for igual, DEVEMOS PERMITIR se o turno for diferente.
+
+            // A única restrição real agora é NÃO ter dois turnos iguais para a mesma turma.
+            // O que na prática... é o mesmo ID.
+
+            // Então, esta verificação extra pode ser removida ou ajustada para garantir
+            // integridade caso a formatação do ID mude.
+
+            return false; // Desabilitando a proibição de turnos diferentes
         });
 
         if (duplicataSemantica) {
+            // Código Inacessível com return false acima, mantido para clareza da mudança
             const parts = duplicataSemantica.id.split(' - ');
             const turnoExistente = parts[1] || 'Outro Turno';
             definirErroCadastro(`A turma ${novaTurma.serie} ${novaTurma.letra} já existe no turno ${turnoExistente}.`);
