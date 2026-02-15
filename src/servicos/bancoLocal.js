@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const NOME_BANCO = 'SCAE_DB';
-const VERSAO_BANCO = 3;
+const VERSAO_BANCO = 5; // Incrementado para Sprint 2 (LGPD)
 
 export const iniciarBanco = async () => {
     return openDB(NOME_BANCO, VERSAO_BANCO, {
@@ -9,8 +9,8 @@ export const iniciarBanco = async () => {
             // Store para alunos (leitura para validação)
             if (!banco.objectStoreNames.contains('alunos')) {
                 const store = banco.createObjectStore('alunos', { keyPath: 'matricula' });
-                store.createIndex('turma_id', 'turma_id'); // Optimization for filtering by class
-                store.createIndex('status', 'status'); // Access control
+                store.createIndex('turma_id', 'turma_id');
+                store.createIndex('status', 'status');
             }
 
             // Store para registros offline
@@ -24,7 +24,6 @@ export const iniciarBanco = async () => {
             // v2 - Store para Turmas
             if (!banco.objectStoreNames.contains('turmas')) {
                 const store = banco.createObjectStore('turmas', { keyPath: 'id' });
-                // v3 indexes
                 store.createIndex('ano_letivo', 'ano_letivo');
                 store.createIndex('serie', 'serie');
                 store.createIndex('turno', 'turno');
@@ -39,6 +38,61 @@ export const iniciarBanco = async () => {
             // v3 - Configurações
             if (!banco.objectStoreNames.contains('configuracoes')) {
                 banco.createObjectStore('configuracoes', { keyPath: 'chave' });
+            }
+
+            // v4 - Sprint 1: Segurança
+
+            // Logs de Auditoria
+            if (!banco.objectStoreNames.contains('logs_auditoria')) {
+                const store = banco.createObjectStore('logs_auditoria', { keyPath: 'id' });
+                store.createIndex('timestamp', 'timestamp');
+                store.createIndex('usuario_email', 'usuario_email');
+                store.createIndex('acao', 'acao');
+                store.createIndex('entidade_tipo', 'entidade_tipo');
+            }
+
+            // Usuários (RBAC)
+            if (!banco.objectStoreNames.contains('usuarios')) {
+                const store = banco.createObjectStore('usuarios', { keyPath: 'email' });
+                store.createIndex('papel', 'papel');
+                store.createIndex('ativo', 'ativo');
+            }
+
+            // Chaves de Assinatura
+            if (!banco.objectStoreNames.contains('chaves_assinatura')) {
+                const store = banco.createObjectStore('chaves_assinatura', { keyPath: 'versao' });
+                store.createIndex('ativa', 'ativa');
+            }
+
+            // v5 - Sprint 2: LGPD Compliance
+
+            // Consentimentos
+            if (!banco.objectStoreNames.contains('consentimentos')) {
+                const store = banco.createObjectStore('consentimentos', { keyPath: 'id' });
+                store.createIndex('aluno_matricula', 'aluno_matricula');
+                store.createIndex('tipo_consentimento', 'tipo_consentimento');
+                store.createIndex('valido_ate', 'valido_ate');
+                store.createIndex('retirado', 'retirado');
+            }
+
+            // Políticas de Retenção
+            if (!banco.objectStoreNames.contains('politicas_retencao')) {
+                const store = banco.createObjectStore('politicas_retencao', { keyPath: 'id' });
+                store.createIndex('entidade_tipo', 'entidade_tipo');
+                store.createIndex('ativa', 'ativa');
+            }
+
+            // Registros de Anonimização
+            if (!banco.objectStoreNames.contains('registros_anonimizacao')) {
+                const store = banco.createObjectStore('registros_anonimizacao', { keyPath: 'id' });
+                store.createIndex('entidade_tipo', 'entidade_tipo');
+                store.createIndex('data_anonimizacao', 'data_anonimizacao');
+                store.createIndex('entidade_id_hash', 'entidade_id_hash');
+            }
+
+            // Configurações LGPD
+            if (!banco.objectStoreNames.contains('configuracoes_lgpd')) {
+                banco.createObjectStore('configuracoes_lgpd', { keyPath: 'chave' });
             }
         },
     });
@@ -58,6 +112,16 @@ export const bancoLocal = {
         await transacao.done;
     },
 
+    salvarTurmas: async (turmas) => {
+        const banco = await iniciarBanco();
+        const transacao = banco.transaction('turmas', 'readwrite');
+        await Promise.all([
+            transacao.store.clear(),
+            ...turmas.map(t => transacao.store.put(t))
+        ]);
+        await transacao.done;
+    },
+
     importarAlunos: async (novosAlunos) => {
         const banco = await iniciarBanco();
         const transacao = banco.transaction('alunos', 'readwrite');
@@ -70,6 +134,34 @@ export const bancoLocal = {
     buscarAluno: async (matricula) => {
         const banco = await iniciarBanco();
         return await banco.get('alunos', matricula);
+    },
+
+    buscarAlunosPorNome: async (termo) => {
+        const banco = await iniciarBanco();
+        const todosAlunos = await banco.getAll('alunos');
+
+        // Busca case-insensitive
+        const termoLower = termo.toLowerCase().trim();
+
+        if (!termoLower) return [];
+
+        // Filtrar alunos que contenham o termo no nome
+        const resultados = todosAlunos.filter(aluno =>
+            aluno.nome_completo.toLowerCase().includes(termoLower)
+        );
+
+        // Ordenar por relevância (nome começa com o termo primeiro)
+        resultados.sort((a, b) => {
+            const aNomeStart = a.nome_completo.toLowerCase().startsWith(termoLower);
+            const bNomeStart = b.nome_completo.toLowerCase().startsWith(termoLower);
+
+            if (aNomeStart && !bNomeStart) return -1;
+            if (!aNomeStart && bNomeStart) return 1;
+            return a.nome_completo.localeCompare(b.nome_completo);
+        });
+
+        // Limitar a 10 resultados
+        return resultados.slice(0, 10);
     },
 
     contarAlunos: async () => {

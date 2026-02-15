@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAutenticacao } from '../contexts/ContextoAutenticacao';
+import { usePermissoes } from '../contexts/ContextoPermissoes';
 import {
     LayoutDashboard,
     Users,
@@ -10,20 +11,34 @@ import {
     Shield,
     IdCard,
     QrCode,
-    Layers
+    Layers,
+    Key,
+    Crown,
+    TrendingUp
 } from 'lucide-react';
 
 export default function LayoutAdministrativo({ children, titulo, subtitulo, acoes }) {
     const { usuarioAtual, sair } = useAutenticacao();
+    const { ehAdmin } = usePermissoes();
     const navegar = useNavigate();
     const localizacao = useLocation();
     const [menuAberto, definirMenuAberto] = useState(false);
 
-    const itensMenu = [
+    // Itens principais do menu (todos os usuários)
+    const itensMenuPrincipal = [
         { icone: LayoutDashboard, texto: 'Painel', rota: '/painel' },
         { icone: Users, texto: 'Alunos', rota: '/alunos' },
         { icone: Layers, texto: 'Turmas', rota: '/turmas' },
-        { icone: FileText, texto: 'Relatórios', rota: '/relatorios' },
+        { icone: IdCard, texto: 'Crachás', rota: '/crachas' },
+    ];
+
+    // Itens exclusivos para ADMIN
+    const itensMenuAdmin = [
+        { icone: TrendingUp, texto: 'Dashboard Executivo', rota: '/painel-executivo' },
+        { icone: Shield, texto: 'LGPD', rota: '/lgpd' },
+        { icone: FileText, texto: 'Auditoria', rota: '/logs' },
+        { icone: Key, texto: 'Chaves', rota: '/chaves' },
+        { icone: Shield, texto: 'Usuários', rota: '/usuarios' },
     ];
 
     const aoSair = async () => {
@@ -45,16 +60,21 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 />
             )}
 
-            {/* Sidebar - Theme: Midnight Blue & Premium Glass */}
-            <aside className={`
-                fixed lg:static inset-y-0 left-0 z-50 w-72 bg-[#050b1f] text-slate-300 flex flex-col border-r border-white/5 transition-transform duration-300 ease-in-out
-                ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-            `}>
-                {/* Header: Brand Identity */}
-                <div className="p-8 pb-8">
+            {/* Sidebar */}
+            <aside
+                className={`
+                    fixed lg:static inset-y-0 left-0 z-50
+                    w-72 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950
+                    flex flex-col shadow-2xl border-r border-slate-800/50
+                    transform transition-transform duration-300 ease-in-out
+                    ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                `}
+            >
+                {/* Header/Logo */}
+                <div className="p-6 border-b border-slate-800/50 bg-slate-950/30">
                     <div className="flex items-center gap-4">
                         <div className="relative group">
-                            <div className="absolute inset-0 bg-blue-500 blur-lg opacity-20 group-hover:opacity-40 transition-opacity rounded-full"></div>
+                            <div className="absolute inset-0 bg-blue-500/20 rounded-xl blur-md group-hover:blur-lg transition-all"></div>
                             <div className="relative w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-inner border border-white/10">
                                 <Shield className="text-white w-5 h-5" />
                             </div>
@@ -66,118 +86,127 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     </div>
                 </div>
 
-                {/* Navigation Menu */}
-                <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-                    <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-2">Menu Principal</p>
-                    {itensMenu.map((item) => {
-                        const ativo = localizacao.pathname === item.rota;
-                        return (
-                            <button
-                                key={item.rota}
-                                onClick={() => {
-                                    navegar(item.rota);
-                                    definirMenuAberto(false);
-                                }}
-                                className={`
-                                    w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative
-                                    ${ativo
-                                        ? 'bg-gradient-to-r from-blue-500/10 to-transparent text-blue-400'
-                                        : 'text-slate-400 hover:text-white hover:bg-white/5'
-                                    }
-                                `}
-                            >
-                                {/* Active Indicator (Left Border) */}
-                                {ativo && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.5)]"></div>
-                                )}
+                {/* Navigation Items - Principal */}
+                <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+                    {/* Seção Principal */}
+                    <div className="mb-6">
+                        <p className="px-3 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
+                            Principal
+                        </p>
+                        {itensMenuPrincipal.map((item) => {
+                            const Icone = item.icone;
+                            const ativo = localizacao.pathname === item.rota;
 
-                                <item.icone
-                                    size={20}
-                                    className={`transition-colors ${ativo ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-300'}`}
-                                />
-                                <span className="font-medium text-sm tracking-wide">{item.texto}</span>
-                            </button>
-                        );
-                    })}
+                            return (
+                                <button
+                                    key={item.rota}
+                                    onClick={() => {
+                                        navegar(item.rota);
+                                        definirMenuAberto(false);
+                                    }}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${ativo
+                                        ? 'bg-white text-slate-800 shadow-lg shadow-blue-600/10 font-bold'
+                                        : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                                        }`}
+                                >
+                                    {ativo && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-r-full"></div>
+                                    )}
+                                    <Icone size={20} className={ativo ? 'text-blue-600' : ''} />
+                                    <span className="text-sm tracking-wide">{item.texto}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
 
-                    <div className="my-6 border-t border-white/5 mx-2"></div>
+                    {/* Seção Administração - Apenas para ADMIN */}
+                    {ehAdmin && (
+                        <div className="pt-6 border-t border-slate-700/50">
+                            <p className="px-3 text-[10px] font-black uppercase tracking-widest text-amber-400/80 mb-3 flex items-center gap-2">
+                                <Crown size={12} className="text-amber-400" />
+                                Administração
+                            </p>
+                            {itensMenuAdmin.map((item) => {
+                                const Icone = item.icone;
+                                const ativo = localizacao.pathname === item.rota;
 
-                    <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-2">Operacional</p>
-                    <button
-                        onClick={() => navegar('/portaria')}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-emerald-400/70 hover:bg-emerald-500/10 hover:text-emerald-400 group relative"
-                    >
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <QrCode size={20} className="transition-colors group-hover:text-emerald-400" />
-                        <span className="font-medium text-sm tracking-wide">Portaria (Leitor)</span>
-                    </button>
+                                return (
+                                    <button
+                                        key={item.rota}
+                                        onClick={() => {
+                                            navegar(item.rota);
+                                            definirMenuAberto(false);
+                                        }}
+                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${ativo
+                                            ? 'bg-amber-500/20 text-amber-100 shadow-lg shadow-amber-600/10 font-bold border border-amber-500/30'
+                                            : 'text-slate-300 hover:bg-amber-500/10 hover:text-amber-100 hover:border hover:border-amber-500/20'
+                                            }`}
+                                    >
+                                        {ativo && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500 rounded-r-full"></div>
+                                        )}
+                                        <Icone size={20} className={ativo ? 'text-amber-400' : 'text-amber-400/60'} />
+                                        <span className="text-sm tracking-wide">{item.texto}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </nav>
 
-                {/* Footer: User Profile Card */}
-                <div className="p-4 mt-auto">
-                    <div className="bg-white/5 backdrop-blur-sm border border-white/5 rounded-2xl p-3 flex items-center gap-3 group hover:bg-white/10 transition-colors">
-                        <div className="w-10 h-10 rounded-full bg-[#050b1f] flex items-center justify-center overflow-hidden border border-white/10">
-                            <img
-                                src={usuarioAtual?.photoURL || `https://ui-avatars.com/api/?name=${usuarioAtual?.email}&background=0D8ABC&color=fff`}
-                                alt="User"
-                                className="w-full h-full object-cover"
-                            />
+                {/* User Profile */}
+                <div className="p-4 border-t border-slate-800/50 bg-slate-950/30">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                            {usuarioAtual?.email?.[0]?.toUpperCase() || 'U'}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold truncate text-white group-hover:text-blue-200 transition-colors">{usuarioAtual?.displayName || 'Admin'}</p>
-                            <p className="text-[10px] text-slate-500 truncate group-hover:text-slate-400 transition-colors">{usuarioAtual?.email}</p>
+                            <p className="text-sm font-bold text-white truncate">{usuarioAtual?.email?.split('@')[0] || 'Usuário'}</p>
+                            <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+                                {ehAdmin && <span className="text-amber-400 font-bold flex items-center gap-1"><Crown size={10} /> Admin</span>}
+                                {!ehAdmin && 'Usuário'}
+                            </p>
                         </div>
-                        <button
-                            onClick={aoSair}
-                            className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
-                            title="Sair"
-                        >
-                            <LogOut size={18} />
-                        </button>
                     </div>
-                </div>
-            </aside >
 
-            {/* Conteúdo Principal */}
-            < main className="flex-1 flex flex-col h-full overflow-hidden bg-[#f8fafc] w-full" >
-                {/* Topbar Mobile (Apenas Mobile) - Ajustado z-index */}
-                < header className="lg:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between shadow-sm z-30 flex-shrink-0" >
-                    <div className="flex items-center gap-2">
-                        <Shield className="text-blue-600 w-6 h-6" />
-                        <span className="font-black text-slate-800 tracking-tight">SCAE</span>
-                    </div>
-                    <button onClick={() => definirMenuAberto(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
-                        <Menu />
+                    <button
+                        onClick={aoSair}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-all duration-200 border border-red-500/20 hover:border-red-500/30 group"
+                    >
+                        <LogOut size={16} />
+                        <span className="text-sm font-bold">Sair</span>
                     </button>
-                </header >
+                </div>
+            </aside>
 
-                {/* Área de Scroll - Altura total menos mobile header se visível */}
-                < div className="flex-1 overflow-y-auto scroll-smooth" >
-                    <div className="max-w-[1600px] mx-auto p-6 lg:p-10 pb-20">
-                        {/* Header da Página */}
-                        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 animate-[fadeInDown_0.4s_ease-out]">
-                            <div>
-                                <h2 className="text-3xl font-black text-slate-800 tracking-tight lg:text-4xl">{titulo}</h2>
-                                {subtitulo && (
-                                    <p className="text-slate-500 font-medium mt-2 flex items-center gap-2">
-                                        {subtitulo}
-                                    </p>
-                                )}
-                            </div>
-                            {acoes && (
-                                <div className="flex items-center gap-3 animate-[fadeIn_0.5s_ease-out_0.2s_both]">
-                                    {acoes}
-                                </div>
-                            )}
-                        </header>
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Top Bar */}
+                <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm">
+                    <div className="flex items-center gap-4">
+                        {/* Mobile Menu Button */}
+                        <button
+                            onClick={() => definirMenuAberto(!menuAberto)}
+                            className="lg:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                        >
+                            <Menu size={24} className="text-slate-600" />
+                        </button>
 
-                        {/* Injeção de Conteúdo */}
-                        <div className="animate-[fadeIn_0.5s_ease-out_0.3s_both]">
-                            {children}
+                        <div>
+                            <h1 className="text-xl font-black text-slate-800 tracking-tight">{titulo}</h1>
+                            {subtitulo && <p className="text-xs text-slate-500 font-medium">{subtitulo}</p>}
                         </div>
                     </div>
-                </div >
-            </main >
-        </div >
+
+                    {/* Actions */}
+                    {acoes && <div className="flex items-center gap-3">{acoes}</div>}
+                </header>
+
+                {/* Page Content */}
+                <main className="flex-1 overflow-y-auto bg-slate-50 p-6">
+                    {children}
+                </main>
+            </div>
+        </div>
     );
 }

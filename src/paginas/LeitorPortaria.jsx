@@ -10,6 +10,7 @@ import { ptBR } from 'date-fns/locale';
 import { obterCorDoDia } from '../utilitarios/validacaoVisual';
 import { validarQRSeguro } from '../utilitarios/seguranca';
 import { obterDataCorrigida } from '../utilitarios/relogio';
+import { useAutenticacao } from '../contexts/ContextoAutenticacao';
 
 // v3.0 - TTS (Text-to-Speech)
 const anunciarNome = (nome) => {
@@ -51,6 +52,7 @@ function useStatusConexao() {
 }
 
 export default function LeitorPortaria() {
+    const { usuarioAtual } = useAutenticacao();
     const [ultimoResultado, definirUltimoResultado] = useState(null);
     const [scannerAtivo, definirScannerAtivo] = useState(true);
     const refScanner = useRef(null);
@@ -58,6 +60,12 @@ export default function LeitorPortaria() {
     const [modoManual, definirModoManual] = useState(false);
     const [matriculaManual, definirMatriculaManual] = useState('');
     const [processando, definirProcessando] = useState(false);
+
+    // Busca por nome
+    const [modoBuscaNome, definirModoBuscaNome] = useState(false);
+    const [termoBusca, definirTermoBusca] = useState('');
+    const [sugestoesAlunos, definirSugestoesAlunos] = useState([]);
+    const [alunoSelecionado, definirAlunoSelecionado] = useState(null);
 
     // Refs para evitar closures (scanner roda em callback desconectado do ciclo de render)
     const refScannerAtivo = useRef(scannerAtivo);
@@ -84,11 +92,33 @@ export default function LeitorPortaria() {
             definirScannerAtivo(true);
             if (modoManual) {
                 definirMatriculaManual('');
+                definirTermoBusca('');
+                definirSugestoesAlunos([]);
+                definirAlunoSelecionado(null);
             }
         }, ms);
     }, [modoManual]);
 
-    const processarEntrada = useCallback(async (codigoEntrada) => {
+    // Buscar alunos por nome com debounce
+    useEffect(() => {
+        if (!modoBuscaNome || !termoBusca.trim()) {
+            definirSugestoesAlunos([]);
+            return;
+        }
+
+        const timeoutId = setTimeout(async () => {
+            try {
+                const resultados = await bancoLocal.buscarAlunosPorNome(termoBusca);
+                definirSugestoesAlunos(resultados);
+            } catch (erro) {
+                console.error('Erro ao buscar alunos:', erro);
+            }
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timeoutId);
+    }, [termoBusca, modoBuscaNome]);
+
+    const processarEntrada = useCallback(async (codigoEntrada, eManual = false) => {
         if (!refScannerAtivo.current || refProcessando.current) return;
         definirScannerAtivo(false);
         definirProcessando(true);
@@ -169,7 +199,9 @@ export default function LeitorPortaria() {
                 aluno_matricula: matriculaFinal,
                 tipo_movimentacao: tipo,
                 timestamp: obterDataCorrigida().toISOString(),
-                metodo_validacao: autentico ? 'HMAC' : 'LEGADO'
+                metodo_validacao: autentico ? 'HMAC' : 'LEGADO',
+                // Novo campo: autorizado_por (se manual)
+                autorizado_por: eManual && usuarioAtual ? usuarioAtual.email : null
             };
 
             await bancoLocal.salvarRegistro(registro);
@@ -187,7 +219,8 @@ export default function LeitorPortaria() {
                 status: 'sucesso',
                 mensagem: `${tipo} REGISTRADA`,
                 aluno,
-                autentico: autentico
+                autentico: autentico,
+                manual: eManual
             });
             resetarScannerEm(2000);
 
@@ -199,7 +232,7 @@ export default function LeitorPortaria() {
         } finally {
             definirProcessando(false);
         }
-    }, [resetarScannerEm]);
+    }, [resetarScannerEm, usuarioAtual]);
 
     useEffect(() => {
         if (modoManual) return;
@@ -235,29 +268,44 @@ export default function LeitorPortaria() {
 
     const aoEnviarManual = (evento) => {
         evento.preventDefault();
-        if (matriculaManual.trim()) {
-            processarEntrada(matriculaManual.trim());
+
+        if (modoBuscaNome && alunoSelecionado) {
+            // Usar aluno selecionado da busca por nome
+            processarEntrada(alunoSelecionado.matricula, true);
+        } else if (!modoBuscaNome && matriculaManual.trim()) {
+            // Usar matrícula digitada
+            processarEntrada(matriculaManual.trim(), true);
         }
     };
 
+    const selecionarAluno = (aluno) => {
+        definirAlunoSelecionado(aluno);
+        definirTermoBusca(aluno.nome_completo);
+        definirSugestoesAlunos([]);
+    };
+
     return (
-        <div className="relative min-h-screen bg-slate-900 text-white font-sans overflow-hidden selection:bg-blue-500/30">
+        <div className="relative min-h-screen bg-[#0a0a16] text-white font-sans overflow-hidden selection:bg-indigo-500/30">
+            {/* Ambient Background */}
+            <div className="absolute inset-0 z-0">
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-900/20 rounded-full blur-[120px] animate-pulse"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-violet-900/20 rounded-full blur-[120px] animate-pulse delay-1000"></div>
+            </div>
+
             {/* Header */}
-            <header className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-20">
+            <header className="absolute top-0 left-0 w-full p-8 flex justify-between items-center z-20">
                 <Link to="/painel" className="group flex items-center gap-1 transition-all hover:opacity-80">
-                    <span className="text-3xl font-black tracking-tighter text-white drop-shadow-lg">SCAE</span>
-                    <span className="text-3xl font-black tracking-tighter text-blue-500 drop-shadow-lg">.</span>
+                    <span className="text-3xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70 drop-shadow-2xl">SCAE</span>
+                    <span className="text-3xl font-black tracking-tighter text-indigo-500 drop-shadow-lg">.</span>
                 </Link>
 
                 <div className="flex gap-4 items-center">
-
-
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full border backdrop-blur-md transition-all duration-500 ${estaOnline
-                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                        : 'bg-red-500/10 border-red-500/20 text-red-400'
+                    <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full border backdrop-blur-md transition-all duration-500 shadow-lg ${estaOnline
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-emerald-900/20'
+                        : 'bg-rose-500/10 border-rose-500/20 text-rose-400 shadow-rose-900/20'
                         }`}>
-                        {estaOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-                        <span className="text-[10px] font-bold tracking-widest uppercase">
+                        {estaOnline ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+                        <span className="text-[10px] font-black tracking-widest uppercase">
                             {estaOnline ? 'ONLINE' : 'OFFLINE'}
                         </span>
                     </div>
@@ -266,79 +314,166 @@ export default function LeitorPortaria() {
 
             {/* Main Content */}
             <main className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
-                {/* Scanner Container Clean */}
-                {/* Scanner Container Clean */}
-                <div className={`relative w-full max-w-sm aspect-square bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10 ${corDoDia ? `ring-1 ${corDoDia.classe.replace('border', 'ring')}` : ''}`}>
+                {/* Scanner Container Premium */}
+                <div className={`relative w-full max-w-sm aspect-square bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 ring-4 ring-black/50 ${corDoDia ? `ring-offset-2 ring-offset-black/50 shadow-[0_0_50px_-10px_rgba(0,0,0,0.5)] ${corDoDia.classe.replace('border', 'ring')}` : ''}`}>
                     {!modoManual ? (
                         <>
-                            <div id="reader" className="w-full h-full object-cover opacity-80"></div>
+                            <div id="reader" className="w-full h-full object-cover opacity-90 grayscale-[20%] contrast-[1.1]"></div>
 
-                            {/* Overlay Container - Restored */}
+                            {/* Overlay Container - Futuristic */}
                             <div className="absolute inset-0 z-10 pointer-events-none">
-                                <div className="absolute top-8 left-8 w-8 h-8 border-t-4 border-l-4 border-white/80 rounded-tl-2xl drop-shadow-lg"></div>
-                                <div className="absolute top-8 right-8 w-8 h-8 border-t-4 border-r-4 border-white/80 rounded-tr-2xl drop-shadow-lg"></div>
-                                <div className="absolute bottom-8 left-8 w-8 h-8 border-b-4 border-l-4 border-white/80 rounded-bl-2xl drop-shadow-lg"></div>
-                                <div className="absolute bottom-8 right-8 w-8 h-8 border-b-4 border-r-4 border-white/80 rounded-br-2xl drop-shadow-lg"></div>
-                                <div className="absolute left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-blue-400 to-transparent shadow-[0_0_15px_rgba(59,130,246,0.8)] animate-[varredura_1.5s_ease-in-out_infinite] top-1/2"></div>
+                                {/* Quinas Brilhantes */}
+                                <div className="absolute top-8 left-8 w-10 h-10 border-t-[6px] border-l-[6px] border-white/90 rounded-tl-3xl drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+                                <div className="absolute top-8 right-8 w-10 h-10 border-t-[6px] border-r-[6px] border-white/90 rounded-tr-3xl drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+                                <div className="absolute bottom-8 left-8 w-10 h-10 border-b-[6px] border-l-[6px] border-white/90 rounded-bl-3xl drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+                                <div className="absolute bottom-8 right-8 w-10 h-10 border-b-[6px] border-r-[6px] border-white/90 rounded-br-3xl drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+
+                                {/* Varredura Laser */}
+                                <div className="absolute left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent shadow-[0_0_20px_rgba(99,102,241,1)] animate-[varredura_2s_ease-in-out_infinite] top-1/2"></div>
+
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(0,0,0,0.6)_100%)]"></div>
                             </div>
                         </>
                     ) : (
-                        <div className="w-full h-full bg-zinc-900 flex flex-col items-center justify-center p-6 text-center">
-                            <Search className="w-12 h-12 text-zinc-700 mb-4" />
-                            <p className="text-zinc-500 text-sm">Modo Manual</p>
+                        <div className="w-full h-full bg-[#1a1a2e] flex flex-col items-center justify-center p-6 text-center">
+                            <div className="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                                <Search className="w-10 h-10 text-indigo-400" />
+                            </div>
+                            <p className="text-indigo-200/50 text-sm font-medium tracking-wide uppercase">Modo Manual Ativo</p>
                         </div>
                     )}
                 </div>
 
                 {/* Status Text (Idle) */}
                 {scannerAtivo && !modoManual && (
-                    <div className="mt-8 text-center opacity-50">
-                        <p className="text-sm font-medium tracking-wide">Aguardando leitura...</p>
+                    <div className="mt-10 text-center">
+                        <p className="text-sm font-bold tracking-[0.2em] uppercase text-indigo-200/40 animate-pulse">Aproxime o QRCode</p>
                     </div>
                 )}
 
                 {/* Date Display */}
-                <div className="mt-8 text-center opacity-30">
-                    <p className="text-xs font-mono tracking-widest uppercase">
+                <div className="mt-4 text-center opacity-40">
+                    <p className="text-xs font-mono tracking-widest uppercase text-indigo-200">
                         {format(obterDataCorrigida(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
                     </p>
                 </div>
 
                 {/* Botão Modo Manual Minimalista */}
-                <div className="fixed bottom-8 right-8">
+                <div className="fixed bottom-8 right-8 z-50">
                     <button
                         onClick={() => definirModoManual(!modoManual)}
-                        className="bg-white/10 hover:bg-white/20 text-white p-4 rounded-full backdrop-blur-md transition-all active:scale-95 shadow-lg border border-white/5"
+                        className="bg-white/5 hover:bg-white/10 text-white p-4 rounded-full backdrop-blur-xl transition-all active:scale-95 shadow-2xl border border-white/10 group"
                     >
-                        {modoManual ? <Zap className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+                        {modoManual ? (
+                            <Zap className="w-6 h-6 text-indigo-400 group-hover:text-amber-400 transition-colors" />
+                        ) : (
+                            <Search className="w-6 h-6 text-indigo-400 group-hover:text-white transition-colors" />
+                        )}
                     </button>
                 </div>
             </main>
 
             {/* Manual Entry Sheet */}
             {modoManual && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-30 transition-opacity" onClick={() => definirModoManual(false)} />
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-30 transition-opacity animate-[fadeIn_0.2s]" onClick={() => definirModoManual(false)} />
             )}
 
-            <div className={`fixed bottom-0 left-0 w-full bg-zinc-900 rounded-t-3xl p-6 shadow-2xl transform transition-transform duration-300 z-40 border-t border-white/10 ${modoManual ? 'translate-y-0' : 'translate-y-full'}`}>
-                <div className="w-full flex justify-center mb-6" onClick={() => definirModoManual(false)}>
-                    <div className="w-12 h-1 bg-zinc-700 rounded-full cursor-pointer hover:bg-zinc-600 transition-colors"></div>
+            <div className={`fixed bottom-0 left-0 w-full bg-[#131326] rounded-t-[3rem] p-8 shadow-[0_-10px_80px_rgba(0,0,0,0.5)] transform transition-transform duration-300 z-40 border-t border-white/10 ${modoManual ? 'translate-y-0' : 'translate-y-full'}`}>
+                <div className="w-full flex justify-center mb-8" onClick={() => definirModoManual(false)}>
+                    <div className="w-16 h-1.5 bg-indigo-500/20 rounded-full cursor-pointer hover:bg-indigo-500/40 transition-colors"></div>
                 </div>
 
-                <form onSubmit={aoEnviarManual}>
-                    <input
-                        type="text"
-                        value={matriculaManual}
-                        onChange={(e) => definirMatriculaManual(e.target.value)}
-                        placeholder="Matrícula"
-                        className="w-full bg-zinc-800 border-none rounded-xl px-4 py-4 text-center text-lg text-white placeholder-zinc-600 focus:ring-1 focus:ring-blue-500 focus:outline-none mb-4 font-mono transition-colors"
-                        autoFocus={modoManual}
-                    />
+                <form onSubmit={aoEnviarManual} className="max-w-md mx-auto">
+                    {/* Toggle Modo de Busca */}
+                    <div className="flex gap-2 mb-6">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                definirModoBuscaNome(false);
+                                definirTermoBusca('');
+                                definirSugestoesAlunos([]);
+                                definirAlunoSelecionado(null);
+                            }}
+                            className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all ${!modoBuscaNome
+                                ? 'bg-indigo-600 text-white shadow-lg'
+                                : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+                        >
+                            🔢 Matrícula
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                definirModoBuscaNome(true);
+                                definirMatriculaManual('');
+                            }}
+                            className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all ${modoBuscaNome
+                                ? 'bg-indigo-600 text-white shadow-lg'
+                                : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+                        >
+                            👤 Nome
+                        </button>
+                    </div>
+
+                    <div className="relative mb-6">
+                        {!modoBuscaNome ? (
+                            <input
+                                type="text"
+                                value={matriculaManual}
+                                onChange={(e) => definirMatriculaManual(e.target.value)}
+                                placeholder="Digite a Matrícula"
+                                className="w-full bg-[#0a0a14] border border-white/5 rounded-2xl px-6 py-5 text-center text-xl text-white placeholder-indigo-500/20 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:outline-none font-mono tracking-wider transition-all shadow-inner"
+                                autoFocus={modoManual}
+                            />
+                        ) : (
+                            <>
+                                <input
+                                    type="text"
+                                    value={termoBusca}
+                                    onChange={(e) => {
+                                        definirTermoBusca(e.target.value);
+                                        definirAlunoSelecionado(null);
+                                    }}
+                                    placeholder="Digite o nome do aluno..."
+                                    className="w-full bg-[#0a0a14] border border-white/5 rounded-2xl px-6 py-5 text-center text-xl text-white placeholder-indigo-500/20 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                                    autoFocus={modoManual}
+                                />
+
+                                {/* Autocomplete Dropdown */}
+                                {sugestoesAlunos.length > 0 && (
+                                    <div className="absolute top-full left-0 w-full mt-2 bg-[#1a1a2e] border border-indigo-500/20 rounded-2xl overflow-hidden shadow-2xl max-h-80 overflow-y-auto z-50">
+                                        {sugestoesAlunos.map((aluno) => (
+                                            <button
+                                                key={aluno.matricula}
+                                                type="button"
+                                                onClick={() => selecionarAluno(aluno)}
+                                                className="w-full text-left px-6 py-4 hover:bg-indigo-500/10 transition-colors border-b border-white/5 last:border-b-0 focus:bg-indigo-500/20 focus:outline-none"
+                                            >
+                                                <p className="font-bold text-white">{aluno.nome_completo}</p>
+                                                <div className="flex gap-4 mt-1">
+                                                    <span className="text-xs text-indigo-400 font-mono">{aluno.matricula}</span>
+                                                    <span className="text-xs text-indigo-400">{aluno.turma_id}</span>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Aluno Selecionado */}
+                                {alunoSelecionado && (
+                                    <div className="mt-4 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+                                        <p className="text-green-400 font-bold text-center">✓ {alunoSelecionado.nome_completo}</p>
+                                        <p className="text-green-400/70 text-xs text-center mt-1">{alunoSelecionado.turma_id}</p>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95 mb-4"
+                        disabled={modoBuscaNome ? !alunoSelecionado : !matriculaManual.trim()}
+                        className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-black py-5 rounded-2xl shadow-lg shadow-indigo-600/20 transition-all active:scale-[0.98] uppercase tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Confirmar
+                        Confirmar Entrada
                     </button>
                 </form>
             </div>
@@ -346,32 +481,32 @@ export default function LeitorPortaria() {
             {/* Full Screen Result Overlay */}
             {ultimoResultado && (
                 <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center p-8 transition-all duration-300 ${ultimoResultado.status === 'sucesso' ? 'bg-emerald-600' :
-                    ultimoResultado.status === 'erro' ? 'bg-red-600' :
+                    ultimoResultado.status === 'erro' ? 'bg-rose-600' :
                         'bg-amber-500'
                     }`} onClick={() => definirUltimoResultado(null)}>
 
-                    <div className="mb-6 p-6 bg-white/20 rounded-full shadow-lg backdrop-blur-sm">
-                        {ultimoResultado.status === 'sucesso' ? <Check className="w-12 h-12 text-white" /> :
-                            ultimoResultado.status === 'erro' ? <X className="w-12 h-12 text-white" /> :
-                                <AlertTriangle className="w-12 h-12 text-white" />}
+                    <div className="mb-8 p-6 bg-white/20 rounded-full shadow-2xl backdrop-blur-md animate-[bounceIn_0.5s_cubic-bezier(0.175,0.885,0.32,1.275)]">
+                        {ultimoResultado.status === 'sucesso' ? <Check className="w-16 h-16 text-white drop-shadow-md" strokeWidth={3} /> :
+                            ultimoResultado.status === 'erro' ? <X className="w-16 h-16 text-white drop-shadow-md" strokeWidth={3} /> :
+                                <AlertTriangle className="w-16 h-16 text-white drop-shadow-md" strokeWidth={3} />}
                     </div>
 
-                    <h1 className="text-3xl font-bold text-white tracking-tight uppercase mb-2 text-center">
+                    <h1 className="text-4xl font-black text-white tracking-tighter uppercase mb-4 text-center drop-shadow-lg animate-[fadeIn_0.3s_ease-out_0.2s_both]">
                         {ultimoResultado.status === 'sucesso' ? 'Acesso Liberado' :
                             ultimoResultado.status === 'erro' ? 'Acesso Negado' :
                                 'Atenção'}
                     </h1>
 
-                    <p className="text-lg text-white/90 font-medium mb-10 text-center max-w-md leading-relaxed opacity-90">
+                    <p className="text-xl text-white/90 font-medium mb-12 text-center max-w-lg leading-relaxed opacity-90 animate-[fadeIn_0.3s_ease-out_0.3s_both]">
                         {ultimoResultado.mensagem}
                     </p>
 
                     {ultimoResultado.aluno && (
-                        <div className="bg-black/20 p-6 rounded-2xl w-full max-w-sm backdrop-blur-md text-center border border-white/10">
-                            <h2 className="text-2xl font-bold text-white mb-1 leading-tight truncate">
-                                {ultimoResultado.aluno.nome_completo}
+                        <div className="bg-black/20 p-8 rounded-3xl w-full max-w-sm backdrop-blur-xl text-center border border-white/20 shadow-2xl animate-[slideUp_0.4s_ease-out_0.4s_both]">
+                            <h2 className="text-3xl font-bold text-white mb-2 leading-tight truncate">
+                                {ultimoResultado.aluno.nome_completo.split(' ')[0]} <span className="text-white/70">{ultimoResultado.aluno.nome_completo.split(' ').pop()}</span>
                             </h2>
-                            <p className="text-sm text-white/60 font-mono tracking-wider">
+                            <p className="text-lg text-white/50 font-mono tracking-widest uppercase border-t border-white/10 pt-4 mt-4 inline-block px-8">
                                 {ultimoResultado.aluno.turma_id}
                             </p>
                         </div>

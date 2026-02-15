@@ -39,11 +39,37 @@ export const servicoSincronizacao = {
         }
     },
 
+    sincronizarTurmas: async () => {
+        try {
+            const turmas = await api.obter('/turmas');
+            if (Array.isArray(turmas)) {
+                await bancoLocal.salvarTurmas(turmas);
+                console.log('Turmas sincronizadas:', turmas.length);
+                return { sucesso: true, quantidade: turmas.length };
+            }
+        } catch (erro) {
+            console.error('Erro na sincronização de turmas:', erro);
+            return { sucesso: false, erro: erro.message };
+        }
+    },
+
+    sincronizarTudo: async () => {
+        console.log('Iniciando sincronização universal...');
+        const [alunos, turmas, registros] = await Promise.all([
+            servicoSincronizacao.sincronizarAlunos(),
+            servicoSincronizacao.sincronizarTurmas(),
+            servicoSincronizacao.sincronizarRegistros()
+        ]);
+
+        return { alunos, turmas, registros };
+    },
+
     iniciarOuvintes: () => {
         window.addEventListener('online', () => {
             console.log('Online detectado. Iniciando sincronização...');
             servicoSincronizacao.sincronizarRegistros();
             servicoSincronizacao.sincronizarAlunos();
+            servicoSincronizacao.sincronizarTurmas();
         });
     }
 };

@@ -38,35 +38,35 @@ export default function PaginaLogin() {
     };
 
     return (
-        <div className="flex min-h-screen font-sans selection:bg-blue-500/30">
+        <div className="flex min-h-screen font-sans selection:bg-indigo-500/30">
             {/* Painel Esquerdo - Brand & info */}
             <div className="hidden lg:flex w-1/2 bg-[#050b1f] flex-col justify-between p-16 text-white relative overflow-hidden">
 
                 {/* Background Effects */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-blue-900/40 via-[#050b1f] to-[#050b1f] z-0"></div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/40 via-[#050b1f] to-[#050b1f] z-0"></div>
 
                 {/* Subtle Grid Texture */}
                 <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
 
                 {/* Animated Orbs */}
-                <div className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse"></div>
-                <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[100px] animate-pulse delay-1000"></div>
+                <div className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-violet-600/20 rounded-full blur-[100px] animate-pulse delay-1000"></div>
 
                 {/* Conteúdo Header */}
                 <div className="relative z-10 animate-[fadeIn_0.8s_ease-out]">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 mb-8 backdrop-blur-md">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-                        <span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest">Ambiente Monitorado</span>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-8 backdrop-blur-md">
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                        <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Ambiente Monitorado</span>
                     </div>
 
                     <h1 className="text-9xl font-black mb-4 tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/50 drop-shadow-2xl selection:bg-transparent">
                         SCAE
-                        <span className="text-blue-500">.</span>
+                        <span className="text-indigo-500">.</span>
                     </h1>
 
-                    <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-transparent mb-6 rounded-full"></div>
+                    <div className="h-1 w-24 bg-gradient-to-r from-indigo-500 to-transparent mb-6 rounded-full"></div>
 
-                    <p className="text-xl font-light text-blue-100/70 max-w-sm leading-relaxed tracking-wide">
+                    <p className="text-xl font-light text-indigo-100/70 max-w-sm leading-relaxed tracking-wide">
                         Sistema de Controle de Acesso Escolar
                     </p>
                 </div>
@@ -75,39 +75,39 @@ export default function PaginaLogin() {
                 <div className="space-y-8 relative z-10 max-w-lg w-full mt-12 animate-[fadeIn_1s_ease-out_0.2s_both]">
 
                     <div className="flex items-start gap-4 group cursor-default">
-                        <div className="p-3 rounded-lg bg-blue-500/10 text-blue-400 group-hover:text-blue-300 group-hover:bg-blue-400/20 transition-colors">
+                        <div className="p-3 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:text-indigo-300 group-hover:bg-indigo-400/20 transition-colors">
                             <WifiOff size={24} strokeWidth={1.5} />
                         </div>
                         <div>
-                            <h3 className="text-white font-medium text-lg tracking-tight group-hover:text-blue-200 transition-colors">Operação Offline</h3>
-                            <p className="text-sm text-blue-200/40 leading-relaxed mt-1">O sistema continua operando localmente mesmo sem internet, sincronizando automaticamente ao reconectar.</p>
+                            <h3 className="text-white font-medium text-lg tracking-tight group-hover:text-indigo-200 transition-colors">Operação Offline</h3>
+                            <p className="text-sm text-indigo-200/40 leading-relaxed mt-1">O sistema continua operando localmente mesmo sem internet, sincronizando automaticamente ao reconectar.</p>
                         </div>
                     </div>
 
                     <div className="flex items-start gap-4 group cursor-default">
-                        <div className="p-3 rounded-lg bg-yellow-500/10 text-yellow-400 group-hover:text-yellow-300 group-hover:bg-yellow-400/20 transition-colors">
+                        <div className="p-3 rounded-lg bg-amber-500/10 text-amber-400 group-hover:text-amber-300 group-hover:bg-amber-400/20 transition-colors">
                             <Zap size={24} strokeWidth={1.5} />
                         </div>
                         <div>
-                            <h3 className="text-white font-medium text-lg tracking-tight group-hover:text-yellow-200 transition-colors">Alta Performance</h3>
-                            <p className="text-sm text-blue-200/40 leading-relaxed mt-1">Otimizado para leitura instantânea de QR Codes, garantindo fluxo rápido nos horários de pico.</p>
+                            <h3 className="text-white font-medium text-lg tracking-tight group-hover:text-amber-200 transition-colors">Alta Performance</h3>
+                            <p className="text-sm text-indigo-200/40 leading-relaxed mt-1">Otimizado para leitura instantânea de QR Codes, garantindo fluxo rápido nos horários de pico.</p>
                         </div>
                     </div>
 
                     <div className="flex items-start gap-4 group cursor-default">
-                        <div className="p-3 rounded-lg bg-green-500/10 text-green-400 group-hover:text-green-300 group-hover:bg-green-400/20 transition-colors">
+                        <div className="p-3 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:text-emerald-300 group-hover:bg-emerald-400/20 transition-colors">
                             <Lock size={24} strokeWidth={1.5} />
                         </div>
                         <div>
-                            <h3 className="text-white font-medium text-lg tracking-tight group-hover:text-green-200 transition-colors">Dados Protegidos</h3>
-                            <p className="text-sm text-blue-200/40 leading-relaxed mt-1">Criptografia de ponta a ponta e total conformidade com a LGPD para segurança dos alunos.</p>
+                            <h3 className="text-white font-medium text-lg tracking-tight group-hover:text-emerald-200 transition-colors">Dados Protegidos</h3>
+                            <p className="text-sm text-indigo-200/40 leading-relaxed mt-1">Criptografia de ponta a ponta e total conformidade com a LGPD para segurança dos alunos.</p>
                         </div>
                     </div>
 
                 </div>
 
-                <div className="flex justify-between items-center text-[10px] text-blue-400/40 relative z-10 font-mono tracking-widest uppercase mt-auto pt-8 border-t border-white/5">
-                    <button onClick={() => aoEntrarComGoogle(false)} className="hover:text-blue-300 transition-colors cursor-pointer text-left focus:outline-none">
+                <div className="flex justify-between items-center text-[10px] text-indigo-400/40 relative z-10 font-mono tracking-widest uppercase mt-auto pt-8 border-t border-white/5">
+                    <button onClick={() => aoEntrarComGoogle(false)} className="hover:text-indigo-300 transition-colors cursor-pointer text-left focus:outline-none">
                         madebycotrim
                     </button>
                     <div className="flex items-center gap-2">
@@ -129,7 +129,7 @@ export default function PaginaLogin() {
                 </div>
 
                 {/* Soft ambient glow */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-blue-100/50 via-indigo-100/30 to-transparent rounded-full blur-[100px] pointer-events-none"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-indigo-100/50 via-violet-100/30 to-transparent rounded-full blur-[100px] pointer-events-none"></div>
 
                 {/* Header Institucional */}
                 <div className="absolute top-8 right-8 flex items-center gap-3 opacity-80 mix-blend-multiply animate-[fadeInDown_0.8s_ease-out]">
@@ -146,7 +146,7 @@ export default function PaginaLogin() {
                 <div className="w-full max-w-[440px] bg-white/70 backdrop-blur-2xl p-10 rounded-[32px] shadow-[0_40px_100px_-20px_rgba(50,50,93,0.15),0_15px_40px_-20px_rgba(0,0,0,0.1)] relative z-10 border border-white/60 ring-1 ring-white/50 text-center animate-[scaleIn_0.6s_ease-out]">
 
                     {/* Icon Header */}
-                    <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-xl shadow-blue-600/20 mb-8 border border-blue-400/20">
+                    <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-xl shadow-indigo-600/20 mb-8 border border-indigo-400/20">
                         <Shield className="w-8 h-8 text-white" />
                     </div>
 
@@ -155,7 +155,7 @@ export default function PaginaLogin() {
                         Acesso exclusivo para gestão administrativa e operações de portaria.
                     </p>
 
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold tracking-widest uppercase mb-8 border border-blue-100">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold tracking-widest uppercase mb-8 border border-indigo-100">
                         <Lock size={12} className="mb-0.5" /> Área Restrita
                     </div>
 
@@ -163,12 +163,12 @@ export default function PaginaLogin() {
                         <button
                             onClick={() => aoEntrarComGoogle(true)}
                             disabled={carregando}
-                            className="w-full group relative flex items-center justify-center gap-3 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-300 text-slate-700 font-bold py-4 px-6 rounded-xl transition-all duration-200 hover:shadow-[0_4px_20px_-2px_rgba(59,130,246,0.15)] active:scale-[0.98] active:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-50 disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100"
+                            className="w-full group relative flex items-center justify-center gap-3 bg-white hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-bold py-4 px-6 rounded-xl transition-all duration-200 hover:shadow-[0_4px_20px_-2px_rgba(99,102,241,0.15)] active:scale-[0.98] active:bg-indigo-50 focus:outline-none focus:ring-4 focus:ring-indigo-50 disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100"
                         >
                             {carregando ? (
                                 <div className="flex items-center gap-2">
-                                    <span className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
-                                    <span className="text-blue-600">Autenticando...</span>
+                                    <span className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></span>
+                                    <span className="text-indigo-600">Autenticando...</span>
                                 </div>
                             ) : (
                                 <>
@@ -187,11 +187,11 @@ export default function PaginaLogin() {
                     </div>
 
                     {erroLogin && (
-                        <div className="mt-6 p-4 bg-red-50/80 backdrop-blur-sm border border-red-100 rounded-2xl flex items-start gap-3 animate-[scaleIn_0.3s_ease-out] shadow-sm">
-                            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <div className="mt-6 p-4 bg-rose-50/80 backdrop-blur-sm border border-rose-100 rounded-2xl flex items-start gap-3 animate-[scaleIn_0.3s_ease-out] shadow-sm">
+                            <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
                             <div className="text-left">
-                                <h3 className="text-xs font-bold text-red-800 uppercase tracking-wide mb-1">Falha na Autenticação</h3>
-                                <p className="text-xs text-red-600 leading-relaxed font-medium">
+                                <h3 className="text-xs font-bold text-rose-800 uppercase tracking-wide mb-1">Falha na Autenticação</h3>
+                                <p className="text-xs text-rose-600 leading-relaxed font-medium">
                                     {erroLogin}
                                 </p>
                             </div>
@@ -206,7 +206,7 @@ export default function PaginaLogin() {
                             </p>
                             <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/60 rounded-full px-3 py-1 mx-auto">
                                 <span className="text-[10px] text-slate-500 font-medium">Permitido apenas</span>
-                                <code className="text-[10px] font-mono text-blue-600 font-bold tracking-wide">
+                                <code className="text-[10px] font-mono text-indigo-600 font-bold tracking-wide">
                                     @edu.se.df.gov.br
                                 </code>
                             </div>

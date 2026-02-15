@@ -2,16 +2,24 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-ro
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { autenticacao } from './servicos/firebase';
-import { servicoSincronizacao } from './servicos/sincronizacao';
 import { ProvedorAutenticacao } from './contexts/ContextoAutenticacao';
+import { ProvedorPermissoes } from './contexts/ContextoPermissoes';
 import RotaPrivada from './componentes/RotaPrivada';
 import LeitorPortaria from './paginas/LeitorPortaria';
 import Painel from './paginas/Painel';
 import Turmas from './paginas/Turmas';
 import Login from './paginas/Login';
 import Alunos from './paginas/Alunos';
+import Crachas from './paginas/Crachas';
+import Logs from './paginas/Logs';
+import Chaves from './paginas/Chaves';
+import Usuarios from './paginas/Usuarios';
 import Relatorios from './paginas/Relatorios';
+import Justificativas from './paginas/Justificativas';
 import GeradorCrachas from './paginas/GeradorCrachas';
+import LGPD from './paginas/LGPD';
+import PainelExecutivo from './paginas/PainelExecutivo';
+import { Toaster } from 'react-hot-toast';
 import { Home, Users, Printer, LogOut, QrCode, FileText } from 'lucide-react';
 
 function Layout({ children }) {
@@ -24,6 +32,7 @@ function Layout({ children }) {
       <main className="flex-grow bg-gray-100">
         {children}
       </main>
+      <Toaster position="top-right" />
     </div>
   );
 }
@@ -41,10 +50,7 @@ function App() {
     const cancelarInscricao = onAuthStateChanged(autenticacao, (usuarioFirebase) => {
       definirUsuario(usuarioFirebase);
       definirCarregando(false);
-      if (usuarioFirebase) {
-        // v3.0 - Hybrid Sync
-        servicoSincronizacao.iniciarOuvintes();
-      }
+      // Sync service removed - handled by individual components
     });
 
     return () => cancelarInscricao();
@@ -53,18 +59,26 @@ function App() {
   return (
     <Router>
       <ProvedorAutenticacao>
-        <Layout>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/leitor" element={<LeitorPortaria />} />
-            <Route path="/painel" element={<RotaPrivada><Painel /></RotaPrivada>} />
-            <Route path="/turmas" element={<RotaPrivada><Turmas /></RotaPrivada>} />
-            <Route path="/alunos" element={<RotaPrivada><Alunos /></RotaPrivada>} />
-            <Route path="/relatorios" element={<RotaPrivada><Relatorios /></RotaPrivada>} />
-            <Route path="/gerador" element={<RotaPrivada><GeradorCrachas /></RotaPrivada>} />
-            <Route path="/" element={<Navigate to="/painel" />} />
-          </Routes>
-        </Layout>
+        <ProvedorPermissoes>
+          <Layout>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/portaria" element={<LeitorPortaria />} />
+              <Route path="/painel" element={<Painel />} />
+              <Route path="/alunos" element={<Alunos />} />
+              <Route path="/turmas" element={<Turmas />} />
+              <Route path="/crachas" element={<Crachas />} />
+              <Route path="/logs" element={<Logs />} />
+              <Route path="/chaves" element={<Chaves />} />
+              <Route path="/usuarios" element={<Usuarios />} />
+              <Route path="/relatorios" element={<Relatorios />} />
+              <Route path="/justificativas" element={<Justificativas />} />
+              <Route path="/lgpd" element={<LGPD />} />
+              <Route path="/painel-executivo" element={<PainelExecutivo />} />
+              <Route path="*" element={<Navigate to="/painel" replace />} />
+            </Routes>
+          </Layout>
+        </ProvedorPermissoes>
       </ProvedorAutenticacao>
     </Router>
   );

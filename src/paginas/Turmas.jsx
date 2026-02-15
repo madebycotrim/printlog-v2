@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react';
 import { bancoLocal } from '../servicos/bancoLocal';
 import { api } from '../servicos/api';
 import LayoutAdministrativo from '../componentes/LayoutAdministrativo';
-import ModalListaAlunos from '../componentes/ModalListaAlunos';
-import ModalConfirmacao from '../componentes/ModalConfirmacao';
-import { Plus, Trash2, Users, Layers, X, Sun, Moon, Sunset, XCircle, ChevronRight, Search } from 'lucide-react';
+import { registrarAuditoria, ACOES_AUDITORIA } from '../servicos/auditoria';
+import { useAutenticacao } from '../contexts/ContextoAutenticacao';
+import ModalUniversal from '../componentes/ModalUniversal';
+import { Plus, Trash2, Users, Layers, X, Sun, Moon, Sunset, XCircle, ChevronRight, Search, User, AlertTriangle } from 'lucide-react';
 
 export default function Turmas() {
+    const { usuarioAtual } = useAutenticacao();
     const [turmas, definirTurmas] = useState([]);
     const [modalAberto, definirModalAberto] = useState(false);
     const [modalAlunosAberto, definirModalAlunosAberto] = useState(false);
     const [turmaSelecionada, definirTurmaSelecionada] = useState(null);
     const [alunosDaTurma, definirAlunosDaTurma] = useState([]);
-    const [novaTurma, definirNovaTurma] = useState({ serie: '', turno: '', letra: '' });
+    const [novaTurma, definirNovaTurma] = useState({ serie: '', turno: 'Indefinido', letra: '' });
     const [erroCadastro, definirErroCadastro] = useState('');
     const [carregando, definirCarregando] = useState(true);
     const [filtroTurno, definirFiltroTurno] = useState('Todos');
@@ -149,7 +151,23 @@ export default function Turmas() {
         // Isso garante que a UI atualize e funcione offline
         await banco.put('turmas', novaTurmaObj);
 
-        definirNovaTurma({ serie: '', turno: '', letra: '' });
+        // 🔒 AUDITORIA: Registrar criação
+        if (usuarioAtual?.email) {
+            try {
+                await registrarAuditoria({
+                    usuarioEmail: usuarioAtual.email,
+                    acao: ACOES_AUDITORIA.CRIAR_TURMA,
+                    entidadeTipo: 'turma',
+                    entidadeId: novaTurmaObj.id,
+                    dadosAnteriores: null,
+                    dadosNovos: novaTurmaObj
+                });
+            } catch (erroAudit) {
+                console.warn('Falha no log de auditoria:', erroAudit);
+            }
+        }
+
+        definirNovaTurma({ serie: '', turno: 'Indefinido', letra: '' });
         definirModalAberto(false);
         carregarTurmas();
     };
@@ -173,6 +191,9 @@ export default function Turmas() {
 
     const removerTurma = async (id) => {
         try {
+            // Capturar dados antes de deletar para auditoria
+            const turmaParaDeletar = turmas.find(t => t.id === id);
+
             if (navigator.onLine) {
                 await api.remover(`/turmas?id=${encodeURIComponent(id)}`);
                 console.log('Turma removida da nuvem.');
@@ -183,6 +204,23 @@ export default function Turmas() {
 
         const banco = await bancoLocal.iniciarBanco();
         await banco.delete('turmas', id);
+
+        // 🔒 AUDITORIA: Registrar exclusão
+        if (usuarioAtual?.email && turmaParaDeletar) {
+            try {
+                await registrarAuditoria({
+                    usuarioEmail: usuarioAtual.email,
+                    acao: ACOES_AUDITORIA.DELETAR_TURMA,
+                    entidadeTipo: 'turma',
+                    entidadeId: id,
+                    dadosAnteriores: turmaParaDeletar,
+                    dadosNovos: null
+                });
+            } catch (erroAudit) {
+                console.warn('Falha no log de auditoria:', erroAudit);
+            }
+        }
+
         carregarTurmas();
     };
 
@@ -533,25 +571,58 @@ export default function Turmas() {
                 </div>
             )}
 
-            {/* Modal Lista de Alunos */}
-            {modalAlunosAberto && turmaSelecionada && (
-                <ModalListaAlunos
-                    turma={turmaSelecionada}
-                    alunos={alunosDaTurma}
+            {/* Modal de Lista de Alunos */}
+            {modalAlunosAberto && (
+                <ModalUniversal
+                    titulo={`Alunos da Turma: ${turmaSelecionada?.interpretado?.serie || ''} ${turmaSelecionada?.interpretado?.letra || ''}`}
+                    subtitulo={`${alunosDaTurma.length} aluno(s) matriculado(s)`}
+                    fechavel
+                    alturaDinamica
                     aoFechar={() => definirModalAlunosAberto(false)}
-                />
+                >
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {alunosDaTurma.length === 0 ? (
+                            <p className="text-center text-slate-400 py-8">Nenhum aluno matriculado nesta turma</p>
+                        ) : (
+                            alunosDaTurma.map((aluno, index) => (
+                                <div key={index} className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                                    <p className="font-bold text-slate-700">{aluno.nome_completo || aluno.nome}</p>
+                                    <p className="text-xs text-slate-500">Matrícula: {aluno.matricula}</p>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </ModalUniversal>
             )}
 
-            {/* Modal de Confirmação Genérico */}
+            {/* Modal de Confirmação de Exclusão */}
             {confirmacao && (
-                <ModalConfirmacao
+                <ModalUniversal
                     titulo={confirmacao.titulo}
-                    mensagem={confirmacao.mensagem}
-                    textoConfirmar={confirmacao.textoConfirmar}
-                    aoConfirmar={confirmacao.acao}
+                    fechavel
                     aoFechar={() => setConfirmacao(null)}
-                    tipo={confirmacao.tipo}
-                />
+                >
+                    <div className="space-y-6">
+                        <p className="text-slate-600">{confirmacao.mensagem}</p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setConfirmacao(null)}
+                                className="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => {
+                                    confirmacao.acao();
+                                    setConfirmacao(null);
+                                }}
+                                className="px-4 py-2 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition font-bold"
+                            >
+                                {confirmacao.textoConfirmar || 'Confirmar'}
+                            </button>
+                        </div>
+                    </div>
+                </ModalUniversal>
             )}
         </LayoutAdministrativo>
     );
