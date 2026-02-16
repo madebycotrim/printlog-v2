@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const NOME_BANCO = 'SCAE_DB';
-const VERSAO_BANCO = 7; // Incrementado para garantir criação das stores LGPD
+const VERSAO_BANCO = 8; // v8: Garantir creation store usuarios
 
 export const iniciarBanco = async () => {
     return openDB(NOME_BANCO, VERSAO_BANCO, {
