@@ -202,7 +202,7 @@ export default function Turmas() {
         <LayoutAdministrativo titulo="Gestão de Turmas" subtitulo="Administração de classes e turnos" acoes={AcoesHeader}>
 
             {/* Toolbar de Filtros */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-8 flex flex-col md:flex-row gap-4 animate-[fade-in_0.3s_ease-out] sticky top-0 z-20">
+            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-8 flex flex-col md:flex-row gap-4 sticky top-0 z-20">
                 <div className="relative flex-1 group">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
                     <input
@@ -234,11 +234,11 @@ export default function Turmas() {
             {carregando ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                        <div key={i} className="h-48 bg-slate-100/50 rounded-2xl animate-pulse"></div>
+                        <div key={i} className="h-48 bg-slate-100/50 rounded-2xl"></div>
                     ))}
                 </div>
             ) : turmasFiltradas.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-100 p-20 text-center animate-[fade-in_0.5s_ease-out]">
+                <div className="bg-white rounded-2xl border border-slate-100 p-20 text-center">
                     <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 mx-auto shadow-sm border border-slate-100">
                         <BookOpen size={40} className="text-slate-300" />
                     </div>
@@ -248,15 +248,14 @@ export default function Turmas() {
                     </p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-[fade-in_0.5s_ease-out]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {turmasFiltradas.map((turma, index) => {
                         const cores = CORES_TURNO[turma.turno] || CORES_TURNO['Matutino'];
 
                         return (
                             <div
                                 key={turma.id}
-                                className="group relative bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
-                                style={{ animationDelay: `${index * 0.05}s` }}
+                                className="group relative bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md overflow-hidden"
                             >
                                 {/* Header Colorido */}
                                 <div className={`h-24 bg-gradient-to-br ${cores.gradient} relative p-4 flex justify-between items-start`}>
@@ -328,55 +327,50 @@ export default function Turmas() {
             {/* Modal Criar/Editar */}
             {modalAberto && (
                 <ModalUniversal
-                    titulo={turmaEmEdicao ? "Editar Turma" : "Nova Turma"}
-                    subtitulo={turmaEmEdicao ? `Atualizando informações da turma ${turmaEmEdicao.id}` : "Cadastre uma nova turma no sistema"}
+                    titulo={turmaEmEdicao ? "Editar Informações da Turma" : "Criar Nova Turma"}
+                    subtitulo={turmaEmEdicao ? `Alterando dados da turma ${turmaEmEdicao.id}` : "Defina a série, turno e letra para criar uma nova turma."}
                     fechavel
                     aoFechar={() => definirModalAberto(false)}
                 >
                     <div className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Série (Ano)</label>
-                                <div className="relative">
-                                    <select
-                                        value={serieTurma}
-                                        onChange={(e) => definirSerieTurma(e.target.value)}
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
+
+                        {/* Série (Ano) */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Série</label>
+                            <div className="grid grid-cols-3 gap-3">
+                                {['1', '2', '3'].map((s) => (
+                                    <button
+                                        key={s}
+                                        onClick={() => !turmaEmEdicao && definirSerieTurma(s)}
                                         disabled={!!turmaEmEdicao}
+                                        className={`
+                                            h-16 rounded-xl border-2 text-xl font-black transition-all flex items-center justify-center gap-1
+                                            ${serieTurma === s
+                                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-md transform scale-[1.02]'
+                                                : 'bg-white border-slate-200 text-slate-500 hover:border-indigo-200 hover:text-indigo-600 hover:bg-slate-50'}
+                                            ${turmaEmEdicao ? 'opacity-50 cursor-not-allowed' : ''}
+                                        `}
                                     >
-                                        <option value="">Selecione...</option>
-                                        <option value="1">1º Ano</option>
-                                        <option value="2">2º Ano</option>
-                                        <option value="3">3º Ano</option>
-                                    </select>
-                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Letra</label>
-                                <input
-                                    type="text"
-                                    value={letraTurma}
-                                    onChange={(e) => definirLetraTurma(e.target.value.toUpperCase())}
-                                    placeholder="Ex: A"
-                                    maxLength={1}
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:font-normal uppercase text-center"
-                                    disabled={!!turmaEmEdicao}
-                                />
+                                        {s}º <span className="text-xs font-bold opacity-60 mt-1">ANO</span>
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
+                        {/* Turno */}
                         <div>
                             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Turno</label>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                                 {['Matutino', 'Vespertino', 'Noturno', 'Integral'].map((t) => (
                                     <button
                                         key={t}
                                         onClick={() => definirTurno(t)}
-                                        className={`p-3 rounded-xl border border-slate-200 text-sm font-bold transition-all ${turno === t
-                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm ring-1 ring-indigo-500/20'
-                                            : 'bg-white text-slate-500 hover:bg-slate-50'
-                                            }`}
+                                        className={`
+                                            h-14 rounded-xl border-2 text-sm font-bold transition-all flex items-center justify-center gap-2
+                                            ${turno === t
+                                                ? 'bg-white border-indigo-600 text-indigo-700 shadow-sm ring-1 ring-indigo-500/10'
+                                                : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-slate-300'}
+                                        `}
                                     >
                                         {t}
                                     </button>
@@ -384,28 +378,42 @@ export default function Turmas() {
                             </div>
                         </div>
 
+                        {/* Letra da Turma */}
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Ano Letivo</label>
-                            <input
-                                type="number"
-                                value={anoLetivo}
-                                onChange={(e) => definirAnoLetivo(e.target.value)}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                            />
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Turma (Letra)</label>
+                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                                {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'].map((l) => (
+                                    <button
+                                        key={l}
+                                        onClick={() => !turmaEmEdicao && definirLetraTurma(l)}
+                                        disabled={!!turmaEmEdicao}
+                                        className={`
+                                            aspect-square rounded-xl border-2 text-sm font-black transition-all flex items-center justify-center
+                                            ${letraTurma === l
+                                                ? 'bg-slate-800 border-slate-800 text-white shadow-md transform scale-105'
+                                                : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-400 hover:text-indigo-600'}
+                                            ${turmaEmEdicao ? 'opacity-50 cursor-not-allowed' : ''}
+                                        `}
+                                    >
+                                        {l}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
-                        <div className="flex gap-4 pt-4 border-t border-slate-100">
+                        {/* Footer Ações */}
+                        <div className="flex gap-4 pt-6 mt-2 border-t border-slate-100">
                             <button
                                 onClick={() => definirModalAberto(false)}
-                                className="flex-1 py-3 px-6 rounded-xl text-slate-600 font-bold hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all"
+                                className="flex-1 py-4 px-6 rounded-xl border border-transparent text-slate-500 font-bold hover:bg-slate-50 hover:text-slate-700 transition-all uppercase tracking-wide text-xs"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={salvarTurma}
-                                className="flex-[2] py-3 px-6 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                                className="flex-[2] py-4 px-6 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3 uppercase tracking-wide text-xs"
                             >
-                                <BookOpen size={18} />
+                                <BookOpen size={18} className="text-indigo-200" />
                                 {turmaEmEdicao ? 'Salvar Alterações' : 'Criar Turma'}
                             </button>
                         </div>

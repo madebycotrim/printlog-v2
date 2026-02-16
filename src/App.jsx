@@ -4,6 +4,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { autenticacao } from './servicos/firebase';
 import { ProvedorAutenticacao } from './contexts/ContextoAutenticacao';
 import { ProvedorPermissoes } from './contexts/ContextoPermissoes';
+import { ProvedorNotificacoes } from './contexts/ContextoNotificacoes';
 import RotaPrivada from './componentes/RotaPrivada';
 import LeitorPortaria from './paginas/LeitorPortaria';
 import Painel from './paginas/Painel';
@@ -53,19 +54,21 @@ function App() {
     <Router>
       <ProvedorAutenticacao>
         <ProvedorPermissoes>
-          <Layout>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/leitor" element={<LeitorPortaria />} />
-              <Route path="/painel" element={<Painel />} />
-              <Route path="/alunos" element={<Alunos />} />
-              <Route path="/turmas" element={<Turmas />} />
-              <Route path="/relatorios" element={<Relatorios />} />
-              <Route path="/logs" element={<Logs />} />
-              <Route path="/usuarios" element={<Usuarios />} />
-              <Route path="*" element={<Navigate to="/painel" replace />} />
-            </Routes>
-          </Layout>
+          <ProvedorNotificacoes>
+            <Layout>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/leitor" element={<LeitorPortaria />} />
+                <Route path="/painel" element={<Painel />} />
+                <Route path="/alunos" element={<Alunos />} />
+                <Route path="/turmas" element={<Turmas />} />
+                <Route path="/relatorios" element={<Relatorios />} />
+                <Route path="/logs" element={<Logs />} />
+                <Route path="/usuarios" element={<Usuarios />} />
+                <Route path="*" element={<Navigate to="/painel" replace />} />
+              </Routes>
+            </Layout>
+          </ProvedorNotificacoes>
         </ProvedorPermissoes>
       </ProvedorAutenticacao>
     </Router>

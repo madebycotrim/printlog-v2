@@ -32,8 +32,7 @@ export default function Logs() {
     const carregarLogs = async () => {
         try {
             definirCarregando(true);
-            const banco = await bancoLocal.iniciarBanco();
-            const todosLogs = await banco.getAll('audit_logs'); // Assumindo tabela audit_logs
+            const todosLogs = await bancoLocal.listarLogs();
             // Se nao existir, usar mock ou registros_acesso para teste visual
 
             // MOCK DATA PARA VISUALIZACAO (Se banco vazio)

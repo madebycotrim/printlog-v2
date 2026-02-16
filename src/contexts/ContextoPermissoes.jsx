@@ -81,7 +81,7 @@ export function ProvedorPermissoes({ children }) {
                 const banco = await bancoLocal.iniciarBanco();
                 const usuarioBD = await banco.get('usuarios', usuarioAtual.email);
 
-                if (usuarioBD && usuarioBD.ativo) {
+                if (usuarioBD) {
                     definirUsuario(usuarioBD);
                 } else {
                     // Usuário não cadastrado - APENAS madebycotrim@gmail.com é ADMIN
@@ -115,6 +115,7 @@ export function ProvedorPermissoes({ children }) {
                             nome_completo: usuarioAtual.displayName || usuarioAtual.email,
                             papel: 'VISUALIZACAO',
                             ativo: true,
+                            pendente: true, // Novo usuário começa pendente
                             criado_por: 'system_auto',
                             criado_em: new Date().toISOString(),
                             atualizado_em: new Date().toISOString()

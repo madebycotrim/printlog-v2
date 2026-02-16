@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Info } from 'lucide-react';
 
 export default function ModalUniversal({
-    aberto,
+    aberto = true,
     aoFechar,
     titulo,
     subtitulo,
@@ -53,9 +54,9 @@ export default function ModalUniversal({
         }
     }, [aberto, aoFechar]);
 
-    return (
+    return createPortal(
         <div
-            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity animate-[fadeIn_0.2s_ease-out]"
+            className="fixed inset-0 bg-slate-900/70 z-[9999] flex items-center justify-center p-4 backdrop-blur-md"
             onClick={(e) => {
                 if (e.target === e.currentTarget) aoFechar();
             }}
@@ -63,33 +64,53 @@ export default function ModalUniversal({
             aria-modal="true"
             aria-labelledby="modal-titulo"
         >
-            <div className={`bg-white rounded-2xl shadow-2xl w-full ${larguras[tamanho] || larguras.md} overflow-hidden animate-[scaleIn_0.2s_ease-out] flex flex-col max-h-[90vh]`}>
-                {/* Header Universal */}
-                <div className={`p-6 flex items-start gap-4 border-b ${tema.bg} ${tema.border}`}>
-                    <div className="p-3 rounded-xl bg-white shadow-sm shrink-0">
-                        <Icone className={`w-6 h-6 ${tema.text}`} />
+            <div className={`
+                bg-white rounded-2xl shadow-2xl w-full ${larguras[tamanho] || larguras.md} 
+                flex flex-col max-h-[90vh] border border-slate-200 ring-1 ring-black/5 overflow-hidden
+            `}>
+                {/* Header Universal - Sticky */}
+                <div className={`
+                    shrink-0 p-5 flex items-start gap-4 border-b border-slate-100 
+                    ${tema.bg} bg-opacity-40
+                `}>
+                    <div className={`
+                        p-2.5 rounded-xl bg-white shadow-sm ring-1 ring-slate-100 shrink-0 
+                        ${tema.text} flex items-center justify-center
+                    `}>
+                        <Icone size={24} strokeWidth={2} />
                     </div>
-                    <div className="flex-1">
-                        <h2 className="text-xl font-bold text-slate-800 leading-tight">
+
+                    <div className="flex-1 pt-0.5">
+                        <h2 className="text-lg font-bold text-slate-800 leading-tight tracking-tight">
                             {titulo}
                         </h2>
                         {subtitulo && (
-                            <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+                            <p className="text-sm text-slate-500 mt-0.5 leading-relaxed font-medium">
                                 {subtitulo}
                             </p>
                         )}
                     </div>
+
                     <button
                         onClick={aoFechar}
-                        className="text-slate-400 hover:text-slate-600 bg-white/50 hover:bg-white p-1 rounded-lg transition-colors"
+                        className="
+                            group shrink-0 p-2 rounded-xl transition-colors
+                            text-slate-400 hover:text-rose-500 hover:bg-rose-50 
+                            border border-transparent hover:border-rose-100
+                        "
+                        title="Fechar (ESC)"
                     >
-                        <X size={20} />
+                        <X size={20} strokeWidth={2.5} />
                     </button>
                 </div>
 
-                {/* Conteúdo flexível (pode ser scrollável ou não dependendo do filho) */}
-                {children}
+                {/* Conteúdo Scrollável */}
+                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar scroll-smooth">
+                    {children}
+                </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
+

@@ -44,9 +44,9 @@ ChartJS.register(
 );
 
 const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendencia }) => (
-    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-all duration-300 group">
+    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md group">
         <div className="flex justify-between items-start mb-4">
-            <div className={`p-3 rounded-xl bg-${cor}-50 text-${cor}-600 group-hover:scale-110 transition-transform duration-300`}>
+            <div className={`p-3 rounded-xl bg-${cor}-50 text-${cor}-600`}>
                 <Icone size={24} />
             </div>
             {tendencia && (
@@ -205,7 +205,7 @@ export default function Painel() {
 
     return (
         <LayoutAdministrativo titulo="Visão Geral" subtitulo="Monitoramento e Estatísticas" acoes={AcoesHeader}>
-            <div className="space-y-8 animate-fade-in pb-10">
+            <div className="space-y-8 pb-10">
                 {/* Boas-vindas Simplificado */}
                 <div className="mb-6">
                     <h2 className="text-2xl font-black text-slate-800 tracking-tight">
@@ -264,7 +264,7 @@ export default function Painel() {
                         </div>
                         <div className="h-[300px] w-full">
                             {carregando ? (
-                                <div className="h-full flex items-center justify-center animate-pulse text-slate-400">Carregando gráfico...</div>
+                                <div className="h-full flex items-center justify-center text-slate-400">Carregando gráfico...</div>
                             ) : (
                                 <Line data={dataLine} options={chartOptions} />
                             )}
@@ -279,7 +279,7 @@ export default function Painel() {
 
                         <div className="flex-1 flex items-center justify-center relative">
                             {carregando ? (
-                                <div className="animate-pulse text-slate-400">Carregando...</div>
+                                <div className="text-slate-400">Carregando...</div>
                             ) : (
                                 <div className="w-48 h-48 relative">
                                     <Doughnut

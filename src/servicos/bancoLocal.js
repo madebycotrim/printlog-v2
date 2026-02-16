@@ -287,5 +287,15 @@ export const bancoLocal = {
     deletarUsuario: async (email) => {
         const banco = await iniciarBanco();
         await banco.delete('usuarios', email);
+    },
+
+    // --- Logs ---
+    listarLogs: async () => {
+        const banco = await iniciarBanco();
+        // Verifica se a store existe antes de tentar acessar para evitar crash
+        if (banco.objectStoreNames.contains('logs_auditoria')) {
+            return await banco.getAll('logs_auditoria');
+        }
+        return [];
     }
 };
