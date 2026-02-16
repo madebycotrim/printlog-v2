@@ -28,7 +28,18 @@ export const api = {
             console.error(`[API] Erro ${resposta.status} em GET ${rota}:`, textoErro);
             throw new Error(`Erro na API: ${resposta.statusText} - ${textoErro}`);
         }
-        return resposta.json();
+
+        const contentType = resposta.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            return resposta.json();
+        } else {
+            // Se não for JSON (ex: HTML de erro ou fallback), retorna como texto ou lança erro amigável
+            const texto = await resposta.text();
+            if (texto.trim().startsWith('<')) {
+                throw new Error(`A API retornou HTML em vez de JSON em ${rota}. Verifique se o endpoint existe.`);
+            }
+            return texto;
+        }
     },
 
     enviar: async (rota, dados) => {

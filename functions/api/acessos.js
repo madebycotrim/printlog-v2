@@ -31,5 +31,24 @@ async function processarSincronizacaoAcessos(contexto) {
     }
 }
 
+async function processarBuscaAcessos(contexto) {
+    // Buscar registros recentes
+    try {
+        const { searchParams } = new URL(contexto.request.url);
+        const limite = searchParams.get('limite') || 100;
+
+        const { results } = await contexto.env.DB_SCAE.prepare(
+            "SELECT * FROM registros_acesso ORDER BY timestamp DESC LIMIT ?"
+        ).bind(limite).all();
+
+        return Response.json(results);
+    } catch (erro) {
+        return new Response(erro.message, { status: 500 });
+    }
+}
+
 // Exportações com Alias para o Framework
-export { processarSincronizacaoAcessos as onRequestPost };
+export {
+    processarSincronizacaoAcessos as onRequestPost,
+    processarBuscaAcessos as onRequestGet
+};

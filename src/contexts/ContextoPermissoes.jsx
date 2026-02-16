@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useAutenticacao } from './ContextoAutenticacao';
 import { bancoLocal } from '../servicos/bancoLocal';
+import { api } from '../servicos/api';
 
 const ContextoPermissoes = createContext();
 
@@ -14,8 +15,7 @@ const MATRIZ_PERMISSOES = {
         relatorios: { visualizar: true, exportar: true },
         alertas_evasao: { visualizar: true },
         usuarios: { visualizar: true, criar: true, editar: true, desativar: true },
-        logs_auditoria: { visualizar: true, exportar: true },
-        chaves: { visualizar: true, gerar: true, rotacionar: true }
+        logs_auditoria: { visualizar: true, exportar: true }
     },
 
     COORDENACAO: {
@@ -26,8 +26,7 @@ const MATRIZ_PERMISSOES = {
         relatorios: { visualizar: true, exportar: true },
         alertas_evasao: { visualizar: true },
         usuarios: { visualizar: false, criar: false, editar: false, desativar: false },
-        logs_auditoria: { visualizar: true, exportar: false },
-        chaves: { visualizar: false, gerar: false, rotacionar: false }
+        logs_auditoria: { visualizar: true, exportar: false }
     },
 
     SECRETARIA: {
@@ -38,8 +37,7 @@ const MATRIZ_PERMISSOES = {
         relatorios: { visualizar: true, exportar: true },
         alertas_evasao: { visualizar: false },
         usuarios: { visualizar: false, criar: false, editar: false, desativar: false },
-        logs_auditoria: { visualizar: false, exportar: false },
-        chaves: { visualizar: false, gerar: false, rotacionar: false }
+        logs_auditoria: { visualizar: false, exportar: false }
     },
 
     PORTARIA: {
@@ -50,8 +48,7 @@ const MATRIZ_PERMISSOES = {
         relatorios: { visualizar: false, exportar: false },
         alertas_evasao: { visualizar: false },
         usuarios: { visualizar: false, criar: false, editar: false, desativar: false },
-        logs_auditoria: { visualizar: false, exportar: false },
-        chaves: { visualizar: false, gerar: false, rotacionar: false }
+        logs_auditoria: { visualizar: false, exportar: false }
     },
 
     VISUALIZACAO: {
@@ -62,21 +59,20 @@ const MATRIZ_PERMISSOES = {
         relatorios: { visualizar: true, exportar: false },
         alertas_evasao: { visualizar: false },
         usuarios: { visualizar: false, criar: false, editar: false, desativar: false },
-        logs_auditoria: { visualizar: false, exportar: false },
-        chaves: { visualizar: false, gerar: false, rotacionar: false }
+        logs_auditoria: { visualizar: false, exportar: false }
     }
 };
 
 export function ProvedorPermissoes({ children }) {
     const { usuarioAtual } = useAutenticacao();
-    const [usuario, setUsuario] = useState(null);
-    const [carregando, setCarregando] = useState(true);
+    const [usuario, definirUsuario] = useState(null);
+    const [carregando, definirCarregando] = useState(true);
 
     useEffect(() => {
         async function carregarUsuario() {
             if (!usuarioAtual) {
-                setUsuario(null);
-                setCarregando(false);
+                definirUsuario(null);
+                definirCarregando(false);
                 return;
             }
 
@@ -86,7 +82,7 @@ export function ProvedorPermissoes({ children }) {
                 const usuarioBD = await banco.get('usuarios', usuarioAtual.email);
 
                 if (usuarioBD && usuarioBD.ativo) {
-                    setUsuario(usuarioBD);
+                    definirUsuario(usuarioBD);
                 } else {
                     // Usuário não cadastrado - APENAS madebycotrim@gmail.com é ADMIN
                     if (usuarioAtual.email === 'madebycotrim@gmail.com') {
@@ -97,7 +93,7 @@ export function ProvedorPermissoes({ children }) {
                             papel: 'ADMIN',
                             ativo: true
                         };
-                        setUsuario(adminUser);
+                        definirUsuario(adminUser);
 
                         // Salvar no banco
                         try {
@@ -111,22 +107,41 @@ export function ProvedorPermissoes({ children }) {
                             console.error('Erro ao salvar admin:', e);
                         }
                     } else {
-                        // Qualquer outro usuário: VISUALIZAÇÃO
-                        console.warn('⚠️ Usuário sem cadastro, permissões de VISUALIZAÇÃO:', usuarioAtual.email);
-                        setUsuario({
+                        // Cadastro Automático com permissão mínima (VISUALIZAÇÃO)
+                        console.log('🆕 Novo usuário detectado, registrando com VISUALIZAÇÃO:', usuarioAtual.email);
+
+                        const novoUsuario = {
                             email: usuarioAtual.email,
                             nome_completo: usuarioAtual.displayName || usuarioAtual.email,
                             papel: 'VISUALIZACAO',
-                            ativo: true
-                        });
+                            ativo: true,
+                            criado_por: 'system_auto',
+                            criado_em: new Date().toISOString(),
+                            atualizado_em: new Date().toISOString()
+                        };
+
+                        definirUsuario(novoUsuario);
+
+                        // Salvar no banco local para que o Admin possa ver e editar
+                        try {
+                            await banco.put('usuarios', novoUsuario);
+
+                            // Tentar sincronizar com API se online
+                            if (navigator.onLine) {
+                                // Import dinâmico ou usar a api se já importada (vou adicionar o import no topo)
+                                await api.enviar('/usuarios', novoUsuario);
+                            }
+                        } catch (e) {
+                            console.error('Erro ao registrar novo usuário automaticamente:', e);
+                        }
                     }
                 }
             } catch (erro) {
                 console.error('Erro ao carregar permissões do usuário:', erro);
                 // Fallback seguro: sem permissões
-                setUsuario(null);
+                definirUsuario(null);
             } finally {
-                setCarregando(false);
+                definirCarregando(false);
             }
         }
 

@@ -1,4 +1,5 @@
 import { bancoLocal } from './bancoLocal';
+import { api } from './api';
 
 /**
  * Serviço de Auditoria - Registro de Ações para Conformidade LGPD
@@ -31,11 +32,7 @@ export const ACOES_AUDITORIA = {
     // Registros
     REGISTRO_MANUAL: 'REGISTRO_MANUAL',
     CORRECAO_REGISTRO: 'CORRECAO_REGISTRO',
-    EXCLUSAO_REGISTRO: 'EXCLUSAO_REGISTRO',
-
-    // Chaves
-    GERAR_CHAVE: 'GERAR_CHAVE',
-    ROTACIONAR_CHAVE: 'ROTACIONAR_CHAVE'
+    EXCLUSAO_REGISTRO: 'EXCLUSAO_REGISTRO'
 };
 
 /**
@@ -67,7 +64,8 @@ export async function registrarAuditoria({
             dados_novos: dadosNovos ? JSON.stringify(dadosNovos) : null,
             ip_address: await obterIPPublico(),
             user_agent: navigator.userAgent,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            sincronizado: 0 // 0 = false (padrão para indexação)
         };
 
         // Salvar localmente (IndexedDB)
@@ -76,12 +74,8 @@ export async function registrarAuditoria({
 
         // Tentar enviar para servidor se online
         if (navigator.onLine) {
-            try {
-                await enviarLogParaServidor(log);
-            } catch (erro) {
-                console.warn('Falha ao enviar log para servidor, ficará pendente:', erro);
-                // Não é crítico, será sincronizado depois
-            }
+            // Em background para não travar a UI
+            sincronizarLogs().catch(err => console.warn('Sync background falhou:', err));
         }
 
         return log;
@@ -175,15 +169,6 @@ async function obterIPPublico() {
 }
 
 /**
- * Envia log para servidor D1 via API
- */
-async function enviarLogParaServidor(log) {
-    // Implementar quando API estiver pronta
-    // Por enquanto, apenas retorna sucesso
-    return Promise.resolve();
-}
-
-/**
  * Sincroniza logs pendentes com servidor
  * Chamado periodicamente pelo servicoSincronizacao
  */
@@ -194,25 +179,32 @@ export async function sincronizarLogs() {
         const banco = await bancoLocal.iniciarBanco();
         const logs = await banco.getAll('logs_auditoria');
 
-        // Filtrar logs não sincronizados (adicionar campo se necessário)
+        // Filtrar logs não sincronizados (usando 0/1 ou false/true)
         const logsPendentes = logs.filter(log => !log.sincronizado);
 
         if (logsPendentes.length === 0) return;
 
-        // Enviar em lote
-        for (const log of logsPendentes) {
-            try {
-                await enviarLogParaServidor(log);
-                // Marcar como sincronizado
-                log.sincronizado = true;
-                await banco.put('logs_auditoria', log);
-            } catch (erro) {
-                console.error('Erro ao sincronizar log:', log.id, erro);
-                // Continuar com próximo
+        console.log(`Auditoria: Tentando sincronizar ${logsPendentes.length} logs...`);
+
+        // Enviar para API
+        const respostas = await api.enviar('/auditoria', logsPendentes);
+
+        // Processar respostas para marcar com sucesso
+        const logsSincronizados = respostas.filter(r => r.status === 'sincronizado');
+
+        if (logsSincronizados.length > 0) {
+            const tx = banco.transaction('logs_auditoria', 'readwrite');
+            for (const item of logsSincronizados) {
+                const log = await tx.store.get(item.id);
+                if (log) {
+                    log.sincronizado = 1; // Marcar como true
+                    await tx.store.put(log);
+                }
             }
+            await tx.done;
+            console.log(`✅ ${logsSincronizados.length} logs de auditoria sincronizados.`);
         }
 
-        console.log(`✅ ${logsPendentes.length} logs auditoria sincronizados`);
     } catch (erro) {
         console.error('Erro na sincronização de logs:', erro);
     }

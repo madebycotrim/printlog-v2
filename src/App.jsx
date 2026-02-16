@@ -10,17 +10,10 @@ import Painel from './paginas/Painel';
 import Turmas from './paginas/Turmas';
 import Login from './paginas/Login';
 import Alunos from './paginas/Alunos';
-import Crachas from './paginas/Crachas';
 import Logs from './paginas/Logs';
-import Chaves from './paginas/Chaves';
-import Usuarios from './paginas/Usuarios';
 import Relatorios from './paginas/Relatorios';
-import Justificativas from './paginas/Justificativas';
-import GeradorCrachas from './paginas/GeradorCrachas';
-import LGPD from './paginas/LGPD';
-import PainelExecutivo from './paginas/PainelExecutivo';
+import Usuarios from './paginas/Usuarios';
 import { Toaster } from 'react-hot-toast';
-import { Home, Users, Printer, LogOut, QrCode, FileText } from 'lucide-react';
 
 function Layout({ children }) {
   // Don't show nav on login or portaria (scanner mode)
@@ -63,18 +56,13 @@ function App() {
           <Layout>
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/portaria" element={<LeitorPortaria />} />
+              <Route path="/leitor" element={<LeitorPortaria />} />
               <Route path="/painel" element={<Painel />} />
               <Route path="/alunos" element={<Alunos />} />
               <Route path="/turmas" element={<Turmas />} />
-              <Route path="/crachas" element={<Crachas />} />
-              <Route path="/logs" element={<Logs />} />
-              <Route path="/chaves" element={<Chaves />} />
-              <Route path="/usuarios" element={<Usuarios />} />
               <Route path="/relatorios" element={<Relatorios />} />
-              <Route path="/justificativas" element={<Justificativas />} />
-              <Route path="/lgpd" element={<LGPD />} />
-              <Route path="/painel-executivo" element={<PainelExecutivo />} />
+              <Route path="/logs" element={<Logs />} />
+              <Route path="/usuarios" element={<Usuarios />} />
               <Route path="*" element={<Navigate to="/painel" replace />} />
             </Routes>
           </Layout>

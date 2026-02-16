@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const NOME_BANCO = 'SCAE_DB';
-const VERSAO_BANCO = 5; // Incrementado para Sprint 2 (LGPD)
+const VERSAO_BANCO = 7; // Incrementado para garantir criação das stores LGPD
 
 export const iniciarBanco = async () => {
     return openDB(NOME_BANCO, VERSAO_BANCO, {
@@ -19,6 +19,7 @@ export const iniciarBanco = async () => {
                 store.createIndex('sincronizado', 'sincronizado');
                 store.createIndex('timestamp', 'timestamp');
                 store.createIndex('aluno_matricula', 'aluno_matricula');
+                store.createIndex('tipo_movimentacao', 'tipo_movimentacao'); // Otimiza relatórios
             }
 
             // v2 - Store para Turmas
@@ -35,12 +36,7 @@ export const iniciarBanco = async () => {
                 if (!store.indexNames.contains('turno')) store.createIndex('turno', 'turno');
             }
 
-            // v3 - Configurações
-            if (!banco.objectStoreNames.contains('configuracoes')) {
-                banco.createObjectStore('configuracoes', { keyPath: 'chave' });
-            }
-
-            // v4 - Sprint 1: Segurança
+            // v4 - Sprint 1: Segurança (Apenas Auditoria e Usuários mantidos)
 
             // Logs de Auditoria
             if (!banco.objectStoreNames.contains('logs_auditoria')) {
@@ -57,42 +53,20 @@ export const iniciarBanco = async () => {
                 store.createIndex('papel', 'papel');
                 store.createIndex('ativo', 'ativo');
             }
-
-            // Chaves de Assinatura
-            if (!banco.objectStoreNames.contains('chaves_assinatura')) {
-                const store = banco.createObjectStore('chaves_assinatura', { keyPath: 'versao' });
-                store.createIndex('ativa', 'ativa');
+            // v5 - Fila de Pendências e Sincronização Inteligente
+            if (!banco.objectStoreNames.contains('fila_pendencias')) {
+                const store = banco.createObjectStore('fila_pendencias', { keyPath: 'id' });
+                store.createIndex('timestamp', 'timestamp');
+                store.createIndex('colecao', 'colecao');
             }
 
-            // v5 - Sprint 2: LGPD Compliance
+            // Atualizações de índices para sincronização
+            if (oldVersion < 7) {
+                const storeAlunos = transaction.objectStore('alunos');
+                if (!storeAlunos.indexNames.contains('sincronizado')) storeAlunos.createIndex('sincronizado', 'sincronizado');
 
-            // Consentimentos
-            if (!banco.objectStoreNames.contains('consentimentos')) {
-                const store = banco.createObjectStore('consentimentos', { keyPath: 'id' });
-                store.createIndex('aluno_matricula', 'aluno_matricula');
-                store.createIndex('tipo_consentimento', 'tipo_consentimento');
-                store.createIndex('valido_ate', 'valido_ate');
-                store.createIndex('retirado', 'retirado');
-            }
-
-            // Políticas de Retenção
-            if (!banco.objectStoreNames.contains('politicas_retencao')) {
-                const store = banco.createObjectStore('politicas_retencao', { keyPath: 'id' });
-                store.createIndex('entidade_tipo', 'entidade_tipo');
-                store.createIndex('ativa', 'ativa');
-            }
-
-            // Registros de Anonimização
-            if (!banco.objectStoreNames.contains('registros_anonimizacao')) {
-                const store = banco.createObjectStore('registros_anonimizacao', { keyPath: 'id' });
-                store.createIndex('entidade_tipo', 'entidade_tipo');
-                store.createIndex('data_anonimizacao', 'data_anonimizacao');
-                store.createIndex('entidade_id_hash', 'entidade_id_hash');
-            }
-
-            // Configurações LGPD
-            if (!banco.objectStoreNames.contains('configuracoes_lgpd')) {
-                banco.createObjectStore('configuracoes_lgpd', { keyPath: 'chave' });
+                const storeTurmas = transaction.objectStore('turmas');
+                if (!storeTurmas.indexNames.contains('sincronizado')) storeTurmas.createIndex('sincronizado', 'sincronizado');
             }
         },
     });
@@ -101,24 +75,86 @@ export const iniciarBanco = async () => {
 export const bancoLocal = {
     iniciarBanco,
 
-    // Alunos
-    salvarAlunos: async (alunos) => {
+    // --- Fila de Pendências (Offline Support) ---
+    adicionarPendencia: async (acao, colecao, dadoId, dadosExtras = null) => {
+        const banco = await iniciarBanco();
+        await banco.put('fila_pendencias', {
+            id: crypto.randomUUID(),
+            acao, // 'DELETE', 'UPDATE', 'CREATE'
+            colecao, // 'alunos', 'turmas'
+            dado_id: dadoId,
+            dados_extras: dadosExtras,
+            timestamp: new Date().toISOString()
+        });
+    },
+
+    listarPendencias: async () => {
+        const banco = await iniciarBanco();
+        return await banco.getAllFromIndex('fila_pendencias', 'timestamp');
+    },
+
+    removerPendencia: async (id) => {
+        const banco = await iniciarBanco();
+        await banco.delete('fila_pendencias', id);
+    },
+
+    // --- Alunos ---
+    salvarAlunos: async (alunos, sincronizado = 1) => {
         const banco = await iniciarBanco();
         const transacao = banco.transaction('alunos', 'readwrite');
-        await Promise.all([
-            transacao.store.clear(),
-            ...alunos.map(aluno => transacao.store.put(aluno))
-        ]);
+
+        // Se sincronizado=1 (vindo da API), substituir tudo (Server Truth)
+        // MAS preservar quem tem sincronizado=0 (criado offline)
+        if (sincronizado === 1) {
+            const locais = await transacao.store.getAll();
+            const pendentes = locais.filter(a => a.sincronizado === 0);
+
+            await transacao.store.clear();
+
+            // Re-inserir pendentes
+            for (const p of pendentes) {
+                await transacao.store.put(p);
+            }
+        }
+
+        // Inserir novos/atualizados
+        for (const aluno of alunos) {
+            await transacao.store.put({ ...aluno, sincronizado }); // 1 ou 0
+        }
+
         await transacao.done;
     },
 
-    salvarTurmas: async (turmas) => {
+    // Salvar um único aluno (uso local/offline)
+    salvarAluno: async (aluno) => {
+        const banco = await iniciarBanco();
+        await banco.put('alunos', { ...aluno, sincronizado: 0 }); // Marca como pendente
+    },
+
+    deletarAluno: async (matricula) => {
+        const banco = await iniciarBanco();
+        await banco.delete('alunos', matricula);
+    },
+
+    // --- Turmas ---
+    salvarTurmas: async (turmas, sincronizado = 1) => {
         const banco = await iniciarBanco();
         const transacao = banco.transaction('turmas', 'readwrite');
-        await Promise.all([
-            transacao.store.clear(),
-            ...turmas.map(t => transacao.store.put(t))
-        ]);
+
+        if (sincronizado === 1) {
+            const locais = await transacao.store.getAll();
+            const pendentes = locais.filter(t => t.sincronizado === 0);
+
+            await transacao.store.clear();
+
+            for (const p of pendentes) {
+                await transacao.store.put(p);
+            }
+        }
+
+        for (const t of turmas) {
+            await transacao.store.put({ ...t, sincronizado });
+        }
         await transacao.done;
     },
 
@@ -126,7 +162,7 @@ export const bancoLocal = {
         const banco = await iniciarBanco();
         const transacao = banco.transaction('alunos', 'readwrite');
         await Promise.all([
-            ...novosAlunos.map(aluno => transacao.store.put(aluno))
+            ...novosAlunos.map(aluno => transacao.store.put({ ...aluno, sincronizado: 0 }))
         ]);
         await transacao.done;
     },
@@ -232,5 +268,24 @@ export const bancoLocal = {
             });
 
         return presentes;
+    },
+
+    // --- Usuários e Permissões ---
+    listarUsuarios: async () => {
+        const banco = await iniciarBanco();
+        return await banco.getAll('usuarios');
+    },
+
+    salvarUsuario: async (usuario) => {
+        const banco = await iniciarBanco();
+        await banco.put('usuarios', {
+            ...usuario,
+            atualizado_em: new Date().toISOString()
+        });
+    },
+
+    deletarUsuario: async (email) => {
+        const banco = await iniciarBanco();
+        await banco.delete('usuarios', email);
     }
 };

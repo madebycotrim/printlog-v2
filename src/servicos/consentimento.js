@@ -33,7 +33,8 @@ export const registrarConsentimento = async ({
         valido_ate: validoAte.toISOString(),
         retirado: false,
         data_retirada: null,
-        created_at: dataConsentimento.toISOString()
+        created_at: dataConsentimento.toISOString(),
+        sincronizado: 0 // Flag para sincronização
     };
 
     await banco.put('consentimentos', consentimento);
@@ -97,6 +98,7 @@ export const retirarConsentimento = async (consentimentoId, retiradoPor = null) 
 
     consentimento.retirado = true;
     consentimento.data_retirada = obterDataCorrigida().toISOString();
+    consentimento.sincronizado = 0; // Marcar para sincronizar atualização
 
     await banco.put('consentimentos', consentimento);
 

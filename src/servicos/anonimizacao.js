@@ -46,6 +46,8 @@ export const anonimizarDadosAluno = async (matricula, executadoPor, motivo = nul
         dadosPreservados
     });
 
+    registroAnonimizacao.sincronizado = 0; // Flag para sincronização
+
     await banco.put('registros_anonimizacao', registroAnonimizacao);
 
     // Registrar em auditoria

@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { autenticacao } from '../servicos/firebase';
 
+import { servicoSincronizacao } from '../servicos/sincronizacao';
+
 const ContextoAutenticacao = createContext();
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -19,6 +21,10 @@ export function ProvedorAutenticacao({ children }) {
                 // Atualiza token se necessário
                 const token = await usuario.getIdToken();
                 usuario.token = token;
+
+                // 🔄 Auto-Sync ao Login
+                console.log('Usuário autenticado. Iniciando sincronização automática...');
+                servicoSincronizacao.sincronizarTudo().catch(e => console.warn('Erro na auto-sync:', e));
             }
             definirUsuarioAtual(usuario);
             definirCarregando(false);

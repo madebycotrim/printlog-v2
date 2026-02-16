@@ -1,624 +1,412 @@
 import { useState, useEffect } from 'react';
+import { usePermissoes } from '../contexts/ContextoPermissoes';
+import LayoutAdministrativo from '../componentes/LayoutAdministrativo';
+import ModalUniversal from '../componentes/ModalUniversal';
 import { bancoLocal } from '../servicos/bancoLocal';
 import { api } from '../servicos/api';
-import LayoutAdministrativo from '../componentes/LayoutAdministrativo';
-import { registrarAuditoria, ACOES_AUDITORIA } from '../servicos/auditoria';
-import { useAutenticacao } from '../contexts/ContextoAutenticacao';
-import ModalUniversal from '../componentes/ModalUniversal';
-import { Plus, Trash2, Users, Layers, X, Sun, Moon, Sunset, XCircle, ChevronRight, Search, User, AlertTriangle } from 'lucide-react';
+import {
+    Users,
+    Search,
+    BookOpen,
+    Clock,
+    Plus,
+    MoreVertical,
+    Edit2,
+    Trash2,
+    ChevronDown,
+    Filter,
+    ArrowRight
+} from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function Turmas() {
-    const { usuarioAtual } = useAutenticacao();
+    const { podeAcessar } = usePermissoes();
     const [turmas, definirTurmas] = useState([]);
-    const [modalAberto, definirModalAberto] = useState(false);
-    const [modalAlunosAberto, definirModalAlunosAberto] = useState(false);
-    const [turmaSelecionada, definirTurmaSelecionada] = useState(null);
-    const [alunosDaTurma, definirAlunosDaTurma] = useState([]);
-    const [novaTurma, definirNovaTurma] = useState({ serie: '', turno: 'Indefinido', letra: '' });
-    const [erroCadastro, definirErroCadastro] = useState('');
     const [carregando, definirCarregando] = useState(true);
-    const [filtroTurno, definirFiltroTurno] = useState('Todos');
+    const [modalAberto, definirModalAberto] = useState(false);
+    const [turmaEmEdicao, definirTurmaEmEdicao] = useState(null);
     const [termoBusca, definirTermoBusca] = useState('');
+    const [filtroTurno, definirFiltroTurno] = useState('TODOS'); // 'TODOS', 'Matutino', 'Vespertino', 'Noturno'
+
+    // Form states
+    const [serieTurma, definirSerieTurma] = useState(''); // "1", "2", "3"
+    const [letraTurma, definirLetraTurma] = useState(''); // "A", "B", ...
+    const [turno, definirTurno] = useState('Matutino');
+    const [anoLetivo, definirAnoLetivo] = useState(new Date().getFullYear().toString());
+
+    // Mapeamento de Cores por Turno
+    const CORES_TURNO = {
+        'Matutino': { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200', gradient: 'from-amber-400 to-orange-500' },
+        'Vespertino': { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200', gradient: 'from-blue-400 to-indigo-500' },
+        'Noturno': { bg: 'bg-violet-100', text: 'text-violet-700', border: 'border-violet-200', gradient: 'from-violet-400 to-purple-500' },
+        'Integral': { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200', gradient: 'from-emerald-400 to-teal-500' }
+    };
 
     const carregarTurmas = async () => {
-        const banco = await bancoLocal.iniciarBanco();
-        const todasTurmas = await banco.getAll('turmas');
-        const todosAlunos = await banco.getAll('alunos');
-        const alunosPresentes = await bancoLocal.listarAlunosPresentes();
+        try {
+            definirCarregando(true);
+            const banco = await bancoLocal.iniciarBanco();
+            const todasTurmas = await banco.getAll('turmas');
 
-        // Processar dados para cada turma
-        const turmasComDados = todasTurmas.map(turma => {
-            const alunosTurma = todosAlunos.filter(a => a.turma_id === turma.id);
-            const totalAlunos = alunosTurma.length;
+            // Simular contagem de alunos (em prod real viria do banco ou count)
+            const turmasComContagem = await Promise.all(todasTurmas.map(async (t) => {
+                // Aqui seria ideal ter um index ou store separada, mas para o protótipo:
+                const alunos = await banco.getAll('alunos');
+                const count = alunos.filter(a => a.turma_id === t.id).length;
+                return { ...t, totalAlunos: count };
+            }));
 
-            // Contar quantos alunos dessa turma estão presentes
-            const presentesTurma = alunosPresentes.filter(p => p.turma_id === turma.id).length;
+            // Ordenar: 1º Ano -> 3º Ano, depois por Letra
+            turmasComContagem.sort((a, b) => {
+                if (a.id < b.id) return -1;
+                if (a.id > b.id) return 1;
+                return 0;
+            });
 
-            const percentual = totalAlunos > 0 ? Math.round((presentesTurma / totalAlunos) * 100) : 0;
-
-            // Tenta usar os campos salvos, se não existirem (legado), tenta parsear o ID
-            let serie = turma.serie;
-            let letra = turma.letra;
-            let turno = turma.turno;
-
-            if (!serie || !letra || !turno) {
-                try {
-                    if (turma.id) {
-                        const partes = turma.id.split(' - ');
-                        const informacoes = partes[0] ? partes[0].split(' ') : [];
-                        serie = informacoes[0] || '?';
-                        letra = informacoes[1] || '?';
-                        turno = partes[1] || 'Indefinido';
-                    }
-                } catch (e) {
-                    console.error("Erro ao analisar turma legado:", turma.id, e);
-                    serie = '?'; letra = '?'; turno = 'Indefinido';
-                }
-            }
-
-            // Normalizar série para usar 'º' em vez de 'ª'
-            if (serie) {
-                serie = serie.replace('ª', 'º');
-            }
-
-            return {
-                ...turma,
-                totalAlunos,
-                presentes: presentesTurma,
-                percentual,
-                listaAlunos: alunosTurma,
-                interpretado: { serie, letra, turno }
-            };
-        });
-
-        // Ordenar logicamente (1º, 2º, 3º...) -> Depois Letra
-        turmasComDados.sort((a, b) => {
-            const sA = a.interpretado.serie.localeCompare(b.interpretado.serie);
-            if (sA !== 0) return sA;
-            return a.interpretado.letra.localeCompare(b.interpretado.letra);
-        });
-
-        definirTurmas(turmasComDados);
-        definirCarregando(false);
+            definirTurmas(turmasComContagem);
+        } catch (erro) {
+            console.error('Erro ao carregar turmas:', erro);
+            toast.error('Erro ao carregar a lista de turmas.');
+        } finally {
+            definirCarregando(false);
+        }
     };
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         carregarTurmas();
     }, []);
 
-    const adicionarTurma = async () => {
-        if (!novaTurma.serie || !novaTurma.letra || !novaTurma.turno) return;
-        definirErroCadastro('');
-
-        const banco = await bancoLocal.iniciarBanco();
-        const todasTurmas = await banco.getAll('turmas');
-
-        // 1. Verificar duplicidade SEMÂNTICA (Série + Letra + Turno + Ano)
-        const duplicata = todasTurmas.find(t => {
-            // Verifica campos novos
-            if (t.serie && t.letra && t.turno) {
-                const serieNormalizadaT = t.serie.replace('ª', 'º');
-                const serieNormalizadaNova = novaTurma.serie.replace('ª', 'º');
-
-                return serieNormalizadaT === serieNormalizadaNova &&
-                    t.letra === novaTurma.letra &&
-                    t.turno === novaTurma.turno;
-            }
-
-            // Verifica legado (parseando ID)
-            const partes = t.id.split(' - ');
-            const serieExistente = partes[0]?.split(' ')[0]?.replace('ª', 'º'); // Normaliza legado
-            const letraExistente = partes[0]?.split(' ')[1];
-            const turnoExistente = partes[1];
-            const serieNovaNormalizada = novaTurma.serie.replace('ª', 'º');
-
-            return serieExistente === serieNovaNormalizada &&
-                letraExistente === novaTurma.letra &&
-                turnoExistente === novaTurma.turno;
-        });
-
-        if (duplicata) {
-            definirErroCadastro(`A turma ${novaTurma.serie} ${novaTurma.letra} (${novaTurma.turno}) já está cadastrada.`);
+    const salvarTurma = async () => {
+        if (!serieTurma || !letraTurma || !turno) {
+            toast.error('Preencha todos os campos obrigatórios.');
             return;
         }
 
-        const novoId = crypto.randomUUID();
-        const novaTurmaObj = {
-            id: novoId,
-            serie: novaTurma.serie,
-            letra: novaTurma.letra,
-            turno: novaTurma.turno,
-            ano_letivo: new Date().getFullYear(),
-            criado_em: new Date().toISOString()
+        const idTurma = `${serieTurma}º ${letraTurma}`;
+
+        const novaTurma = {
+            id: idTurma,
+            serie: serieTurma,
+            letra: letraTurma,
+            turno,
+            ano_letivo: parseInt(anoLetivo),
+            criado_em: turmaEmEdicao ? turmaEmEdicao.criado_em : new Date().toISOString(),
+            atualizado_em: new Date().toISOString()
         };
 
-        // Lógica Híbrida/Offline
         try {
-            if (navigator.onLine) {
-                // Tenta salvar na nuvem primeiro
-                await api.enviar('/turmas', novaTurmaObj);
-                console.log('Turma salva na nuvem com sucesso.');
-            } else {
-                console.log('Offline: Salvando apenas localmente.');
+            const banco = await bancoLocal.iniciarBanco();
+
+            // Verificar duplicidade na criação
+            if (!turmaEmEdicao) {
+                const existente = await banco.get('turmas', idTurma);
+                if (existente) {
+                    toast.error('Esta turma já existe!');
+                    return;
+                }
             }
-        } catch (erro) {
-            console.error('Erro na API (fallback local):', erro);
-            // Opcional: Notificar usuário que foi salvo apenas localmente
-        }
 
-        // SEMPRE salva localmente (cache/offline)
-        // Isso garante que a UI atualize e funcione offline
-        await banco.put('turmas', novaTurmaObj);
-
-        // 🔒 AUDITORIA: Registrar criação
-        if (usuarioAtual?.email) {
-            try {
-                await registrarAuditoria({
-                    usuarioEmail: usuarioAtual.email,
-                    acao: ACOES_AUDITORIA.CRIAR_TURMA,
-                    entidadeTipo: 'turma',
-                    entidadeId: novaTurmaObj.id,
-                    dadosAnteriores: null,
-                    dadosNovos: novaTurmaObj
-                });
-            } catch (erroAudit) {
-                console.warn('Falha no log de auditoria:', erroAudit);
-            }
-        }
-
-        definirNovaTurma({ serie: '', turno: 'Indefinido', letra: '' });
-        definirModalAberto(false);
-        carregarTurmas();
-    };
-
-    const [confirmacao, setConfirmacao] = useState(null); // { titulo, mensagem, acao }
-
-    const solicitarRemocao = (turma, e) => {
-        e.stopPropagation();
-        const nomeTurma = turma.interpretado
-            ? `${turma.interpretado.serie} ${turma.interpretado.letra} - ${turma.interpretado.turno}`
-            : turma.id;
-
-        setConfirmacao({
-            titulo: "Excluir Turma",
-            mensagem: `Tem certeza que deseja remover a turma ${nomeTurma}? Esta ação não pode ser desfeita e removerá todos os vínculos.`,
-            acao: () => removerTurma(turma.id),
-            tipo: "perigo",
-            textoConfirmar: "Sim, remover"
-        });
-    };
-
-    const removerTurma = async (id) => {
-        try {
-            // Capturar dados antes de deletar para auditoria
-            const turmaParaDeletar = turmas.find(t => t.id === id);
+            await banco.put('turmas', novaTurma);
 
             if (navigator.onLine) {
-                await api.remover(`/turmas?id=${encodeURIComponent(id)}`);
-                console.log('Turma removida da nuvem.');
+                try {
+                    await api.enviar(`/turmas/${idTurma}`, novaTurma);
+                } catch (e) {
+                    console.warn('Erro sync nuvem:', e);
+                }
             }
+
+            toast.success(turmaEmEdicao ? 'Turma atualizada!' : 'Turma criada com sucesso!');
+            definirModalAberto(false);
+            carregarTurmas();
+            limparForm();
         } catch (erro) {
-            console.error('Erro na API ao remover (fallback local):', erro);
+            console.error('Erro ao salvar:', erro);
+            toast.error('Falha ao salvar turma.');
         }
+    };
 
-        const banco = await bancoLocal.iniciarBanco();
-        await banco.delete('turmas', id);
+    const excluirTurma = async (id) => {
+        if (!window.confirm(`Tem certeza que deseja excluir a turma ${id}?`)) return;
 
-        // 🔒 AUDITORIA: Registrar exclusão
-        if (usuarioAtual?.email && turmaParaDeletar) {
-            try {
-                await registrarAuditoria({
-                    usuarioEmail: usuarioAtual.email,
-                    acao: ACOES_AUDITORIA.DELETAR_TURMA,
-                    entidadeTipo: 'turma',
-                    entidadeId: id,
-                    dadosAnteriores: turmaParaDeletar,
-                    dadosNovos: null
-                });
-            } catch (erroAudit) {
-                console.warn('Falha no log de auditoria:', erroAudit);
+        try {
+            const banco = await bancoLocal.iniciarBanco();
+            await banco.delete('turmas', id);
+
+            if (navigator.onLine) {
+                try {
+                    await api.delete(`/turmas/${id}`);
+                } catch (e) {
+                    console.warn('Erro sync nuvem:', e);
+                }
             }
+
+            toast.success('Turma removida.');
+            carregarTurmas();
+        } catch (erro) {
+            console.error('Erro ao excluir:', erro);
+            toast.error('Erro ao excluir turma.');
         }
-
-        carregarTurmas();
     };
 
-    const abrirListaAlunos = (turma) => {
-        definirTurmaSelecionada(turma);
-        definirAlunosDaTurma(turma.listaAlunos || []);
-        definirModalAlunosAberto(true);
+    const abrirEdicao = (turma) => {
+        definirTurmaEmEdicao(turma);
+        definirSerieTurma(turma.id.split('º')[0]);
+        definirLetraTurma(turma.letra);
+        definirTurno(turma.turno);
+        definirAnoLetivo(turma.ano_letivo.toString());
+        definirModalAberto(true);
     };
+
+    const abrirNovo = () => {
+        limparForm();
+        definirModalAberto(true);
+    };
+
+    const limparForm = () => {
+        definirTurmaEmEdicao(null);
+        definirSerieTurma('');
+        definirLetraTurma('');
+        definirTurno('Matutino');
+        definirAnoLetivo(new Date().getFullYear().toString());
+    };
+
+    // Filtragem
+    const turmasFiltradas = turmas.filter(t => {
+        const matchBusca = t.id.toLowerCase().includes(termoBusca.toLowerCase());
+        const matchTurno = filtroTurno === 'TODOS' || t.turno === filtroTurno;
+        return matchBusca && matchTurno;
+    });
+
+    if (!podeAcessar('turmas', 'visualizar')) {
+        return (
+            <LayoutAdministrativo titulo="Gestão de Turmas">
+                <div className="flex justify-center items-center h-64">
+                    <p className="text-slate-500">Acesso negado.</p>
+                </div>
+            </LayoutAdministrativo>
+        );
+    }
 
     const AcoesHeader = (
         <button
-            onClick={() => {
-                definirNovaTurma({ serie: '', turno: '', letra: '' });
-                definirErroCadastro('');
-                definirModalAberto(true);
-            }}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-bold shadow-md shadow-blue-600/20"
+            onClick={abrirNovo}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition font-bold shadow-lg shadow-indigo-600/20 hover:scale-105 active:scale-95 border border-white/10"
         >
-            <Plus size={20} /> Nova Turma
+            <Plus size={20} />
+            <span className="hidden sm:inline">Nova Turma</span>
         </button>
     );
 
     return (
-        <LayoutAdministrativo titulo="Turmas" subtitulo="Organização das séries e turmas da escola" acoes={AcoesHeader}>
+        <LayoutAdministrativo titulo="Gestão de Turmas" subtitulo="Administração de classes e turnos" acoes={AcoesHeader}>
 
+            {/* Toolbar de Filtros */}
+            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-8 flex flex-col md:flex-row gap-4 animate-[fade-in_0.3s_ease-out] sticky top-0 z-20">
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                    <input
+                        type="text"
+                        placeholder="Buscar turma (ex: 1º A)..."
+                        value={termoBusca}
+                        onChange={(e) => definirTermoBusca(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition-all placeholder:text-slate-400 shadow-sm"
+                    />
+                </div>
+
+                <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
+                    {['TODOS', 'Matutino', 'Vespertino', 'Noturno'].map((filtro) => (
+                        <button
+                            key={filtro}
+                            onClick={() => definirFiltroTurno(filtro)}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${filtroTurno === filtro
+                                ? 'bg-slate-800 text-white border-slate-800 shadow-md'
+                                : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                                }`}
+                        >
+                            {filtro === 'TODOS' ? 'Todos' : filtro}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Grid de Cards */}
             {carregando ? (
-                <div className="p-8 text-center text-slate-500 animate-pulse text-sm">Carregando...</div>
-            ) : turmas.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-16 text-center">
-                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                        <Layers size={24} className="text-slate-300" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                        <div key={i} className="h-48 bg-slate-100/50 rounded-2xl animate-pulse"></div>
+                    ))}
+                </div>
+            ) : turmasFiltradas.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-20 text-center animate-[fade-in_0.5s_ease-out]">
+                    <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 mx-auto shadow-sm border border-slate-100">
+                        <BookOpen size={40} className="text-slate-300" />
                     </div>
-                    <h3 className="text-sm font-semibold text-slate-700">Nenhuma turma</h3>
-                    <p className="text-xs text-slate-400 max-w-xs mt-1">Crie uma nova turma para começar.</p>
+                    <h3 className="text-lg font-bold text-slate-700 mb-2">Nenhuma turma encontrada</h3>
+                    <p className="text-slate-400 max-w-xs mx-auto text-sm">
+                        Tente ajustar seus filtros ou cadastre uma nova turma.
+                    </p>
                 </div>
             ) : (
-                <div className="space-y-8">
-                    {/* Filtros e Busca (Minimalista) */}
-                    <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-2 animate-[fadeIn_0.3s_ease-out]">
-                        {/* Abas de Turno */}
-                        <div className="flex items-center gap-2 p-1 bg-slate-100/50 rounded-full">
-                            {['Todos', 'Matutino', 'Vespertino', 'Noturno'].map(turno => (
-                                <button
-                                    key={turno}
-                                    onClick={() => definirFiltroTurno(turno)}
-                                    className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all ${filtroTurno === turno
-                                        ? 'bg-white text-slate-800 shadow-sm'
-                                        : 'text-slate-400 hover:text-slate-600'
-                                        }`}
-                                >
-                                    {turno}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Barra de Busca Minimalista */}
-                        <div className="relative group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5 group-focus-within:text-slate-600 transition-colors" />
-                            <input
-                                type="text"
-                                placeholder="Buscar turma..."
-                                value={termoBusca}
-                                onChange={(e) => definirTermoBusca(e.target.value)}
-                                className="pl-9 pr-4 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-bold text-slate-700 focus:outline-none focus:border-slate-400 focus:shadow-sm transition-all placeholder:text-slate-300 w-48 focus:w-64"
-                            />
-                        </div>
-                    </div>
-
-                    {['1º', '2º', '3º'].map(serie => {
-                        const turmasDaSerie = turmas.filter(t => {
-                            // Filtro de Série (Base)
-                            if (t.interpretado?.serie !== serie) return false;
-
-                            // Filtro de Turno
-                            if (filtroTurno !== 'Todos' && t.interpretado?.turno !== filtroTurno) return false;
-
-                            // Filtro de Busca
-                            if (termoBusca) {
-                                const termo = termoBusca.toLowerCase();
-                                const nomeTurma = `${t.interpretado?.serie} ${t.interpretado?.letra} - ${t.interpretado?.turno}`.toLowerCase();
-                                return nomeTurma.includes(termo);
-                            }
-
-                            return true;
-                        });
-
-                        if (turmasDaSerie.length === 0) return null;
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-[fade-in_0.5s_ease-out]">
+                    {turmasFiltradas.map((turma, index) => {
+                        const cores = CORES_TURNO[turma.turno] || CORES_TURNO['Matutino'];
 
                         return (
-                            <div key={serie} className="animate-[fadeIn_0.5s_ease-out]">
-                                <div className="flex items-center gap-3  px-2">
-                                    <h2 className="text-xl font-bold text-slate-700">{serie.replace('º', 'ª')} Série</h2>
-                                    <div className="h-px bg-slate-200 flex-1"></div>
+                            <div
+                                key={turma.id}
+                                className="group relative bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
+                                style={{ animationDelay: `${index * 0.05}s` }}
+                            >
+                                {/* Header Colorido */}
+                                <div className={`h-24 bg-gradient-to-br ${cores.gradient} relative p-4 flex justify-between items-start`}>
+                                    <div className="bg-white/20 backdrop-blur-md rounded-lg px-2 py-1 text-[10px] font-black uppercase text-white tracking-wider border border-white/10 shadow-sm">
+                                        {turma.turno}
+                                    </div>
+
+                                    {/* Menu Actions (Hover) */}
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={() => abrirEdicao(turma)}
+                                            className="p-1.5 bg-white/20 hover:bg-white/40 rounded-lg text-white transition backdrop-blur-md"
+                                        >
+                                            <Edit2 size={14} />
+                                        </button>
+                                        <button
+                                            onClick={() => excluirTurma(turma.id)}
+                                            className="p-1.5 bg-white/20 hover:bg-rose-500/80 rounded-lg text-white transition backdrop-blur-md"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+
+                                    {/* Big Letter BG */}
+                                    <span className="absolute -bottom-4 -right-2 text-[100px] font-black text-white/20 leading-none select-none pointer-events-none">
+                                        {turma.letra}
+                                    </span>
                                 </div>
 
-                                <div className="flex flex-wrap gap-3">
-                                    {turmasDaSerie.map(t => {
-                                        const { interpretado } = t;
-
-                                        // Definir cores baseadas no turno
-                                        const getCores = (turno) => {
-                                            const t = turno?.toLowerCase() || '';
-                                            if (t === 'matutino') return {
-                                                borda: 'border-amber-200',
-                                                hover: '',
-                                                accent: 'bg-amber-400',
-                                                badge: 'bg-amber-50 text-amber-700 border-amber-100',
-                                                icon: <Sun size={10} />
-                                            };
-                                            if (t === 'vespertino') return {
-                                                borda: 'border-blue-200',
-                                                hover: '',
-                                                accent: 'bg-blue-400',
-                                                badge: 'bg-blue-50 text-blue-700 border-blue-100',
-                                                icon: <Sunset size={10} />
-                                            };
-                                            if (t === 'noturno') return {
-                                                borda: 'border-purple-200',
-                                                hover: '',
-                                                accent: 'bg-purple-400',
-                                                badge: 'bg-purple-50 text-purple-700 border-purple-100',
-                                                icon: <Moon size={10} />
-                                            };
-                                            // Default / Integral
-                                            return {
-                                                borda: 'border-slate-200',
-                                                hover: '',
-                                                accent: 'bg-slate-400',
-                                                badge: 'bg-slate-100 text-slate-700 border-slate-200',
-                                                icon: <Layers size={10} />
-                                            };
-                                        };
-
-                                        const cores = getCores(interpretado.turno);
-                                        const estahVazia = t.totalAlunos === 0;
-
-                                        return (
-                                            <div
-                                                key={t.id}
-                                                className="group relative flex flex-col min-w-[150px] max-w-[190px] flex-grow pt-7 pb-1"
-                                            >
-                                                {/* Botão Excluir (Slides Up) */}
-                                                <button
-                                                    onClick={(e) => solicitarRemocao(t, e)}
-                                                    className="absolute top-8 right-4 z-0 flex h-8 w-10 items-center justify-center rounded-t-lg border border-b-0 border-slate-200 bg-slate-50 text-slate-400 opacity-0 transition-all duration-300 ease-out group-hover:-translate-y-8 group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200"
-                                                    title="Excluir Turma"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-
-                                                {/* Main Card Content */}
-                                                <div
-                                                    onClick={() => abrirListaAlunos(t)}
-                                                    className={`relative z-10 flex flex-col justify-between overflow-hidden rounded-b-xl border bg-white p-4 shadow-sm transition-all hover:shadow-md select-none cursor-pointer ${cores.borda} ${cores.hover}`}
-                                                >
-                                                    {/* Shift Accent Line (Top) */}
-                                                    <div className={`absolute top-0 left-0 right-0 h-1 ${cores.accent}`}></div>
-
-                                                    {/* Header: Identity */}
-                                                    <div className="flex items-start justify-between mb-4 pt-1">
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Turma</span>
-                                                            <span className="text-4xl font-black text-slate-800 leading-none mt-1">{interpretado.letra}</span>
-                                                        </div>
-                                                        <div className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${cores.badge}`}>
-                                                            {cores.icon}
-                                                            {interpretado.turno}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Middle: Series Info */}
-                                                    <div className="flex items-center justify-between mb-4">
-                                                        <span className="text-xs font-bold text-slate-500">{interpretado.serie.replace('º', 'ª')} Série</span>
-                                                        <div className="flex items-center gap-1 text-xs font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">
-                                                            <Users size={12} />
-                                                            {t.totalAlunos}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Bottom: Stats Bar */}
-                                                    <div>
-                                                        <div className="mb-1.5 flex items-end justify-between text-[10px] font-bold uppercase tracking-wide">
-                                                            <span className="text-slate-400">{estahVazia ? 'Status' : 'Presença'}</span>
-                                                            <span className={estahVazia ? 'text-slate-300' : (t.percentual >= 75 ? 'text-emerald-600' : 'text-rose-600')}>
-                                                                {estahVazia ? 'Sem Alunos' : `${t.percentual}%`}
-                                                            </span>
-                                                        </div>
-                                                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                                                            <div
-                                                                className={`h-full rounded-full transition-all duration-500 ${estahVazia ? 'bg-slate-200' : (t.percentual >= 75 ? 'bg-emerald-500' : 'bg-rose-500')}`}
-                                                                style={{ width: estahVazia ? '0%' : `${t.percentual}%` }}
-                                                            ></div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Hover Interaction Cue */}
-                                                    <div className="absolute bottom-2 right-2 opacity-0 transition-all duration-300 transform translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 text-slate-300">
-                                                        <ChevronRight size={16} />
-                                                    </div>
-                                                </div>
+                                <div className="p-5 relative">
+                                    <div className="absolute -top-10 left-5">
+                                        <div className="w-16 h-16 bg-white rounded-2xl p-1 shadow-md">
+                                            <div className="w-full h-full bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
+                                                <span className="text-2xl font-black text-slate-800">{turma.id.split('º')[0]}º</span>
                                             </div>
-                                        );
-                                    })}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-8">
+                                        <h3 className="text-xl font-black text-slate-800 leading-tight mb-1">
+                                            Turma {turma.letra}
+                                        </h3>
+                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">
+                                            Ano Letivo {turma.ano_letivo}
+                                        </p>
+
+                                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                            <div className="p-2 bg-white rounded-lg shadow-sm text-indigo-500">
+                                                <Users size={18} />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-bold text-slate-500 uppercase">Alunos</p>
+                                                <p className="text-lg font-black text-slate-800">{turma.totalAlunos || 0}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button className="w-full mt-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center justify-center gap-2 group/btn">
+                                        Ver Detalhes
+                                        <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                                    </button>
                                 </div>
                             </div>
                         );
                     })}
-
-
-
-
                 </div>
             )}
 
-            {/* Modal Nova Turma */}
+            {/* Modal Criar/Editar */}
             {modalAberto && (
-                <div
-                    className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity"
-                    onClick={(e) => {
-                        if (e.target === e.currentTarget) definirModalAberto(false);
-                    }}
-                >
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-[scaleIn_0.2s_ease-out] flex flex-col max-h-[90vh]">
-                        {/* Header Moderno */}
-                        <div className="p-6 flex items-start gap-4 bg-blue-50">
-                            <div className="p-3 rounded-xl bg-white shadow-sm shrink-0">
-                                <Layers className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <div className="flex-1">
-                                <h2 className="text-xl font-bold text-slate-800 leading-tight">Nova Turma</h2>
-                                <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                                    Preencha os dados abaixo para cadastrar uma nova turma no sistema.
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => definirModalAberto(false)}
-                                className="text-slate-400 hover:text-slate-600 bg-white/50 hover:bg-white p-1 rounded-lg transition-colors"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        {/* Conteúdo Scrollável */}
-                        <div className="p-6 space-y-6 overflow-y-auto">
-                            {/* 1. Série */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">1. Série (Ano)</label>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {['1º', '2º', '3º'].map(s => (
-                                        <button
-                                            key={s}
-                                            type="button"
-                                            onClick={() => definirNovaTurma(prev => ({ ...prev, serie: s }))}
-                                            className={`p-3 rounded-xl border-2 font-black text-lg transition-all ${novaTurma.serie === s
-                                                ? 'border-blue-500 bg-blue-50 text-blue-600 shadow-sm'
-                                                : 'border-slate-100 text-slate-400 hover:border-slate-200 hover:bg-slate-50'
-                                                }`}
-                                        >
-                                            {s.replace('º', 'ª')}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* 2. Turno */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">2. Turno</label>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {[
-                                        { id: 'Matutino', label: 'Manhã', icon: '☀️' },
-                                        { id: 'Vespertino', label: 'Tarde', icon: '🌤️' },
-                                        { id: 'Noturno', label: 'Noite', icon: '🌙' }
-                                    ].map(t => (
-                                        <button
-                                            key={t.id}
-                                            type="button"
-                                            onClick={() => definirNovaTurma(prev => ({ ...prev, turno: t.id }))}
-                                            className={`p-3 rounded-xl border-2 font-bold text-sm transition-all flex flex-col items-center gap-1 ${novaTurma.turno === t.id
-                                                ? 'border-orange-400 bg-orange-50 text-orange-600 shadow-sm'
-                                                : 'border-slate-100 text-slate-400 hover:border-slate-200 hover:bg-slate-50'
-                                                }`}
-                                        >
-                                            <span className="text-xl">{t.icon}</span>
-                                            {t.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* 3. Turma (Letra) */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">3. Turma</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'].map(l => (
-                                        <button
-                                            key={l}
-                                            type="button"
-                                            onClick={() => definirNovaTurma(prev => ({ ...prev, letra: l }))}
-                                            className={`w-10 h-10 rounded-lg border-2 font-bold transition-all ${novaTurma.letra === l
-                                                ? 'border-slate-800 bg-slate-800 text-white shadow-lg'
-                                                : 'border-slate-100 text-slate-400 hover:border-slate-300 hover:text-slate-600'
-                                                }`}
-                                        >
-                                            {l}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Erro */}
-                            {erroCadastro && (
-                                <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 animate-[fadeIn_0.3s_ease-out]">
-                                    <div className="p-1.5 bg-red-100 rounded-lg">
-                                        <XCircle size={16} className="text-red-500" />
-                                    </div>
-                                    <p className="text-xs font-semibold text-red-600">{erroCadastro}</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Footer Ações */}
-                        <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-between">
-                            <div className="flex flex-col">
-                                <span className="text-xs text-slate-400 font-bold uppercase">Resultado</span>
-                                <span className="text-2xl font-black text-slate-800">
-                                    {novaTurma.serie && novaTurma.letra
-                                        ? `${novaTurma.serie} ${novaTurma.letra} - ${novaTurma.turno || '?'}`
-                                        : '...'}
-                                </span>
-                            </div>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => definirModalAberto(false)}
-                                    className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-xl transition-colors"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={adicionarTurma}
-                                    disabled={!novaTurma.serie || !novaTurma.letra || !novaTurma.turno}
-                                    className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                >
-                                    <Plus size={20} /> Criar Turma
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Modal de Lista de Alunos */}
-            {modalAlunosAberto && (
                 <ModalUniversal
-                    titulo={`Alunos da Turma: ${turmaSelecionada?.interpretado?.serie || ''} ${turmaSelecionada?.interpretado?.letra || ''}`}
-                    subtitulo={`${alunosDaTurma.length} aluno(s) matriculado(s)`}
+                    titulo={turmaEmEdicao ? "Editar Turma" : "Nova Turma"}
+                    subtitulo={turmaEmEdicao ? `Atualizando informações da turma ${turmaEmEdicao.id}` : "Cadastre uma nova turma no sistema"}
                     fechavel
-                    alturaDinamica
-                    aoFechar={() => definirModalAlunosAberto(false)}
-                >
-                    <div className="space-y-2 max-h-96 overflow-y-auto">
-                        {alunosDaTurma.length === 0 ? (
-                            <p className="text-center text-slate-400 py-8">Nenhum aluno matriculado nesta turma</p>
-                        ) : (
-                            alunosDaTurma.map((aluno, index) => (
-                                <div key={index} className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
-                                    <p className="font-bold text-slate-700">{aluno.nome_completo || aluno.nome}</p>
-                                    <p className="text-xs text-slate-500">Matrícula: {aluno.matricula}</p>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </ModalUniversal>
-            )}
-
-            {/* Modal de Confirmação de Exclusão */}
-            {confirmacao && (
-                <ModalUniversal
-                    titulo={confirmacao.titulo}
-                    fechavel
-                    aoFechar={() => setConfirmacao(null)}
+                    aoFechar={() => definirModalAberto(false)}
                 >
                     <div className="space-y-6">
-                        <p className="text-slate-600">{confirmacao.mensagem}</p>
-                        <div className="flex gap-3 justify-end">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Série (Ano)</label>
+                                <div className="relative">
+                                    <select
+                                        value={serieTurma}
+                                        onChange={(e) => definirSerieTurma(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
+                                        disabled={!!turmaEmEdicao}
+                                    >
+                                        <option value="">Selecione...</option>
+                                        <option value="1">1º Ano</option>
+                                        <option value="2">2º Ano</option>
+                                        <option value="3">3º Ano</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Letra</label>
+                                <input
+                                    type="text"
+                                    value={letraTurma}
+                                    onChange={(e) => definirLetraTurma(e.target.value.toUpperCase())}
+                                    placeholder="Ex: A"
+                                    maxLength={1}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:font-normal uppercase text-center"
+                                    disabled={!!turmaEmEdicao}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Turno</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                {['Matutino', 'Vespertino', 'Noturno', 'Integral'].map((t) => (
+                                    <button
+                                        key={t}
+                                        onClick={() => definirTurno(t)}
+                                        className={`p-3 rounded-xl border border-slate-200 text-sm font-bold transition-all ${turno === t
+                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm ring-1 ring-indigo-500/20'
+                                            : 'bg-white text-slate-500 hover:bg-slate-50'
+                                            }`}
+                                    >
+                                        {t}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Ano Letivo</label>
+                            <input
+                                type="number"
+                                value={anoLetivo}
+                                onChange={(e) => definirAnoLetivo(e.target.value)}
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                            />
+                        </div>
+
+                        <div className="flex gap-4 pt-4 border-t border-slate-100">
                             <button
-                                onClick={() => setConfirmacao(null)}
-                                className="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition font-medium"
+                                onClick={() => definirModalAberto(false)}
+                                className="flex-1 py-3 px-6 rounded-xl text-slate-600 font-bold hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all"
                             >
                                 Cancelar
                             </button>
                             <button
-                                onClick={() => {
-                                    confirmacao.acao();
-                                    setConfirmacao(null);
-                                }}
-                                className="px-4 py-2 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition font-bold"
+                                onClick={salvarTurma}
+                                className="flex-[2] py-3 px-6 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
                             >
-                                {confirmacao.textoConfirmar || 'Confirmar'}
+                                <BookOpen size={18} />
+                                {turmaEmEdicao ? 'Salvar Alterações' : 'Criar Turma'}
                             </button>
                         </div>
                     </div>
