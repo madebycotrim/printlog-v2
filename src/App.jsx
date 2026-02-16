@@ -14,6 +14,7 @@ import Alunos from './paginas/Alunos';
 import Logs from './paginas/Logs';
 import Relatorios from './paginas/Relatorios';
 import Usuarios from './paginas/Usuarios';
+import BancoDados from './paginas/BancoDados';
 import { Toaster } from 'react-hot-toast';
 
 function Layout({ children }) {
@@ -65,6 +66,7 @@ function App() {
                 <Route path="/relatorios" element={<Relatorios />} />
                 <Route path="/logs" element={<Logs />} />
                 <Route path="/usuarios" element={<Usuarios />} />
+                <Route path="/banco-dados" element={<BancoDados />} />
                 <Route path="*" element={<Navigate to="/painel" replace />} />
               </Routes>
             </Layout>

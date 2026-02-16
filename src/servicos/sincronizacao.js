@@ -130,6 +130,29 @@ export const servicoSincronizacao = {
         }
     },
 
+    sincronizarUsuarios: async () => {
+        try {
+            // 1. Pull: Baixar usuários do servidor
+            const usuariosServidor = await api.obter('/usuarios');
+
+            if (Array.isArray(usuariosServidor)) {
+                const banco = await bancoLocal.iniciarBanco();
+                const tx = banco.transaction('usuarios', 'readwrite');
+
+                for (const u of usuariosServidor) {
+                    await tx.store.put(u);
+                }
+                await tx.done;
+
+                console.log('Usuários sincronizados (RBAC):', usuariosServidor.length);
+                return { sucesso: true, quantidade: usuariosServidor.length };
+            }
+        } catch (erro) {
+            console.error('Erro na sincronização de usuários:', erro);
+            return { sucesso: false, erro: erro.message };
+        }
+    },
+
     sincronizarTudo: async () => {
         if (!navigator.onLine) {
             console.log('Sem conexão. Sincronização adiada.');
@@ -145,12 +168,13 @@ export const servicoSincronizacao = {
         const resultados = await Promise.allSettled([
             servicoSincronizacao.sincronizarAlunos(),
             servicoSincronizacao.sincronizarTurmas(),
-            servicoSincronizacao.sincronizarRegistros()
+            servicoSincronizacao.sincronizarRegistros(),
+            servicoSincronizacao.sincronizarUsuarios()
         ]);
 
         // Logar resultados
         resultados.forEach((res, index) => {
-            const labels = ['Alunos', 'Turmas', 'Registros'];
+            const labels = ['Alunos', 'Turmas', 'Registros', 'Usuários'];
             if (res.status === 'rejected') {
                 console.error(`Falha em ${labels[index]}:`, res.reason);
             }
@@ -159,7 +183,8 @@ export const servicoSincronizacao = {
         return {
             alunos: resultados[0].status === 'fulfilled' ? resultados[0].value : { sucesso: false },
             turmas: resultados[1].status === 'fulfilled' ? resultados[1].value : { sucesso: false },
-            registros: resultados[2].status === 'fulfilled' ? resultados[2].value : { sucesso: false }
+            registros: resultados[2].status === 'fulfilled' ? resultados[2].value : { sucesso: false },
+            usuarios: resultados[3].status === 'fulfilled' ? resultados[3].value : { sucesso: false }
         };
     },
 

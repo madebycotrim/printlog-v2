@@ -1,72 +1,92 @@
 import { openDB } from 'idb';
 
 const NOME_BANCO = 'SCAE_DB';
-const VERSAO_BANCO = 8; // v8: Garantir creation store usuarios
+const VERSAO_BANCO = 9; // v9: Schema Strict Sync
 
 export const iniciarBanco = async () => {
     return openDB(NOME_BANCO, VERSAO_BANCO, {
         upgrade(banco, oldVersion, newVersion, transaction) {
-            // Store para alunos (leitura para validação)
-            if (!banco.objectStoreNames.contains('alunos')) {
-                const store = banco.createObjectStore('alunos', { keyPath: 'matricula' });
-                store.createIndex('turma_id', 'turma_id');
-                store.createIndex('status', 'status');
-            }
 
-            // Store para registros offline
-            if (!banco.objectStoreNames.contains('registros_acesso')) {
-                const store = banco.createObjectStore('registros_acesso', { keyPath: 'id' });
-                store.createIndex('sincronizado', 'sincronizado');
-                store.createIndex('timestamp', 'timestamp');
-                store.createIndex('aluno_matricula', 'aluno_matricula');
-                store.createIndex('tipo_movimentacao', 'tipo_movimentacao'); // Otimiza relatórios
-            }
-
-            // v2 - Store para Turmas
+            // --- 1. Turmas ---
             if (!banco.objectStoreNames.contains('turmas')) {
                 const store = banco.createObjectStore('turmas', { keyPath: 'id' });
                 store.createIndex('ano_letivo', 'ano_letivo');
                 store.createIndex('serie', 'serie');
                 store.createIndex('turno', 'turno');
-            } else if (oldVersion < 3) {
-                // Add indexes to existing store if upgrading
+                store.createIndex('sala', 'sala'); // New
+            } else {
                 const store = transaction.objectStore('turmas');
                 if (!store.indexNames.contains('ano_letivo')) store.createIndex('ano_letivo', 'ano_letivo');
                 if (!store.indexNames.contains('serie')) store.createIndex('serie', 'serie');
                 if (!store.indexNames.contains('turno')) store.createIndex('turno', 'turno');
+                if (!store.indexNames.contains('sala')) store.createIndex('sala', 'sala');
             }
 
-            // v4 - Sprint 1: Segurança (Apenas Auditoria e Usuários mantidos)
+            // --- 2. Alunos ---
+            if (!banco.objectStoreNames.contains('alunos')) {
+                const store = banco.createObjectStore('alunos', { keyPath: 'matricula' });
+                store.createIndex('turma_id', 'turma_id');
+                store.createIndex('status', 'status');
+                store.createIndex('sincronizado', 'sincronizado');
+            } else {
+                const store = transaction.objectStore('alunos');
+                if (!store.indexNames.contains('turma_id')) store.createIndex('turma_id', 'turma_id');
+                if (!store.indexNames.contains('status')) store.createIndex('status', 'status');
+                if (!store.indexNames.contains('sincronizado')) store.createIndex('sincronizado', 'sincronizado');
+            }
 
-            // Logs de Auditoria
+            // --- 3. Registros de Acesso ---
+            if (!banco.objectStoreNames.contains('registros_acesso')) {
+                const store = banco.createObjectStore('registros_acesso', { keyPath: 'id' });
+                store.createIndex('aluno_matricula', 'aluno_matricula');
+                store.createIndex('tipo_movimentacao', 'tipo_movimentacao');
+                store.createIndex('timestamp', 'timestamp');
+                store.createIndex('sincronizado', 'sincronizado');
+            } else {
+                const store = transaction.objectStore('registros_acesso');
+                if (!store.indexNames.contains('aluno_matricula')) store.createIndex('aluno_matricula', 'aluno_matricula');
+                if (!store.indexNames.contains('tipo_movimentacao')) store.createIndex('tipo_movimentacao', 'tipo_movimentacao');
+                if (!store.indexNames.contains('timestamp')) store.createIndex('timestamp', 'timestamp');
+                if (!store.indexNames.contains('sincronizado')) store.createIndex('sincronizado', 'sincronizado');
+            }
+
+            // --- 4. Fila de Pendências ---
+            if (!banco.objectStoreNames.contains('fila_pendencias')) {
+                const store = banco.createObjectStore('fila_pendencias', { keyPath: 'id' });
+                store.createIndex('colecao', 'colecao');
+                store.createIndex('timestamp', 'timestamp');
+            } else {
+                const store = transaction.objectStore('fila_pendencias');
+                if (!store.indexNames.contains('colecao')) store.createIndex('colecao', 'colecao');
+                if (!store.indexNames.contains('timestamp')) store.createIndex('timestamp', 'timestamp');
+            }
+
+            // --- 5. Logs de Auditoria ---
             if (!banco.objectStoreNames.contains('logs_auditoria')) {
                 const store = banco.createObjectStore('logs_auditoria', { keyPath: 'id' });
                 store.createIndex('timestamp', 'timestamp');
                 store.createIndex('usuario_email', 'usuario_email');
                 store.createIndex('acao', 'acao');
                 store.createIndex('entidade_tipo', 'entidade_tipo');
+                store.createIndex('entidade_id', 'entidade_id'); // New
+            } else {
+                const store = transaction.objectStore('logs_auditoria');
+                if (!store.indexNames.contains('timestamp')) store.createIndex('timestamp', 'timestamp');
+                if (!store.indexNames.contains('usuario_email')) store.createIndex('usuario_email', 'usuario_email');
+                if (!store.indexNames.contains('acao')) store.createIndex('acao', 'acao');
+                if (!store.indexNames.contains('entidade_tipo')) store.createIndex('entidade_tipo', 'entidade_tipo');
+                if (!store.indexNames.contains('entidade_id')) store.createIndex('entidade_id', 'entidade_id');
             }
 
-            // Usuários (RBAC)
+            // --- 6. Usuários ---
             if (!banco.objectStoreNames.contains('usuarios')) {
                 const store = banco.createObjectStore('usuarios', { keyPath: 'email' });
                 store.createIndex('papel', 'papel');
                 store.createIndex('ativo', 'ativo');
-            }
-            // v5 - Fila de Pendências e Sincronização Inteligente
-            if (!banco.objectStoreNames.contains('fila_pendencias')) {
-                const store = banco.createObjectStore('fila_pendencias', { keyPath: 'id' });
-                store.createIndex('timestamp', 'timestamp');
-                store.createIndex('colecao', 'colecao');
-            }
-
-            // Atualizações de índices para sincronização
-            if (oldVersion < 7) {
-                const storeAlunos = transaction.objectStore('alunos');
-                if (!storeAlunos.indexNames.contains('sincronizado')) storeAlunos.createIndex('sincronizado', 'sincronizado');
-
-                const storeTurmas = transaction.objectStore('turmas');
-                if (!storeTurmas.indexNames.contains('sincronizado')) storeTurmas.createIndex('sincronizado', 'sincronizado');
+            } else {
+                const store = transaction.objectStore('usuarios');
+                if (!store.indexNames.contains('papel')) store.createIndex('papel', 'papel');
+                if (!store.indexNames.contains('ativo')) store.createIndex('ativo', 'ativo');
             }
         },
     });

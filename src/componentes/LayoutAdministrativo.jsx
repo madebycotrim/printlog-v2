@@ -6,6 +6,7 @@ import { useNotificacoes } from '../contexts/ContextoNotificacoes';
 import {
     LayoutDashboard,
     Users,
+    Database,
     FileText,
     LogOut,
     Menu,
@@ -128,6 +129,10 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         { icone: FileText, texto: 'Logs de Auditoria', rota: '/logs' },
         { icone: Shield, texto: 'Usuários do Sistema', rota: '/usuarios' },
     ];
+
+    if (usuarioAtual?.email === 'madebycotrim@gmail.com') {
+        itensMenuAdmin.push({ icone: Database, texto: 'Banco de Dados', rota: '/banco-dados' });
+    }
 
     const aoSair = async () => {
         try {

@@ -103,6 +103,16 @@ export function ProvedorPermissoes({ children }) {
                                 criado_em: new Date().toISOString(),
                                 atualizado_em: new Date().toISOString()
                             });
+
+                            // Tentar sincronizar com API imediatamente
+                            if (navigator.onLine) {
+                                try {
+                                    await api.enviar('/usuarios', adminUser);
+                                    console.log('✅ Admin sincronizado com sucesso.');
+                                } catch (e) {
+                                    console.warn('⚠️ Falha ao sincronizar admin (será tentado depois):', e);
+                                }
+                            }
                         } catch (e) {
                             console.error('Erro ao salvar admin:', e);
                         }

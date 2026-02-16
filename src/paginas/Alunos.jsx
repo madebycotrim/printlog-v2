@@ -3,6 +3,7 @@ import LayoutAdministrativo from '../componentes/LayoutAdministrativo';
 import ModalUniversal from '../componentes/ModalUniversal';
 import { bancoLocal } from '../servicos/bancoLocal';
 import { api } from '../servicos/api';
+import SelectComBusca from '../componentes/SelectComBusca';
 import {
     Users,
     Search,
@@ -38,26 +39,19 @@ export default function Alunos() {
     const [resultadoImportacao, definirResultadoImportacao] = useState(null);
     const [textoColado, definirTextoColado] = useState('');
 
+    // Estados Adicionais Faltantes
+    const [alunoEmEdicao, definirAlunoEmEdicao] = useState(null);
+    const [modalQRCode, definirModalQRCode] = useState(false);
+    const [qrcodeAtual, definirQrcodeAtual] = useState('');
+    const [isDragging, setIsDragging] = useState(false);
+    const [tabAtiva, setTabAtiva] = useState('arquivo'); // arquivo | colar
 
 
 
 
 
-    const baixarModelo = () => {
-        const headers = [['Nome Completo', 'Matricula', 'Turma']];
-        const ws = utils.aoa_to_sheet(headers);
-        const wb = utils.book_new();
-        utils.book_append_sheet(wb, ws, "Modelo");
 
-        try {
-            import('xlsx').then(xlsx => {
-                xlsx.writeFile(wb, "modelo_alunos_SCAE.xlsx");
-            });
-        } catch (e) {
-            console.error("Erro ao baixar modelo", e);
-            toast.error("Erro ao gerar modelo");
-        }
-    };
+
 
     const importarDados = async (jsonData) => {
         let sucessos = 0;
@@ -579,19 +573,12 @@ export default function Alunos() {
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Turma</label>
                                 <div className="relative">
-                                    <select
-                                        className="w-full pl-4 pr-10 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-base font-bold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
+                                    <SelectComBusca
+                                        options={turmas.map(t => ({ value: t.id, label: t.id }))}
                                         value={dadosFormulario.turma}
-                                        onChange={(e) => definirDadosFormulario({ ...dadosFormulario, turma: e.target.value })}
-                                    >
-                                        <option value="">Selecione...</option>
-                                        {turmas.map(t => (
-                                            <option key={t.id} value={t.id}>{t.id}</option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
-                                    </div>
+                                        onChange={(valor) => definirDadosFormulario({ ...dadosFormulario, turma: valor })}
+                                        placeholder="Selecione a turma..."
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -636,106 +623,169 @@ export default function Alunos() {
                 </ModalUniversal>
             )}
 
-            {/* Modal Importação Funcional */}
+            {/* Modal Importação Premium */}
             {modalImportacao && (
                 <ModalUniversal
-                    titulo="Importar Alunos"
-                    subtitulo="Carregue uma planilha (.xlsx ou .csv) para cadastrar em massa."
+                    titulo="Importação em Massa"
+                    subtitulo="Selecione o arquivo ou cole os dados para cadastrar múltiplos alunos."
                     fechavel
                     aoFechar={() => {
                         definirModalImportacao(false);
                         definirResultadoImportacao(null);
                     }}
                 >
-                    <div className="p-4">
+                    <div className="p-1">
                         {!resultadoImportacao ? (
                             <div className="space-y-6">
-                                {/* Área de Upload */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center bg-slate-50 hover:bg-indigo-50/30 hover:border-indigo-200 transition-colors group relative cursor-pointer flex flex-col items-center justify-center">
-                                        <input
-                                            type="file"
-                                            accept=".xlsx, .xls, .csv"
-                                            onChange={processarArquivo}
-                                            disabled={importando}
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                        />
-                                        <div className="w-14 h-14 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                            {importando ? (
-                                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
-                                            ) : (
-                                                <FileSpreadsheet size={28} className="text-indigo-500" />
-                                            )}
-                                        </div>
-                                        <h3 className="font-bold text-slate-700 mb-1">Upload de Arquivo</h3>
-                                        <p className="text-xs text-slate-400">.xlsx ou .csv</p>
-                                    </div>
-
-                                    <div className="flex flex-col gap-3">
-                                        <div className="relative flex-1">
-                                            <textarea
-                                                value={textoColado}
-                                                onChange={(e) => definirTextoColado(e.target.value)}
-                                                placeholder="Cole aqui os dados do Excel (Nome | Matrícula | Turma)..."
-                                                className="w-full h-full min-h-[140px] p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-100 resize-none"
-                                            ></textarea>
-                                            <div className="absolute top-3 right-3 text-slate-300">
-                                                <Clipboard size={16} />
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={processarColagem}
-                                            disabled={importando || !textoColado.trim()}
-                                            className="py-3 px-4 bg-slate-800 text-white rounded-xl font-bold text-sm hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2"
-                                        >
-                                            <FileText size={16} />
-                                            Processar Texto
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Botão Modelo */}
-                                <div className="flex justify-center">
+                                {/* Tab Navigation (Segmented Control) */}
+                                <div className="flex p-1 bg-slate-100/80 rounded-xl mb-6 relative">
                                     <button
-                                        onClick={baixarModelo}
-                                        className="flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
+                                        onClick={() => setTabAtiva('arquivo')}
+                                        className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${tabAtiva === 'arquivo' ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700'}`}
                                     >
-                                        <Download size={16} />
-                                        Baixar planilha modelo
+                                        <FileSpreadsheet size={16} />
+                                        Planilha Excel/CSV
+                                    </button>
+                                    <button
+                                        onClick={() => setTabAtiva('colar')}
+                                        className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${tabAtiva === 'colar' ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700'}`}
+                                    >
+                                        <Clipboard size={16} />
+                                        Colar Texto
                                     </button>
                                 </div>
 
-                                <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 flex gap-3 items-start">
-                                    <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={18} />
-                                    <div className="text-sm text-amber-800">
-                                        <p className="font-bold mb-1">Importante:</p>
-                                        <p>A planilha deve conter as colunas: <strong>Nome Completo</strong>, <strong>Matrícula</strong> e <strong>Turma</strong>.</p>
+                                <div className="space-y-6">
+                                    {/* Tab: Arquivo */}
+                                    {tabAtiva === 'arquivo' && (
+                                        <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+                                            <div
+                                                className={`group relative transition-all duration-300 ${isDragging ? 'scale-[1.02]' : ''}`}
+                                                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                                onDragLeave={(e) => { e.preventDefault(); if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false); }}
+                                                onDrop={(e) => {
+                                                    e.preventDefault();
+                                                    setIsDragging(false);
+                                                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                                                        processarArquivo({ target: { files: e.dataTransfer.files } });
+                                                    }
+                                                }}
+                                            >
+                                                <div className={`absolute -inset-0.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl transition duration-500 blur opacity-20 ${isDragging ? 'opacity-100 animate-pulse' : 'opacity-0 group-hover:opacity-100'}`}></div>
+                                                <div className={`relative bg-white border-2 ${isDragging ? 'border-indigo-500 bg-indigo-50/30 border-dashed' : 'border-slate-200 border-dashed hover:border-indigo-300 hover:bg-slate-50'} rounded-2xl p-10 flex flex-col items-center justify-center text-center transition-all min-h-[300px]`}>
+                                                    <input
+                                                        type="file"
+                                                        accept=".xlsx, .xls, .csv"
+                                                        onChange={processarArquivo}
+                                                        disabled={importando}
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                    />
+                                                    <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 transition-all duration-300 shadow-lg shadow-indigo-500/10 ${isDragging ? 'bg-indigo-600 text-white scale-110 rotate-12' : 'bg-indigo-50 text-indigo-600 group-hover:scale-110 group-hover:rotate-6'}`}>
+                                                        {importando ? (
+                                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                                                        ) : (
+                                                            <Upload size={32} />
+                                                        )}
+                                                    </div>
+                                                    <h3 className={`font-black text-xl mb-2 transition-colors ${isDragging ? 'text-indigo-700' : 'text-slate-800'}`}>
+                                                        {isDragging ? 'Solte o arquivo aqui!' : 'Clique ou Arraste seu Arquivo'}
+                                                    </h3>
+                                                    <p className="text-slate-400 mb-6 max-w-xs mx-auto leading-relaxed">
+                                                        Suportamos arquivos .xlsx, .xls e .csv. <br /> O processamento é instantâneo.
+                                                    </p>
+
+                                                    <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 bg-indigo-50/50 px-4 py-2 rounded-full border border-indigo-100/50">
+                                                        <FileSpreadsheet size={14} />
+                                                        Modelo Recomendado
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Tab: Colar */}
+                                    {tabAtiva === 'colar' && (
+                                        <div className="animate-in fade-in slide-in-from-right-4 duration-300 h-full">
+                                            <div className="flex flex-col h-full min-h-[300px]">
+                                                <div className="relative flex-1 bg-white border border-slate-200 rounded-2xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all overflow-hidden group shadow-sm">
+                                                    <div className="absolute top-0 left-0 right-0 h-8 bg-slate-50 border-b border-slate-100 flex items-center px-4 gap-2">
+                                                        <div className="flex gap-1.5">
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                                                        </div>
+                                                        <span className="text-[10px] font-mono text-slate-400 ml-2">dados_alunos.txt</span>
+                                                    </div>
+                                                    <textarea
+                                                        value={textoColado}
+                                                        onChange={(e) => definirTextoColado(e.target.value)}
+                                                        placeholder={`Nome Completo\tMatrícula\tTurma\nJoão Silva\t2023001\t3A\nMaria Souza\t2023002\t3B`}
+                                                        className="w-full h-full min-h-[220px] p-5 pt-12 bg-transparent border-none text-sm font-mono text-slate-600 focus:outline-none resize-none placeholder:text-slate-300/50 leading-relaxed"
+                                                    ></textarea>
+                                                    <div className="absolute top-10 right-4 p-2 bg-slate-50 rounded-lg shadow-sm border border-slate-100 text-slate-400 group-focus-within:text-indigo-500 transition-colors pointer-events-none">
+                                                        <Clipboard size={18} />
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={processarColagem}
+                                                    disabled={importando || !textoColado.trim()}
+                                                    className="mt-4 w-full py-4 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition shadow-xl shadow-slate-900/10 flex items-center justify-center gap-3 active:scale-[0.98]"
+                                                >
+                                                    <FileText size={18} />
+                                                    Processar Dados Colados
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Warning Footer & Template Download */}
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 pt-2 border-t border-slate-50">
+                                    <div className="flex items-start gap-2 text-xs text-slate-500 max-w-sm">
+                                        <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={14} />
+                                        <span>
+                                            Certifique-se que as colunas são: <span className="font-mono text-slate-700 bg-slate-100 px-1 rounded">Nome</span>, <span className="font-mono text-slate-700 bg-slate-100 px-1 rounded">Matrícula</span> e <span className="font-mono text-slate-700 bg-slate-100 px-1 rounded">Turma</span>.
+                                        </span>
                                     </div>
+
+
                                 </div>
                             </div>
+
                         ) : (
-                            <div className="space-y-6">
-                                {/* Resultado */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100 text-center">
-                                        <div className="text-3xl font-black text-emerald-600 mb-1">{resultadoImportacao.sucessos}</div>
-                                        <div className="text-xs font-bold uppercase tracking-wider text-emerald-700">Importados</div>
+                            <div className="animate-in fade-in zoom-in duration-300">
+                                {/* Resultado Header */}
+                                <div className="text-center mb-8">
+                                    <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${resultadoImportacao.erros > 0 ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                        {resultadoImportacao.erros > 0 ? <AlertTriangle size={32} /> : <CheckCircle size={32} />}
                                     </div>
-                                    <div className="bg-rose-50 rounded-2xl p-5 border border-rose-100 text-center">
-                                        <div className="text-3xl font-black text-rose-600 mb-1">{resultadoImportacao.erros}</div>
-                                        <div className="text-xs font-bold uppercase tracking-wider text-rose-700">Erros</div>
+                                    <h3 className="text-xl font-bold text-slate-800">Processamento Concluído</h3>
+                                    <p className="text-slate-500 text-sm">Confira o resumo da operação abaixo.</p>
+                                </div>
+
+                                {/* Stats Cards */}
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div className="bg-emerald-50/50 rounded-2xl p-6 border border-emerald-100 flex flex-col items-center">
+                                        <span className="text-4xl font-black text-emerald-600 mb-2">{resultadoImportacao.sucessos}</span>
+                                        <span className="text-xs font-bold uppercase tracking-widest text-emerald-700/70">Sucessos</span>
+                                    </div>
+                                    <div className="bg-rose-50/50 rounded-2xl p-6 border border-rose-100 flex flex-col items-center">
+                                        <span className="text-4xl font-black text-rose-600 mb-2">{resultadoImportacao.erros}</span>
+                                        <span className="text-xs font-bold uppercase tracking-widest text-rose-700/70">Falhas</span>
                                     </div>
                                 </div>
 
+                                {/* Error Log */}
                                 {resultadoImportacao.detalhes.length > 0 && (
-                                    <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
-                                        <div className="px-4 py-3 bg-slate-100/50 border-b border-slate-200 font-bold text-xs uppercase text-slate-500">
-                                            Detalhes dos Erros
+                                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 shadow-sm">
+                                        <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                                            <span className="font-bold text-xs uppercase text-slate-500 tracking-wider">Erros Encontrados</span>
+                                            <span className="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{resultadoImportacao.detalhes.length}</span>
                                         </div>
-                                        <div className="max-h-40 overflow-y-auto p-4 space-y-2">
+                                        <div className="max-h-48 overflow-y-auto p-2">
                                             {resultadoImportacao.detalhes.map((erro, i) => (
-                                                <div key={i} className="text-xs text-rose-600 flex items-start gap-2">
-                                                    <span className="shrink-0">•</span>
+                                                <div key={i} className="flex items-start gap-3 p-3 hover:bg-slate-50 rounded-lg transition-colors text-sm text-slate-600 border-b border-slate-50 last:border-0">
+                                                    <XCircle size={16} className="text-rose-500 shrink-0 mt-0.5" />
                                                     <span>{erro}</span>
                                                 </div>
                                             ))}
@@ -743,54 +793,68 @@ export default function Alunos() {
                                     </div>
                                 )}
 
-                                <button
-                                    onClick={() => definirResultadoImportacao(null)}
-                                    className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20"
-                                >
-                                    Nova Importação
-                                </button>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => {
+                                            definirModalImportacao(false);
+                                            definirResultadoImportacao(null);
+                                        }}
+                                        className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition"
+                                    >
+                                        Fechar
+                                    </button>
+                                    <button
+                                        onClick={() => definirResultadoImportacao(null)}
+                                        className="flex-1 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20 active:scale-95"
+                                    >
+                                        Nova Importação
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
                 </ModalUniversal>
-            )}
+            )
+            }
             {/* Modal de Exclusão */}
-            {modalExclusaoAberto && alunoParaExcluir && (
-                <ModalUniversal
-                    aberto={modalExclusaoAberto}
-                    aoFechar={() => definirModalExclusaoAberto(false)}
-                    titulo="Excluir Aluno"
-                    subtitulo="Esta ação é irreversível e removerá todos os dados deste aluno."
-                    icone={Trash2}
-                    cor="rose"
-                    tamanho="sm"
-                >
-                    <div className="p-4">
-                        <p className="text-slate-600 mb-6 leading-relaxed">
-                            Você está prestes a excluir o aluno <strong className="text-slate-900">{alunoParaExcluir.nome_completo}</strong> (Matrícula: {alunoParaExcluir.matricula}).
-                            <br /><br />
-                            Deseja realmente continuar?
-                        </p>
+            {
+                modalExclusaoAberto && alunoParaExcluir && (
+                    <ModalUniversal
+                        aberto={modalExclusaoAberto}
+                        aoFechar={() => definirModalExclusaoAberto(false)}
+                        titulo="Excluir Aluno"
+                        subtitulo="Esta ação é irreversível e removerá todos os dados deste aluno."
+                        icone={Trash2}
+                        cor="rose"
+                        tamanho="sm"
+                    >
+                        <div className="p-4">
+                            <p className="text-slate-600 mb-6 leading-relaxed">
+                                Você está prestes a excluir o aluno <strong className="text-slate-900">{alunoParaExcluir.nome_completo}</strong> (Matrícula: {alunoParaExcluir.matricula}).
+                                <br /><br />
+                                Deseja realmente continuar?
+                            </p>
 
-                        <div className="flex gap-3 justify-end pt-4 border-t border-slate-50">
-                            <button
-                                onClick={() => definirModalExclusaoAberto(false)}
-                                className="px-4 py-2 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-slate-700 transition"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={confirmarExclusao}
-                                className="px-5 py-2 rounded-xl bg-rose-500 text-white font-bold hover:bg-rose-600 shadow-lg shadow-rose-500/20 active:scale-95 transition-all flex items-center gap-2"
-                            >
-                                <Trash2 size={18} />
-                                Sim, Excluir
-                            </button>
+                            <div className="flex gap-3 justify-end pt-4 border-t border-slate-50">
+                                <button
+                                    onClick={() => definirModalExclusaoAberto(false)}
+                                    className="px-4 py-2 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-slate-700 transition"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmarExclusao}
+                                    className="px-5 py-2 rounded-xl bg-rose-500 text-white font-bold hover:bg-rose-600 shadow-lg shadow-rose-500/20 active:scale-95 transition-all flex items-center gap-2"
+                                >
+                                    <Trash2 size={18} />
+                                    Sim, Excluir
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </ModalUniversal>
-            )}
+                    </ModalUniversal>
+                )
+            }
 
-        </LayoutAdministrativo>
+        </LayoutAdministrativo >
     );
 }
