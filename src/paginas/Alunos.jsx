@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { read, utils } from 'xlsx';
 import toast from 'react-hot-toast';
+import { Registrador } from '../servicos/registrador';
 
 
 export default function Alunos() {
@@ -265,6 +266,13 @@ export default function Alunos() {
                 } catch (e) { console.warn('Sync nuvem falhou:', e); }
             }
 
+            // Log de Auditoria
+            const acaoLog = alunoEmEdicao ? 'ALUNO_EDITAR' : 'ALUNO_CRIAR';
+            await Registrador.registrar(acaoLog, 'aluno', alunoObj.matricula, {
+                nome: alunoObj.nome_completo,
+                turma: alunoObj.turma_id
+            });
+
             toast.success(alunoEmEdicao ? 'Aluno atualizado!' : 'Aluno cadastrado!');
             definirModalAberto(false);
             carregarDados();
@@ -283,6 +291,8 @@ export default function Alunos() {
             await banco.delete('alunos', matricula);
 
             // Sync delete...
+            // Log de Auditoria
+            await Registrador.registrar('ALUNO_EXCLUIR', 'aluno', matricula, {});
 
             toast.success('Aluno removido.');
             carregarDados();

@@ -17,6 +17,7 @@ import {
 import toast from 'react-hot-toast';
 import { useAutenticacao } from '../contexts/ContextoAutenticacao';
 import { servicoSincronizacao } from '../servicos/sincronizacao';
+import { Registrador } from '../servicos/registrador';
 
 export default function Usuarios() {
     const { usuarioAtual } = useAutenticacao();
@@ -68,6 +69,14 @@ export default function Usuarios() {
 
             await bancoLocal.salvarUsuario(novoUsuario);
 
+            // Log de Auditoria
+            const acaoLog = usuarioEmEdicao ? 'USUARIO_EDITAR' : 'USUARIO_CRIAR';
+            await Registrador.registrar(acaoLog, 'usuario', novoUsuario.email, {
+                email: novoUsuario.email,
+                papel: novoUsuario.papel,
+                ativo: novoUsuario.ativo
+            });
+
             toast.success("Usuário salvo com sucesso!");
             definirModalAberto(false);
             carregarUsuarios();
@@ -93,6 +102,12 @@ export default function Usuarios() {
 
             // Atualiza lista localmente para feedback instantâneo
             definirUsuarios(usuarios.map(u => u.email === user.email ? usuarioAtualizado : u));
+
+            // Log de Auditoria
+            await Registrador.registrar('USUARIO_STATUS_ALTERAR', 'usuario', user.email, {
+                novo_status: usuarioAtualizado.ativo ? 'ATIVO' : 'INATIVO'
+            });
+
             toast.success(`Usuário ${usuarioAtualizado.ativo ? 'ativado' : 'desativado'}!`);
         } catch (erro) {
             console.error(erro);
@@ -107,6 +122,10 @@ export default function Usuarios() {
 
         try {
             await bancoLocal.deletarUsuario(user.email);
+
+            // Log de Auditoria
+            await Registrador.registrar('USUARIO_EXCLUIR', 'usuario', user.email, {});
+
             definirUsuarios(usuarios.filter(u => u.email !== user.email));
             toast.success('Usuário excluído com sucesso.');
         } catch (erro) {

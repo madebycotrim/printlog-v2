@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAutenticacao } from '../contexts/ContextoAutenticacao';
 import { ShieldCheck, Chrome, GraduationCap, BookOpen, School } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Registrador } from '../servicos/registrador';
 
 export default function Login() {
     const [erro, definirErro] = useState('');
@@ -46,6 +47,12 @@ export default function Login() {
                 }
                 toast.success('Login realizado com sucesso!');
             }
+
+            // Log de Auditoria
+            await Registrador.registrar('LOGIN_SUCESSO', 'sistema', 'auth', {
+                email: email,
+                tipo_login: tipo
+            });
 
             // 3. Redirecionamento
             navegar('/painel');

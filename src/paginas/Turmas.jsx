@@ -18,6 +18,7 @@ import {
     ArrowRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Registrador } from '../servicos/registrador';
 
 export default function Turmas() {
     const { podeAcessar } = usePermissoes();
@@ -116,6 +117,13 @@ export default function Turmas() {
                 }
             }
 
+            // Log de Auditoria
+            const acaoLog = turmaEmEdicao ? 'TURMA_EDITAR' : 'TURMA_CRIAR';
+            await Registrador.registrar(acaoLog, 'turma', idTurma, {
+                ano_letivo: novaTurma.ano_letivo,
+                turno: novaTurma.turno
+            });
+
             toast.success(turmaEmEdicao ? 'Turma atualizada!' : 'Turma criada com sucesso!');
             definirModalAberto(false);
             carregarTurmas();
@@ -140,6 +148,9 @@ export default function Turmas() {
                     console.warn('Erro sync nuvem:', e);
                 }
             }
+
+            // Log de Auditoria
+            await Registrador.registrar('TURMA_EXCLUIR', 'turma', id, {});
 
             toast.success('Turma removida.');
             carregarTurmas();
