@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { useNavigate } from 'react-router-dom';
 import { useAutenticacao } from '../contexts/ContextoAutenticacao';
 import { bancoLocal } from '../servicos/bancoLocal';
@@ -104,7 +104,12 @@ export default function LeitorPortaria() {
 
     useEffect(() => {
         // Inicializar Scanner
-        const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+        };
         const scanner = new Html5QrcodeScanner("reader", config, false);
 
         scanner.render(processarCodigo, () => {
