@@ -14,15 +14,22 @@ async function processarBuscaTurmas(contexto) {
 
 async function processarCriacaoTurma(contexto) {
     try {
-        const { id, serie, letra, turno, ano_letivo, criado_em } = await contexto.request.json();
+        const { id, serie, letra, turno, ano_letivo, criado_em, sala } = await contexto.request.json();
 
         if (!id) {
             return new Response("ID da turma obrigatório", { status: 400 });
         }
 
+        // UPSERT
         await contexto.env.DB_SCAE.prepare(
-            "INSERT INTO turmas (id, serie, letra, turno, ano_letivo, criado_em) VALUES (?, ?, ?, ?, ?, ?)"
-        ).bind(id, serie, letra, turno, ano_letivo, criado_em || new Date().toISOString()).run();
+            `INSERT INTO turmas (id, serie, letra, turno, ano_letivo, criado_em, sala) VALUES (?, ?, ?, ?, ?, ?, ?)
+             ON CONFLICT(id) DO UPDATE SET
+             serie = excluded.serie,
+             letra = excluded.letra,
+             turno = excluded.turno,
+             ano_letivo = excluded.ano_letivo,
+             sala = excluded.sala`
+        ).bind(id, serie, letra, turno, ano_letivo, criado_em || new Date().toISOString(), sala || null).run();
 
         return new Response("Turma criada", { status: 201 });
     } catch (erro) {

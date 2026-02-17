@@ -12,9 +12,11 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@fontsource/outfit": "^5.2.8",
     "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
     "firebase": "^12.9.0",
+    "framer-motion": "^12.34.0",
     "html5-qrcode": "^2.3.8",
     "idb": "^8.0.3",
     "jose": "^6.1.3",

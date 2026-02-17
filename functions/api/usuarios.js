@@ -20,14 +20,16 @@ async function processarCriacaoUsuario(contexto) {
         }
 
         // Tenta inserir ou atualizar
-        await contexto.env.DB_SCAE.prepare(
-            `INSERT INTO usuarios (email, role, ativo, nome_completo, criado_em, atualizado_em) 
+        const stmt = contexto.env.DB_SCAE.prepare(
+            `INSERT INTO usuarios (email, papel, ativo, nome_completo, criado_em, atualizado_em) 
              VALUES (?, ?, ?, ?, ?, ?)
              ON CONFLICT(email) DO UPDATE SET 
-             role = excluded.role, 
+             papel = excluded.papel, 
              ativo = excluded.ativo,
              atualizado_em = excluded.atualizado_em`
-        ).bind(
+        );
+
+        await stmt.bind(
             usuario.email,
             usuario.papel || usuario.role, // 'papel' no bancoLocal, 'role' pode vir de outros lugares
             usuario.ativo ? 1 : 0,

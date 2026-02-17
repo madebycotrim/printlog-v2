@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-ro
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { autenticacao } from './servicos/firebase';
+import { servicoSincronizacao } from './servicos/sincronizacao';
 import { ProvedorAutenticacao } from './contexts/ContextoAutenticacao';
 import { ProvedorPermissoes } from './contexts/ContextoPermissoes';
 import { ProvedorNotificacoes } from './contexts/ContextoNotificacoes';
@@ -41,11 +42,13 @@ function App() {
   const [, definirCarregando] = useState(true);
 
   useEffect(() => {
+    // Inicializar Sincronização Automática Global
+    servicoSincronizacao.iniciarSincronizacaoAutomatica();
+
     // v2.0 - Auth State
     const cancelarInscricao = onAuthStateChanged(autenticacao, (usuarioFirebase) => {
       definirUsuario(usuarioFirebase);
       definirCarregando(false);
-      // Sync service removed - handled by individual components
     });
 
     return () => cancelarInscricao();

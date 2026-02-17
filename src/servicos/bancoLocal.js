@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const NOME_BANCO = 'SCAE_DB';
-const VERSAO_BANCO = 9; // v9: Schema Strict Sync
+const VERSAO_BANCO = 10; // v10: Index Sincronizado Logs
 
 export const iniciarBanco = async () => {
     return openDB(NOME_BANCO, VERSAO_BANCO, {
@@ -13,7 +13,7 @@ export const iniciarBanco = async () => {
                 store.createIndex('ano_letivo', 'ano_letivo');
                 store.createIndex('serie', 'serie');
                 store.createIndex('turno', 'turno');
-                store.createIndex('sala', 'sala'); // New
+                store.createIndex('sala', 'sala');
             } else {
                 const store = transaction.objectStore('turmas');
                 if (!store.indexNames.contains('ano_letivo')) store.createIndex('ano_letivo', 'ano_letivo');
@@ -68,7 +68,8 @@ export const iniciarBanco = async () => {
                 store.createIndex('usuario_email', 'usuario_email');
                 store.createIndex('acao', 'acao');
                 store.createIndex('entidade_tipo', 'entidade_tipo');
-                store.createIndex('entidade_id', 'entidade_id'); // New
+                store.createIndex('entidade_id', 'entidade_id');
+                store.createIndex('sincronizado', 'sincronizado');
             } else {
                 const store = transaction.objectStore('logs_auditoria');
                 if (!store.indexNames.contains('timestamp')) store.createIndex('timestamp', 'timestamp');
@@ -76,6 +77,7 @@ export const iniciarBanco = async () => {
                 if (!store.indexNames.contains('acao')) store.createIndex('acao', 'acao');
                 if (!store.indexNames.contains('entidade_tipo')) store.createIndex('entidade_tipo', 'entidade_tipo');
                 if (!store.indexNames.contains('entidade_id')) store.createIndex('entidade_id', 'entidade_id');
+                if (!store.indexNames.contains('sincronizado')) store.createIndex('sincronizado', 'sincronizado');
             }
 
             // --- 6. Usuários ---
@@ -225,6 +227,12 @@ export const bancoLocal = {
         return await banco.count('alunos');
     },
 
+    contarAlunosPorTurma: async (turmaId) => {
+        const banco = await iniciarBanco();
+        // countFromIndex é muito mais rápido que getAll + filter
+        return await banco.countFromIndex('alunos', 'turma_id', turmaId);
+    },
+
     // Registros
     salvarRegistro: async (registro) => {
         const banco = await iniciarBanco();
@@ -251,31 +259,36 @@ export const bancoLocal = {
         await transacao.done;
     },
 
-    // v2.5 - Evacuação e Painel
+    // v2.5 - Evacuação e Painel (OTIMIZADO)
     listarAlunosPresentes: async () => {
         const banco = await iniciarBanco();
 
-        // Obter todos os registros e alunos
-        // Otimização: Em produção real, usar índice 'timestamp'
-        const registros = await banco.getAll('registros_acesso');
-        const alunos = await banco.getAll('alunos');
+        // Otimização: Buscar apenas registros de "hoje" usando índice
+        // Isso evita ler todo o histórico de acessos (milhares de registros)
+        const inicioDoDia = new Date();
+        inicioDoDia.setHours(0, 0, 0, 0);
+        const range = IDBKeyRange.lowerBound(inicioDoDia.toISOString());
 
-        // Criar mapa de alunos para acesso rápido
+        const registrosHoje = await banco.getAllFromIndex('registros_acesso', 'timestamp', range);
+
+        // Se não houver registros hoje, retorna vazio rápido
+        if (registrosHoje.length === 0) return [];
+
+        const alunos = await banco.getAll('alunos');
         const mapaAlunos = new Map(alunos.map(a => [a.matricula, a]));
 
         // Agrupar registros por matrícula para encontrar o último movimento
         const ultimosMovimentos = {};
 
-        registros.forEach(registro => {
+        registrosHoje.forEach(registro => {
             const matricula = registro.aluno_matricula;
-            // Se não tem registro ou esse é mais recente
             if (!ultimosMovimentos[matricula] || new Date(registro.timestamp) > new Date(ultimosMovimentos[matricula].timestamp)) {
                 ultimosMovimentos[matricula] = registro;
             }
         });
 
         // Filtrar apenas quem teve ENTRADA como último movimento
-        const presentes = Object.values(ultimosMovimentos)
+        return Object.values(ultimosMovimentos)
             .filter(r => r.tipo_movimentacao === 'ENTRADA')
             .map(r => {
                 const infoAluno = mapaAlunos.get(r.aluno_matricula) || { nome_completo: 'Desconhecido', turma_id: '?' };
@@ -283,11 +296,9 @@ export const bancoLocal = {
                     ...r,
                     nome_completo: infoAluno.nome_completo,
                     turma_id: infoAluno.turma_id,
-                    matricula: r.aluno_matricula // Garantir que matricula está no topo
+                    matricula: r.aluno_matricula
                 };
             });
-
-        return presentes;
     },
 
     // --- Usuários e Permissões ---
@@ -317,5 +328,60 @@ export const bancoLocal = {
             return await banco.getAll('logs_auditoria');
         }
         return [];
+    },
+
+    listarLogsPendentes: async () => {
+        const banco = await iniciarBanco();
+        if (banco.objectStoreNames.contains('logs_auditoria')) {
+            return await banco.getAllFromIndex('logs_auditoria', 'sincronizado', 0);
+        }
+        return [];
+    },
+
+    marcarLogsComoSincronizados: async (ids) => {
+        const banco = await iniciarBanco();
+        const transacao = banco.transaction('logs_auditoria', 'readwrite');
+        for (const id of ids) {
+            const log = await transacao.store.get(id);
+            if (log) {
+                log.sincronizado = 1;
+                await transacao.store.put(log);
+            }
+        }
+        await transacao.done;
+    },
+
+    // --- Dashboard & Analytics (Optimized) ---
+    obterRegistrosPeriodo: async (dataInicio, dataFim) => {
+        const banco = await iniciarBanco();
+        // Garante que as datas estao em formato ISO string para comparacao correta no IDB
+        const range = IDBKeyRange.bound(dataInicio.toISOString(), dataFim.toISOString());
+        return await banco.getAllFromIndex('registros_acesso', 'timestamp', range);
+    },
+
+    obterDadosDashboard: async () => {
+        const banco = await iniciarBanco();
+        const hoje = new Date();
+        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1); // 1o dia do mes atual
+
+        // Se precisar de mais histórico para gráficos (ex: ultimos 30 dias corridos)
+        const trintaDiasAtras = new Date();
+        trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
+
+        const range = IDBKeyRange.lowerBound(trintaDiasAtras.toISOString());
+
+        const [alunos, turmas, registrosRecentes, logs] = await Promise.all([
+            banco.getAll('alunos'),
+            banco.getAll('turmas'),
+            banco.getAllFromIndex('registros_acesso', 'timestamp', range),
+            banco.getAll('logs_auditoria') // Logs geralmente sao poucos, mas ideal seria paginar
+        ]);
+
+        return {
+            alunos,
+            turmas,
+            registros: registrosRecentes,
+            logs
+        };
     }
 };

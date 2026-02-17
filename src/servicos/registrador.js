@@ -26,7 +26,8 @@ export const Registrador = {
                 dados_novos: JSON.stringify(detalhes),
                 dados_anteriores: dadosAnteriores ? JSON.stringify(dadosAnteriores) : null,
                 user_agent: navigator.userAgent,
-                ip_address: 'local' // IP real seria pego pelo backend
+                ip_address: 'local', // IP real seria pego pelo backend
+                sincronizado: 0
             };
 
             // 1. Salvar Localmente
@@ -35,9 +36,21 @@ export const Registrador = {
 
             // 2. Enviar para API (Fire & Forget)
             if (navigator.onLine) {
-                api.enviar('/logs', novoLog).catch(err =>
-                    console.warn('[Audit] Falha ao enviar log online:', err)
-                );
+                // Endpoint correto: /auditoria, Payload: Array
+                api.enviar('/auditoria', [novoLog])
+                    .then(async () => {
+                        // Sucesso: marcar como sincronizado
+                        const tx = banco.transaction('logs_auditoria', 'readwrite');
+                        const logSalvo = await tx.store.get(novoLog.id);
+                        if (logSalvo) {
+                            logSalvo.sincronizado = 1;
+                            await tx.store.put(logSalvo);
+                        }
+                        await tx.done;
+                    })
+                    .catch(err =>
+                        console.warn('[Audit] Falha ao enviar log online (será tentado depois):', err)
+                    );
             }
 
             console.log(`[Audit] ${acao} registrado para ${emailUsuario}`);

@@ -26,65 +26,7 @@ import {
 import { servicoSincronizacao } from '../servicos/sincronizacao';
 import toast from 'react-hot-toast';
 
-function BotaoSincronizar({ minimizado }) {
-    const [sincronizando, definirSincronizando] = useState(false);
-    const [status, definirStatus] = useState(null); // 'sucesso' | 'erro' | null
 
-    const handleSync = async () => {
-        if (sincronizando) return;
-        definirSincronizando(true);
-        definirStatus(null);
-        const toastId = toast.loading('Sincronizando dados...');
-
-        try {
-            await servicoSincronizacao.sincronizarTudo();
-            definirStatus('sucesso');
-            toast.success('Sincronização concluída!', { id: toastId });
-            setTimeout(() => definirStatus(null), 3000);
-        } catch (erro) {
-            console.error('Erro ao sincronizar:', erro);
-            definirStatus('erro');
-            toast.error('Erro ao sincronizar dados', { id: toastId });
-            setTimeout(() => definirStatus(null), 3000);
-        } finally {
-            definirSincronizando(false);
-        }
-    };
-
-    return (
-        <button
-            onClick={handleSync}
-            disabled={sincronizando}
-            className={`
-                group relative flex items-center justify-center transition-all duration-300 rounded-xl border
-                ${minimizado
-                    ? 'w-10 h-10 p-0 mx-auto'
-                    : 'w-full gap-2.5 px-4 py-3'
-                }
-                ${status === 'sucesso'
-                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                    : status === 'erro'
-                        ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                        : 'bg-slate-800/30 hover:bg-indigo-500/10 border-slate-800 hover:border-indigo-500/30 text-slate-400 hover:text-indigo-300'
-                }
-            `}
-            title={minimizado ? "Sincronizar Dados" : ""}
-        >
-            <RefreshCw
-                size={18}
-                className={`transition-all ${sincronizando ? 'animate-spin text-indigo-400' : 'group-hover:rotate-180'}`}
-            />
-            {!minimizado && (
-                <span className="text-sm font-semibold truncate">
-                    {sincronizando ? 'Sincronizando...' :
-                        status === 'sucesso' ? 'Sincronizado!' :
-                            status === 'erro' ? 'Erro no Sync' :
-                                'Sincronizar Dados'}
-                </span>
-            )}
-        </button>
-    );
-}
 
 export default function LayoutAdministrativo({ children, titulo, subtitulo, acoes }) {
     const { usuarioAtual, sair } = useAutenticacao();
@@ -398,8 +340,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     </div>
 
                     <div className={`mt-2 ${sidebarMinimizado ? 'flex flex-col gap-3 items-center' : 'space-y-2'}`}>
-                        <BotaoSincronizar minimizado={sidebarMinimizado} />
-
                         <button
                             onClick={aoSair}
                             className={`

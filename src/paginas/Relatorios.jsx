@@ -198,25 +198,117 @@ export default function Relatorios() {
     const gerarRelatorio = async (tipo) => {
         const toastId = toast.loading(`Processando relatório: ${tipo}...`);
         try {
-            const dados = await obterDadosFiltrados();
+            const banco = await bancoLocal.iniciarBanco();
+            const [registros, alunos, turmas] = await Promise.all([
+                banco.getAll('registros_acesso'),
+                banco.getAll('alunos'),
+                banco.getAll('turmas')
+            ]);
 
-            if (dados.length === 0) {
-                toast.dismiss(toastId);
-                toast.error("Nenhum registro encontrado para os filtros selecionados.");
-                return;
+            let dadosRelatorio = [];
+            let colunas = [];
+            let tituloRelatorio = `Relatório de ${tipo}`;
+
+            if (tipo === 'Risco de Evasão') {
+                // Lógica: Alunos com < 3 presenças nos últimos 7 dias (Exemplo simplificado)
+                // Ou alunos sem acesso nos últimos X dias.
+                const trintaDiasAtras = subDays(new Date(), 30).toISOString();
+
+                const presencasPorAluno = {};
+                registros.forEach(r => {
+                    if (r.timestamp >= trintaDiasAtras && r.tipo_movimentacao === 'ENTRADA') {
+                        presencasPorAluno[r.aluno_matricula] = (presencasPorAluno[r.aluno_matricula] || 0) + 1;
+                    }
+                });
+
+                // Filtrar quem tem pouca presença (ex: < 5 em 30 dias - Ajustar conforme realidade)
+                dadosRelatorio = alunos.map(aluno => {
+                    const presencas = presencasPorAluno[aluno.matricula] || 0;
+                    return {
+                        nome: aluno.nome_completo,
+                        matricula: aluno.matricula,
+                        turma: aluno.turma_id || '-',
+                        presencas_30d: presencas,
+                        status: presencas === 0 ? 'CRÍTICO (0)' : presencas < 10 ? 'ALERTA' : 'NORMAL'
+                    };
+                }).filter(d => d.status !== 'NORMAL' && (filtros.turma === 'Todas' || d.turma === filtros.turma));
+
+                // Ordenar por criticidade
+                dadosRelatorio.sort((a, b) => a.presencas_30d - b.presencas_30d);
+
+                colunas = [['Nome do Aluno', 'Matrícula', 'Turma', 'Presenças (30d)', 'Status']];
+
+                // Gerar PDF Específico
+                const doc = new jsPDF();
+                doc.setFontSize(16);
+                doc.text("Relatório de Risco de Evasão", 14, 20);
+                doc.setFontSize(10);
+                doc.text(`Alunos com baixa frequência nos últimos 30 dias.`, 14, 28);
+
+                autoTable(doc, {
+                    startY: 35,
+                    head: colunas,
+                    body: dadosRelatorio.map(d => [d.nome, d.matricula, d.turma, d.presencas_30d, d.status]),
+                    theme: 'striped',
+                    headStyles: { fillColor: [220, 38, 38] }, // Red for alert
+                });
+                doc.save(`Risco_Evasao_${Date.now()}.pdf`);
+
+            } else if (tipo === 'Fechamento Mensal') {
+                // Filtrar registros do mês selecionado (baseado nos filtros de data da tela)
+                const regsNoPeriodo = registros.filter(r => {
+                    const data = r.timestamp.split('T')[0];
+                    return data >= filtros.dataInicio && data <= filtros.dataFim;
+                });
+
+                const presencaGlobal = {};
+
+                regsNoPeriodo.forEach(r => {
+                    if (r.tipo_movimentacao === 'ENTRADA') {
+                        presencaGlobal[r.aluno_matricula] = (presencaGlobal[r.aluno_matricula] || 0) + 1;
+                    }
+                });
+
+                dadosRelatorio = alunos
+                    .filter(a => filtros.turma === 'Todas' || a.turma_id === filtros.turma)
+                    .map(aluno => ({
+                        nome: aluno.nome_completo,
+                        matricula: aluno.matricula,
+                        turma: aluno.turma_id || '-',
+                        total_presencas: presencaGlobal[aluno.matricula] || 0
+                    }))
+                    .sort((a, b) => a.nome.localeCompare(b.nome));
+
+                colunas = [['Nome do Aluno', 'Matrícula', 'Turma', 'Total Presenças (Período)']];
+
+                const doc = new jsPDF();
+                doc.setFontSize(16);
+                doc.text("Fechamento Mensal de Frequência", 14, 20);
+                doc.setFontSize(10);
+                doc.text(`Período: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')}`, 14, 28);
+
+                autoTable(doc, {
+                    startY: 35,
+                    head: colunas,
+                    body: dadosRelatorio.map(d => [d.nome, d.matricula, d.turma, d.total_presencas]),
+                    theme: 'grid',
+                    headStyles: { fillColor: [59, 130, 246] }, // Blue
+                });
+                doc.save(`Fechamento_Mensal_${Date.now()}.pdf`);
+
+            } else {
+                // Fallback para Log de Auditoria e outros genéricos
+                const dados = await obterDadosFiltrados();
+                if (dados.length === 0) {
+                    throw new Error("Nenhum dado encontrado.");
+                }
+                gerarPDF(dados, `Relatório de ${tipo}`);
             }
 
-            // Simulação de lógica específica por tipo (pode ser refinada)
-            // Por enquanto, todos usam a base filtrada de registros
-
-            gerarPDF(dados, `Relatório de ${tipo}`);
-            // Opcional: Gerar Excel também ou dar opção ao usuário
-            // gerarExcel(dados, tipo);
-
-            toast.success('Relatório baixado com sucesso!', { id: toastId });
+            toast.success('Relatório gerado com sucesso!', { id: toastId });
         } catch (e) {
             console.error(e);
-            toast.error("Erro ao gerar relatório.", { id: toastId });
+            toast.error(e.message || "Erro ao gerar relatório.", { id: toastId });
         }
     };
 

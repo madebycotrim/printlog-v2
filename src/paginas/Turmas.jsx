@@ -49,11 +49,9 @@ export default function Turmas() {
             const banco = await bancoLocal.iniciarBanco();
             const todasTurmas = await banco.getAll('turmas');
 
-            // Simular contagem de alunos (em prod real viria do banco ou count)
+            // Contagem otimizada usando índice do banco
             const turmasComContagem = await Promise.all(todasTurmas.map(async (t) => {
-                // Aqui seria ideal ter um index ou store separada, mas para o protótipo:
-                const alunos = await banco.getAll('alunos');
-                const count = alunos.filter(a => a.turma_id === t.id).length;
+                const count = await bancoLocal.contarAlunosPorTurma(t.id);
                 return { ...t, totalAlunos: count };
             }));
 

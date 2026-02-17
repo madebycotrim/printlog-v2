@@ -14,15 +14,20 @@ async function processarBuscaAlunos(contexto) {
 async function processarCriacaoAluno(contexto) {
     // Apenas Admin: Registrar novo aluno
     try {
-        const { matricula, nome_completo, turma_id } = await contexto.request.json();
+        const { matricula, nome_completo, turma_id, status } = await contexto.request.json();
 
         if (!matricula || !nome_completo) {
             return new Response("Campos obrigatórios ausentes", { status: 400 });
         }
 
+        // UPSERT: Inserir ou Atualizar
         await contexto.env.DB_SCAE.prepare(
-            "INSERT INTO alunos (matricula, nome_completo, turma_id) VALUES (?, ?, ?)"
-        ).bind(matricula, nome_completo, turma_id).run();
+            `INSERT INTO alunos (matricula, nome_completo, turma_id, status) VALUES (?, ?, ?, ?)
+             ON CONFLICT(matricula) DO UPDATE SET
+             nome_completo = excluded.nome_completo,
+             turma_id = excluded.turma_id,
+             status = excluded.status`
+        ).bind(matricula, nome_completo, turma_id, status || 'ATIVO').run();
 
         return new Response("Criado", { status: 201 });
     } catch (erro) {

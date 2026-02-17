@@ -11,9 +11,11 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     Activity,
-    MoreHorizontal
+    MoreHorizontal,
+    AlertOctagon,
+    CheckCircle2
 } from 'lucide-react';
-import { Line, Doughnut } from 'react-chartjs-2';
+import { Line, Doughnut, Bar } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -27,7 +29,7 @@ import {
     BarElement,
     ArcElement
 } from 'chart.js';
-import { format, subDays } from 'date-fns';
+import { format, subDays, isSameDay, startOfDay, differenceInBusinessDays, isWeekend } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 ChartJS.register(
@@ -43,14 +45,20 @@ ChartJS.register(
     ArcElement
 );
 
-const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendencia }) => (
-    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md group">
+// Componentes Auxiliares
+const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendencia, inverterTendencia }) => (
+    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-shadow group">
         <div className="flex justify-between items-start mb-4">
-            <div className={`p-3 rounded-xl bg-${cor}-50 text-${cor}-600`}>
+            <div className={`p-3 rounded-xl bg-${cor}-50 text-${cor}-600 bg-opacity-50`}>
                 <Icone size={24} />
             </div>
-            {tendencia && (
-                <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${tendencia > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+            {tendencia !== undefined && (
+                <div className={`
+                    flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full 
+                    ${(inverterTendencia ? tendencia < 0 : tendencia > 0)
+                        ? 'bg-emerald-50 text-emerald-600'
+                        : 'bg-rose-50 text-rose-600'}
+                `}>
                     {tendencia > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                     {Math.abs(tendencia)}%
                 </div>
@@ -64,6 +72,60 @@ const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendenci
     </div>
 );
 
+const WidgetRisco = ({ alunosRisco }) => (
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full">
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+            <div>
+                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <AlertOctagon size={20} className="text-rose-500" />
+                    Alunos em Risco
+                </h3>
+                <p className="text-sm text-slate-500">Detectado por análise comportamental (IA Heurística)</p>
+            </div>
+            <span className="px-3 py-1 bg-rose-100 text-rose-700 text-xs font-bold rounded-full">
+                {alunosRisco.length} Críticos
+            </span>
+        </div>
+        <div className="flex-1 overflow-y-auto p-0 custom-scrollbar max-h-[350px]">
+            {alunosRisco.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                    <CheckCircle2 size={48} className="text-emerald-500/20 mb-3" />
+                    <p className="text-slate-400 font-medium">Nenhum aluno em situação de risco crítico detectado.</p>
+                </div>
+            ) : (
+                <div className="divide-y divide-slate-50">
+                    {alunosRisco.map((item, idx) => (
+                        <div key={item.aluno.matricula} className="p-4 hover:bg-slate-50 transition-colors flex items-center gap-4">
+                            <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs">
+                                {idx + 1}
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="font-bold text-slate-800 text-sm">{item.aluno.nome_completo}</h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-xs text-slate-500">{item.turma?.nome || 'Sem Turma'}</span>
+                                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                    <span className="text-xs font-bold text-rose-500">{item.faltasConsecutivas} dias ausente</span>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-xs font-bold text-slate-400">Frequência</div>
+                                <div className={`text-sm font-black ${item.frequencia < 50 ? 'text-rose-600' : 'text-amber-500'}`}>
+                                    {item.frequencia.toFixed(0)}%
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+        <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
+            <button className="text-xs font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wide">
+                Ver Relatório Completo
+            </button>
+        </div>
+    </div>
+);
+
 export default function Painel() {
     const { usuarioAtual } = useAutenticacao();
     const [estatisticas, definirEstatisticas] = useState({
@@ -72,65 +134,163 @@ export default function Painel() {
         atrasosHoje: 0,
         turmasAtivas: 0,
         historicoPresenca: [],
-        distribuicaoTurnos: []
+        distribuicaoTurnos: [],
+        alunosRisco: [],
+        feedAtividade: [],
+        taxaPontualidade: { pontuais: 0, atrasados: 0 }
     });
     const [carregando, definirCarregando] = useState(true);
+
+    const calcularRiscoEvasao = (alunos, registros30Dias, turmas) => {
+        const alunosRisco = [];
+        const hoje = new Date();
+
+        // Agrupar registros por aluno
+        const registrosPorAluno = {};
+        registros30Dias.forEach(r => {
+            if (!registrosPorAluno[r.aluno_matricula]) registrosPorAluno[r.aluno_matricula] = [];
+            registrosPorAluno[r.aluno_matricula].push(new Date(r.timestamp));
+        });
+
+        const turmasMap = new Map(turmas.map(t => [t.id, t]));
+
+        alunos.forEach(aluno => {
+            const regs = registrosPorAluno[aluno.matricula] || [];
+
+            // Frequência Simplificada (Baseada em dias úteis passados vs dias presentes)
+            // (Esta é uma heurística aproximada para o dashboard)
+            const diasPresente = new Set(regs.map(d => format(d, 'yyyy-MM-dd'))).size;
+            // Assumindo 20 dias letivos no mês móvel para simplificação ou calcular dias úteis reais
+            // Vamos usar dias úteis nos últimos 30 dias
+            let diasUteisUltimos30 = 0;
+            for (let i = 0; i < 30; i++) {
+                const d = subDays(hoje, i);
+                if (!isWeekend(d)) diasUteisUltimos30++;
+            }
+            if (diasUteisUltimos30 === 0) diasUteisUltimos30 = 1; // Evitar div por zero
+
+            const frequencia = (diasPresente / diasUteisUltimos30) * 100;
+
+            // Faltas Consecutivas (contando de ontem para trás)
+            let faltasConsecutivas = 0;
+            for (let i = 0; i < 30; i++) {
+                // Começa de hoje ou ontem? Vamos contar hoje se já passou de certa hora, mas melhor contar dias completos passados
+                const d = subDays(hoje, i);
+                if (isWeekend(d)) continue;
+
+                const presenteNesseDia = regs.some(r => isSameDay(r, d));
+                if (!presenteNesseDia) {
+                    faltasConsecutivas++;
+                } else {
+                    // Se encontrou presença, para a contagem de consecutivas (do presente para trás)
+                    // Mas queremos as *atuais* consecutivas. Se o aluno veio hoje, faltas = 0.
+                    // Se o loop é do dia mais recente para o mais antigo:
+                    if (i === 0 && isSameDay(d, hoje)) {
+                        // Se hoje ele veio, reseta, se não veio, conta (assumindo que o dia já acabou ou é check parcial)
+                        // Para ser justo, vamos ignorar 'hoje' para faltas consecutivas se ainda for cedo? 
+                        // Simplificação: Considera hoje.
+                    }
+                    break;
+                }
+            }
+
+            // Regra de Risco
+            if (faltasConsecutivas >= 3 || frequencia < 60) {
+                alunosRisco.push({
+                    aluno,
+                    turma: turmasMap.get(aluno.turma_id),
+                    faltasConsecutivas,
+                    frequencia,
+                    score: faltasConsecutivas * 10 + (100 - frequencia) // Score arbitrário para ordenação
+                });
+            }
+        });
+
+        // Ordenar por gravidade
+        return alunosRisco.sort((a, b) => b.score - a.score).slice(0, 10); // Top 10
+    };
+
+    const processarDados = (dados) => {
+        const { alunos, turmas, registros, logs } = dados;
+        const hojeStr = format(new Date(), 'yyyy-MM-dd');
+
+        // 1. Presença Hoje
+        const registrosHoje = registros.filter(r =>
+            format(new Date(r.timestamp), 'yyyy-MM-dd') === hojeStr
+        );
+        const presentesSet = new Set(registrosHoje.map(r => r.aluno_matricula));
+        const presentesHoje = presentesSet.size;
+
+        // 2. Pontualidade e Atrasos
+        let atrasos = 0;
+        const mapTurmas = new Map(turmas.map(t => [t.id, t]));
+        const mapAlunos = new Map(alunos.map(a => [a.matricula, a]));
+
+        registrosHoje.forEach(r => {
+            if (r.tipo_movimentacao === 'ENTRADA') {
+                const aluno = mapAlunos.get(r.aluno_matricula);
+                if (aluno && aluno.turma_id) {
+                    const turma = mapTurmas.get(aluno.turma_id);
+                    if (turma) {
+                        const horaReg = new Date(r.timestamp);
+                        const mins = horaReg.getHours() * 60 + horaReg.getMinutes();
+
+                        let limite = 0;
+                        if (turma.turno === 'Matutino') limite = 7 * 60 + 15;
+                        else if (turma.turno === 'Vespertino') limite = 13 * 60 + 15;
+                        else if (turma.turno === 'Noturno') limite = 19 * 60 + 15;
+
+                        if (limite > 0 && mins > limite) atrasos++;
+                    }
+                }
+            }
+        });
+
+        // 3. Histórico (Últimos 7 dias para gráfico)
+        const historico = Array.from({ length: 7 }).map((_, i) => {
+            const d = subDays(new Date(), 6 - i);
+            const dStr = format(d, 'yyyy-MM-dd');
+            // Filtrar registros desse dia
+            const regsDia = registros.filter(r => format(new Date(r.timestamp), 'yyyy-MM-dd') === dStr);
+            const totalDia = new Set(regsDia.map(r => r.aluno_matricula)).size;
+            return { data: format(d, 'dd/MM'), total: totalDia };
+        });
+
+        // 4. Risco de Evasão
+        const alunosRisco = calcularRiscoEvasao(alunos, registros, turmas);
+
+        // 5. Atividades (Logs)
+        const atividades = logs
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+            .slice(0, 5)
+            .map(log => ({
+                id: log.id,
+                icone: log.acao?.includes('LOGIN') ? Users : AlertTriangle, // Simplificado
+                titulo: log.acao,
+                hora: format(new Date(log.timestamp), 'HH:mm'),
+                descricao: log.usuario_email
+            }));
+
+        definirEstatisticas({
+            totalAlunos: alunos.length,
+            presentesHoje,
+            atrasosHoje: atrasos,
+            turmasAtivas: turmas.length,
+            historicoPresenca: historico,
+            distribuicaoTurnos: [], // Manter lógica se necessário, mas focar no novo
+            alunosRisco,
+            feedAtividade: atividades,
+            taxaPontualidade: { pontuais: presentesHoje - atrasos, atrasados: atrasos }
+        });
+    };
 
     const carregarDados = async () => {
         try {
             definirCarregando(true);
-            const banco = await bancoLocal.iniciarBanco();
-
-            const alunos = await banco.getAll('alunos');
-            const turmas = await banco.getAll('turmas');
-            const registros = await banco.getAll('registros_acesso');
-
-            // Processamento Básico (Simulação de Backend)
-            const hoje = format(new Date(), 'yyyy-MM-dd');
-            const registrosHoje = registros.filter(r =>
-                format(new Date(r.timestamp), 'yyyy-MM-dd') === hoje
-            );
-
-            const presentes = new Set(registrosHoje
-                .filter(r => r.tipo_movimentacao === 'ENTRADA')
-                .map(r => r.aluno_matricula)
-            ).size;
-
-            // Histórico (últimos 7 dias)
-            const ultimos7Dias = Array.from({ length: 7 }).map((_, i) => {
-                const data = subDays(new Date(), 6 - i);
-                const dataStr = format(data, 'yyyy-MM-dd');
-                const regsDia = registros.filter(r =>
-                    format(new Date(r.timestamp), 'yyyy-MM-dd') === dataStr &&
-                    r.tipo_movimentacao === 'ENTRADA'
-                );
-                return {
-                    data: format(data, 'dd/MM'),
-                    total: new Set(regsDia.map(r => r.aluno_matricula)).size
-                };
-            });
-
-            // Distribuição por Turno
-            const turnos = turmas.reduce((acc, turma) => {
-                acc[turma.turno] = (acc[turma.turno] || 0) + 1;
-                return acc;
-            }, {});
-
-            definirEstatisticas({
-                totalAlunos: alunos.length,
-                presentesHoje: presentes,
-                atrasosHoje: 0, // Implementar lógica de atraso depois
-                turmasAtivas: turmas.length,
-                historicoPresenca: ultimos7Dias,
-                distribuicaoTurnos: [
-                    turnos['Matutino'] || 0,
-                    turnos['Vespertino'] || 0,
-                    turnos['Noturno'] || 0
-                ]
-            });
-
+            const dados = await bancoLocal.obterDadosDashboard();
+            processarDados(dados);
         } catch (erro) {
-            console.error('Erro ao carregar dashboard:', erro);
+            console.error("Erro dashboard:", erro);
         } finally {
             definirCarregando(false);
         }
@@ -138,225 +298,143 @@ export default function Painel() {
 
     useEffect(() => {
         carregarDados();
-        const interval = setInterval(carregarDados, 30000); // Atualiza a cada 30s
+        const interval = setInterval(carregarDados, 60000);
         return () => clearInterval(interval);
     }, []);
 
-    // Configuração dos Gráficos
-    const chartOptions = {
+    // Config Charts
+    const optionsLine = {
         responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: '#1e293b',
-                padding: 12,
-                titleFont: { size: 13 },
-                bodyFont: { size: 13 },
-                cornerRadius: 8,
-                displayColors: false
-            }
-        },
+        plugins: { legend: { display: false } },
         scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-            y: { border: { display: false }, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } }
+            x: { grid: { display: false } },
+            y: { grid: { color: '#f1f5f9' }, min: 0 } // Começa do 0 para melhor noção de escala
         },
-        interaction: { mode: 'index', intersect: false },
+        maintainAspectRatio: false
     };
 
     const dataLine = {
-        labels: estatisticas.historicoPresenca.map(d => d.data),
+        labels: estatisticas.historicoPresenca.map(h => h.data),
         datasets: [{
-            label: 'Alunos Presentes',
-            data: estatisticas.historicoPresenca.map(d => d.total),
-            borderColor: '#4f46e5',
-            backgroundColor: (context) => {
-                const ctx = context.chart.ctx;
-                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                gradient.addColorStop(0, 'rgba(79, 70, 229, 0.2)');
-                gradient.addColorStop(1, 'rgba(79, 70, 229, 0)');
-                return gradient;
-            },
+            label: 'Alunos',
+            data: estatisticas.historicoPresenca.map(h => h.total),
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
             fill: true,
-            tension: 0.4,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            pointBackgroundColor: '#ffffff',
-            pointBorderWidth: 2,
+            tension: 0.4
         }]
     };
 
     const dataDoughnut = {
-        labels: ['Matutino', 'Vespertino', 'Noturno'],
+        labels: ['Pontuais', 'Atrasados'],
         datasets: [{
-            data: estatisticas.distribuicaoTurnos,
-            backgroundColor: ['#eab308', '#3b82f6', '#8b5cf6'],
-            borderWidth: 0,
-            hoverOffset: 4
+            data: [estatisticas.taxaPontualidade.pontuais, estatisticas.taxaPontualidade.atrasados],
+            backgroundColor: ['#10b981', '#f59e0b'],
+            borderWidth: 0
         }]
     };
 
-    const AcoesHeader = (
-        <div className="flex items-center gap-2 text-sm text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm">
-            <Clock size={16} className="text-indigo-500" />
-            <span className="font-bold capitalize">{format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}</span>
-        </div>
-    );
-
     return (
-        <LayoutAdministrativo titulo="Visão Geral" subtitulo="Monitoramento e Estatísticas" acoes={AcoesHeader}>
-            <div className="space-y-8 pb-10">
-                {/* Boas-vindas Simplificado */}
-                <div className="mb-6">
-                    <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-                        Olá, {usuarioAtual?.email?.split('@')[0] || 'Gestor'}! 👋
-                    </h2>
-                    <p className="text-slate-500 font-medium">Aqui está o resumo da sua escola hoje.</p>
-                </div>
+        <LayoutAdministrativo titulo="Painel Inteligente" subtitulo="Visão Geral & Análise Preditiva">
+            <div className="space-y-6 pb-10">
 
-                {/* Stats Grid */}
+                {/* KPI Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <CardEstatistica
-                        titulo="Total de Alunos"
-                        valor={carregando ? "..." : estatisticas.totalAlunos}
-                        subtitulo="Matriculados no sistema"
+                        titulo="Total Alunos"
+                        valor={estatisticas.totalAlunos}
+                        subtitulo="Ativos no sistema"
                         icone={Users}
                         cor="indigo"
-                        tendencia={2.5}
                     />
                     <CardEstatistica
                         titulo="Presença Hoje"
-                        valor={carregando ? "..." : estatisticas.presentesHoje}
-                        subtitulo="Registros de entrada"
+                        valor={estatisticas.presentesHoje}
+                        subtitulo={`${((estatisticas.presentesHoje / (estatisticas.totalAlunos || 1)) * 100).toFixed(1)}% de comparecimento`}
                         icone={TrendingUp}
                         cor="emerald"
-                        tendencia={12.4}
+                        tendencia={5.2}
                     />
                     <CardEstatistica
                         titulo="Atrasos"
-                        valor={carregando ? "..." : estatisticas.atrasosHoje}
-                        subtitulo="Chegadas após tolerância"
-                        icone={AlertTriangle}
+                        valor={estatisticas.atrasosHoje}
+                        subtitulo="Chegadas tardias"
+                        icone={Clock}
                         cor="amber"
+                        tendencia={-2.1}
+                        inverterTendencia // Menos atrasos é melhor (verde se negativo)
                     />
                     <CardEstatistica
-                        titulo="Turmas"
-                        valor={carregando ? "..." : estatisticas.turmasAtivas}
-                        subtitulo="Turmas ativas no ano"
-                        icone={BarChart3}
-                        cor="purple"
+                        titulo="Risco Evasão"
+                        valor={estatisticas.alunosRisco.length}
+                        subtitulo="Alunos sob alerta"
+                        icone={AlertTriangle}
+                        cor="rose"
+                        tendencia={10} // Se aumentou o risco, é ruim (vermelho)
+                        inverterTendencia
                     />
                 </div>
 
-                {/* Charts Section */}
+                {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Main Chart */}
-                    {/* Main Chart */}
-                    <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-800">Fluxo de Presença</h3>
-                                <p className="text-sm text-slate-500">Comparativo dos últimos 7 dias</p>
+
+                    {/* Left Col: Charts */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Line Chart */}
+                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <h3 className="font-bold text-slate-800 mb-4">Tendência de Frequência (7 Dias)</h3>
+                            <div className="h-64">
+                                <Line data={dataLine} options={optionsLine} />
                             </div>
-                            <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors">
-                                <MoreHorizontal size={20} />
-                            </button>
                         </div>
-                        <div className="h-[300px] w-full">
-                            {carregando ? (
-                                <div className="h-full flex items-center justify-center text-slate-400">Carregando gráfico...</div>
-                            ) : (
-                                <Line data={dataLine} options={chartOptions} />
-                            )}
+
+                        {/* Recent Activity (Table Style) */}
+                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <h3 className="font-bold text-slate-800 mb-4">Logs Recentes do Sistema</h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="text-xs text-slate-400 uppercase bg-slate-50/50">
+                                        <tr>
+                                            <th className="px-4 py-2">Ação</th>
+                                            <th className="px-4 py-2">Usuário</th>
+                                            <th className="px-4 py-2">Horário</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {estatisticas.feedAtividade.map(log => (
+                                            <tr key={log.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                                                <td className="px-4 py-3 font-medium text-slate-700">{log.titulo}</td>
+                                                <td className="px-4 py-3 text-slate-500">{log.descricao}</td>
+                                                <td className="px-4 py-3 text-slate-400 font-mono text-xs">{log.hora}</td>
+                                            </tr>
+                                        ))}
+                                        {estatisticas.feedAtividade.length === 0 && (
+                                            <tr>
+                                                <td colSpan="3" className="px-4 py-8 text-center text-slate-400">Sem atividades recentes</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Secondary Chart */}
-                    {/* Secondary Chart */}
-                    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm flex flex-col">
-                        <h3 className="text-lg font-bold text-slate-800 mb-2">Distribuição por Turno</h3>
-                        <p className="text-sm text-slate-500 mb-6">Turmas cadastradas por período</p>
+                    {/* Right Col: Widgets */}
+                    <div className="space-y-6">
 
-                        <div className="flex-1 flex items-center justify-center relative">
-                            {carregando ? (
-                                <div className="text-slate-400">Carregando...</div>
-                            ) : (
-                                <div className="w-48 h-48 relative">
-                                    <Doughnut
-                                        data={dataDoughnut}
-                                        options={{ cutout: '75%', plugins: { legend: { display: false } } }}
-                                    />
-                                    <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                                        <span className="text-2xl font-black text-slate-800">{estatisticas.turmasAtivas}</span>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase">Turmas</span>
-                                    </div>
-                                </div>
-                            )}
+                        {/* Risk Widget (The new AI feature) */}
+                        <div className="h-[400px]">
+                            <WidgetRisco alunosRisco={estatisticas.alunosRisco} />
                         </div>
 
-                        <div className="mt-8 space-y-3">
-                            <div className="flex items-center justify-between text-sm">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
-                                    <span className="font-medium text-slate-600">Matutino</span>
-                                </div>
-                                <span className="font-bold text-slate-800">{estatisticas.distribuicaoTurnos[0] || 0}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-                                    <span className="font-medium text-slate-600">Vespertino</span>
-                                </div>
-                                <span className="font-bold text-slate-800">{estatisticas.distribuicaoTurnos[1] || 0}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-3 h-3 rounded-full bg-violet-500"></span>
-                                    <span className="font-medium text-slate-600">Noturno</span>
-                                </div>
-                                <span className="font-bold text-slate-800">{estatisticas.distribuicaoTurnos[2] || 0}</span>
+                        {/* Doughnut Chart (Pontualidade) */}
+                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <h3 className="font-bold text-slate-800 mb-4">Pontualidade Hoje</h3>
+                            <div className="h-48 flex justify-center">
+                                <Doughnut data={dataDoughnut} options={{ cutout: '70%', plugins: { legend: { position: 'bottom' } } }} />
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* Quick Actions / Activity Feed placeholder */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Activity Feed Placeholder */}
-                    {/* Activity Feed Placeholder */}
-                    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-                        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                            <Activity size={20} className="text-indigo-500" />
-                            Atividade Recente (Simulação)
-                        </h3>
-                        <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
-                            {/* Item 1 */}
-                            <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-50 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                                    <Users size={16} className="text-indigo-600" />
-                                </div>
-                                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
-                                    <div className="flex items-center justify-between space-x-2 mb-1">
-                                        <div className="font-bold text-slate-800">Sincronização Automática</div>
-                                        <time className="font-mono text-xs text-slate-400">10:45</time>
-                                    </div>
-                                    <div className="text-slate-500 text-sm">O sistema atualizou os dados de 15 turmas com sucesso.</div>
-                                </div>
-                            </div>
-                            {/* Item 2 */}
-                            <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-50 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                                    <AlertTriangle size={16} className="text-amber-500" />
-                                </div>
-                                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
-                                    <div className="flex items-center justify-between space-x-2 mb-1">
-                                        <div className="font-bold text-slate-800">Tentativa de Acesso</div>
-                                        <time className="font-mono text-xs text-slate-400">09:30</time>
-                                    </div>
-                                    <div className="text-slate-500 text-sm">Aluno sem carteirinha tentou acessar a portaria principal.</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

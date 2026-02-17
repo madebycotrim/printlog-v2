@@ -12,11 +12,19 @@ async function processarSincronizacaoAcessos(contexto) {
         for (const registro of registros) {
             try {
                 // IDEMPOTÊNCIA: Usar INSERT OR IGNORE.
-                // Se o ID já existe, o banco ignora e não lança erro.
-                // O cliente recebe 'sincronizado' e para de enviar.
                 await contexto.env.DB_SCAE.prepare(
-                    "INSERT OR IGNORE INTO registros_acesso (id, aluno_matricula, tipo_movimentacao, timestamp, sincronizado) VALUES (?, ?, ?, ?, ?)"
-                ).bind(registro.id, registro.aluno_matricula, registro.tipo_movimentacao, registro.timestamp, true).run();
+                    `INSERT OR IGNORE INTO registros_acesso 
+                    (id, aluno_matricula, tipo_movimentacao, timestamp, sincronizado, autorizado_por, metodo_validacao) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)`
+                ).bind(
+                    registro.id,
+                    registro.aluno_matricula,
+                    registro.tipo_movimentacao,
+                    registro.timestamp,
+                    1, // sincronizado = true (1)
+                    registro.autorizado_por || null,
+                    registro.metodo_validacao || 'manual'
+                ).run();
 
                 resultados.push({ id: registro.id, status: 'sincronizado' });
             } catch (erro) {
@@ -35,11 +43,26 @@ async function processarBuscaAcessos(contexto) {
     // Buscar registros recentes
     try {
         const { searchParams } = new URL(contexto.request.url);
-        const limite = searchParams.get('limite') || 100;
+        const limite = searchParams.get('limite') || 1000; // Aumentei o default já que agora temos filtro
+        const data = searchParams.get('data'); // YYYY-MM-DD
+        const desde = searchParams.get('desde'); // ISO Timestamp
 
-        const { results } = await contexto.env.DB_SCAE.prepare(
-            "SELECT * FROM registros_acesso ORDER BY timestamp DESC LIMIT ?"
-        ).bind(limite).all();
+        let query = "SELECT * FROM registros_acesso";
+        const params = [];
+
+        if (data) {
+            // SQLite: substr(timestamp, 1, 10) pega 'YYYY-MM-DD' de um ISO string
+            query += " WHERE substr(timestamp, 1, 10) = ?";
+            params.push(data);
+        } else if (desde) {
+            query += " WHERE timestamp > ?";
+            params.push(desde);
+        }
+
+        query += " ORDER BY timestamp DESC LIMIT ?";
+        params.push(limite);
+
+        const { results } = await contexto.env.DB_SCAE.prepare(query).bind(...params).all();
 
         return Response.json(results);
     } catch (erro) {

@@ -59,7 +59,7 @@ export default function Usuarios() {
         try {
             const novoUsuario = {
                 email: dadosFormulario.email,
-                role: dadosFormulario.role, // Mantendo 'role' para compatibilidade com o form, mas converteremos para 'papel'
+                // role: dadosFormulario.role, // REMOVIDO: Usar apenas 'papel'
                 papel: dadosFormulario.role.toUpperCase(), // Backend espera 'ADMIN', 'COORDENACAO', etc.
                 ativo: true, // Deve ser ativo para o sistema reconhecer a permissão
                 pendente: !usuarioEmEdicao, // Se for novo, marca como pendente de aceite
@@ -93,8 +93,16 @@ export default function Usuarios() {
 
             if (navigator.onLine) {
                 try {
-                    // Reenviar usuário com status atualizado
-                    await api.enviar('/usuarios', usuarioAtualizado);
+                    // Reenviar usuário com status atualizado (Sanitizado)
+                    const payload = {
+                        email: usuarioAtualizado.email,
+                        nome_completo: usuarioAtualizado.nome_completo,
+                        papel: usuarioAtualizado.papel || usuarioAtualizado.role,
+                        ativo: usuarioAtualizado.ativo,
+                        criado_por: usuarioAtualizado.criado_por,
+                        criado_em: usuarioAtualizado.criado_em
+                    };
+                    await api.enviar('/usuarios', payload);
                 } catch (e) {
                     console.warn('Sync status falhou:', e);
                 }
@@ -167,19 +175,7 @@ export default function Usuarios() {
             subtitulo="Controle de acesso e permissões"
             acoes={
                 <div className="flex gap-2">
-                    <button
-                        onClick={async () => {
-                            const toastId = toast.loading('Sincronizando...');
-                            await servicoSincronizacao.sincronizarUsuarios();
-                            toast.dismiss(toastId);
-                            toast.success('Sincronização concluída!');
-                            carregarUsuarios();
-                        }}
-                        className="flex items-center gap-2 bg-white text-indigo-600 border border-indigo-200 px-4 py-2.5 rounded-xl hover:bg-indigo-50 transition font-bold shadow-sm"
-                        title="Forçar Sincronização"
-                    >
-                        <RefreshCw size={20} /> <span className="hidden sm:inline">Sincronizar</span>
-                    </button>
+
                     <button
                         onClick={novoUsuario}
                         className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition font-bold shadow-lg shadow-indigo-600/20"

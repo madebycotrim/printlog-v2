@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     email TEXT PRIMARY KEY,
     nome_completo TEXT NOT NULL,
     papel TEXT NOT NULL CHECK(papel IN ('ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTARIA', 'VISUALIZACAO')),
+    role TEXT, -- Legacy/Compatibility (Optional)
     ativo BOOLEAN DEFAULT 1,
     criado_por TEXT,
     criado_em TEXT DEFAULT CURRENT_TIMESTAMP,
