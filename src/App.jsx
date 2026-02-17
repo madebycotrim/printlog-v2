@@ -19,12 +19,12 @@ import BancoDados from './paginas/BancoDados';
 import { Toaster } from 'react-hot-toast';
 
 function Layout({ children }) {
-  // Don't show nav on login or portaria (scanner mode)
+  // Não exibir navegação no login ou portaria (modo scanner)
   // const ocultarNavegacao = localizacao.pathname === '/login' || localizacao.pathname === '/portaria';
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Global Nav Removed */}
+      {/* Navegação Global Removida */}
       <main className="flex-grow bg-gray-100">
         {children}
       </main>
@@ -34,10 +34,10 @@ function Layout({ children }) {
 }
 
 function App() {
-  // This useEffect block seems to belong to an authentication provider or a component managing user state.
-  // For the purpose of fulfilling the request, it's placed here, assuming 'auth', 'setUsuario', 'setCarregando'
-  // and 'servicoSincronizacao' would be properly defined or imported in a real application context.
-  // In a typical React app, this logic would likely reside within 'ProvedorAutenticacao'.
+  // Este bloco useEffect parece pertencer a um provedor de autenticação ou componente gerenciando estado do usuário.
+  // Para fins de atender a solicitação, está colocado aqui, assumindo que 'auth', 'setUsuario', 'setCarregando'
+  // e 'servicoSincronizacao' estariam devidamente definidos ou importados em um contexto de aplicação real.
+  // Em uma aplicação React típica, esta lógica provavelmente residiria dentro de 'ProvedorAutenticacao'.
   const [, definirUsuario] = useState(null);
   const [, definirCarregando] = useState(true);
 
@@ -45,7 +45,7 @@ function App() {
     // Inicializar Sincronização Automática Global
     servicoSincronizacao.iniciarSincronizacaoAutomatica();
 
-    // v2.0 - Auth State
+    // v2.0 - Estado de Autenticação
     const cancelarInscricao = onAuthStateChanged(autenticacao, (usuarioFirebase) => {
       definirUsuario(usuarioFirebase);
       definirCarregando(false);

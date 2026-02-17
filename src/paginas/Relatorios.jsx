@@ -21,9 +21,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
-// Register ChartJS components
+// Componentes do ChartJS
 
-// Register ChartJS components - REMOVED
+// Componentes do ChartJS - REMOVIDOS
 
 
 export default function Relatorios() {
@@ -226,9 +226,9 @@ export default function Relatorios() {
             <div className="space-y-8 animate-[fade-in_0.5s_ease-out]">
 
 
-                {/* Main Content & Filters */}
+                {/* Conteúdo Principal e Filtros */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Reports Grid */}
+                    {/* Grade de Relatórios */}
                     <div className="lg:col-span-2">
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -258,7 +258,7 @@ export default function Relatorios() {
                         </div>
                     </div>
 
-                    {/* Filters Sidebar */}
+                    {/* Barra Lateral de Filtros */}
                     <div className="h-fit space-y-6">
                         <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm sticky top-6">
                             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-6 flex items-center gap-2">

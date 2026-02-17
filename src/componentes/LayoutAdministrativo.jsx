@@ -158,7 +158,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
     return (
         <div className="flex h-screen bg-slate-50 font-sans overflow-hidden selection:bg-indigo-500/30 selection:text-indigo-900">
-            {/* Overlay Mobile */}
+            {/* Sobreposição Mobile */}
             {sidebarAberto && (
                 <div
                     className="fixed inset-0 bg-slate-900/60 z-40 lg:hidden backdrop-blur-sm transition-opacity duration-300"
@@ -166,7 +166,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 />
             )}
 
-            {/* Sidebar */}
+            {/* Barra Lateral */}
             <aside
                 className={`
                     fixed lg:static inset-y-0 left-0 z-50
@@ -177,12 +177,12 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     w-72
                 `}
             >
-                {/* Background decorative elements */}
+                {/* Elementos decorativos de fundo */}
                 <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                 </div>
 
-                {/* Logo Section */}
+                {/* Seção do Logo */}
                 <div className={`
                     h-20 flex items-center border-b border-slate-800/50 relative z-10
                     ${sidebarMinimizado ? 'justify-center px-0' : 'justify-between px-6'}
@@ -205,7 +205,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         )}
                     </div>
 
-                    {/* Toggle Button (Desktop only) */}
+                    {/* Botão de Alternância (Apenas Desktop) */}
                     <button
                         onClick={() => definirSidebarMinimizado(!sidebarMinimizado)}
                         className={`
@@ -219,13 +219,13 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     </button>
                 </div>
 
-                {/* Navigation */}
+                {/* Navegação */}
                 <nav className={`
                     flex-1 overflow-y-auto overflow-x-hidden py-6 z-10
                     scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent
                     ${sidebarMinimizado ? 'px-3' : 'px-4'}
                 `}>
-                    {/* Principal */}
+                    {/* Menu Principal */}
                     <div className="mb-8">
                         {!sidebarMinimizado && (
                             <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-slate-500/70 mb-3 animate-fade-in">
@@ -272,7 +272,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         </div>
                     </div>
 
-                    {/* Admin Section */}
+                    {/* Seção Administrativa */}
                     {ehAdmin && (
                         <div>
                             {!sidebarMinimizado && (
@@ -320,7 +320,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     )}
                 </nav>
 
-                {/* Footer User Profile */}
+                {/* Rodapé - Perfil do Usuário */}
                 <div className="p-4 border-t border-slate-800/50 bg-slate-900/30 z-10">
                     <div className={`flex items-center ${sidebarMinimizado ? 'justify-center flex-col gap-4' : 'gap-3.5 mb-4 px-2'}`}>
                         <div className="relative group cursor-pointer">
@@ -359,14 +359,14 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 </div>
             </aside>
 
-            {/* Main Content Area */}
+            {/* Área de Conteúdo Principal */}
             <div className="flex-1 flex flex-col min-w-0 bg-slate-50 relative overflow-hidden">
-                {/* Background Pattern */}
+                {/* Padrão de Fundo */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.4]"
                     style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #cbd5e1 1px, transparent 0)', backgroundSize: '40px 40px' }}>
                 </div>
 
-                {/* Header */}
+                {/* Cabeçalho */}
                 <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-30 flex items-center justify-between px-8 shadow-sm">
                     <div className="flex items-center gap-4">
                         <button
@@ -383,7 +383,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Search Bar - Hidden on small screens */}
+                        {/* Barra de Busca - Oculta em telas pequenas */}
                         <div className="hidden md:flex items-center relative group">
                             <Search className="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                             <input
@@ -395,7 +395,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
                         <div className="h-8 w-px bg-slate-200 mx-2"></div>
 
-                        {/* Notifications */}
+                        {/* Notificações */}
                         <div className="relative">
                             <button
                                 onClick={() => definirNotificacoesAberta(!notificacoesAberta)}
@@ -407,7 +407,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                 )}
                             </button>
 
-                            {/* Dropdown de Notificações */}
+                            {/* Menu Suspenso de Notificações */}
                             {notificacoesAberta && (
                                 <>
                                     <div
@@ -493,7 +493,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             )}
                         </div>
 
-                        {/* Actions Container */}
+                        {/* Contêiner de Ações */}
                         {acoes && (
                             <>
                                 <div className="h-8 w-px bg-slate-200 mx-2"></div>
@@ -503,7 +503,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     </div>
                 </header>
 
-                {/* Page Content */}
+                {/* Conteúdo da Página */}
                 <main className="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10 scroll-smooth z-10 custom-scrollbar">
                     <div className="max-w-[1600px] mx-auto animate-slide-up">
                         {children}
