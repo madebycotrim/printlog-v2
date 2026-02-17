@@ -198,17 +198,21 @@ export default function Usuarios() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-slide-up">
                 {filteredUsers.map((user) => (
                     <div
                         key={user.email}
-                        className={`relative bg-white rounded-2xl border ${user.ativo ? 'border-slate-100' : 'border-slate-100 bg-slate-50/50'} p-6 shadow-sm hover:shadow-md group`}
+                        className={`group relative bg-white rounded-3xl border ${user.ativo ? 'border-slate-100' : 'border-slate-100 bg-slate-50/50'} p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden`}
                     >
-                        <div className="flex justify-between items-start mb-4">
-                            <div className={`p-3 rounded-xl ${user.papel === 'ADMIN' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
-                                {user.papel === 'ADMIN' ? <Shield size={24} /> : <Users size={24} />}
+                        {/* Card Header */}
+                        <div className="flex justify-between items-start mb-6">
+                            <div className={`
+                                w-12 h-12 rounded-2xl flex items-center justify-center transition-colors
+                                ${user.papel === 'ADMIN' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-500'}
+                            `}>
+                                {user.papel === 'ADMIN' ? <Shield size={22} /> : <Users size={22} />}
                             </div>
-                            <div className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${user.pendente
+                            <div className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${user.pendente
                                 ? 'bg-amber-50 text-amber-600 border-amber-100'
                                 : user.ativo
                                     ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
@@ -218,22 +222,24 @@ export default function Usuarios() {
                             </div>
                         </div>
 
-                        <h3 className="text-lg font-bold text-slate-800 mb-1 truncate" title={user.email}>{user.email}</h3>
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-6">
-                            {PapeisDisponiveis.find(p => p.id === user.papel || p.id === user.role)?.nome || user.papel || user.role || 'Visitante'}
-                        </p>
+                        <div className="mb-6">
+                            <h3 className="text-lg font-black text-slate-800 mb-1 truncate leading-tight" title={user.email}>{user.email}</h3>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">
+                                {PapeisDisponiveis.find(p => p.id === user.papel || p.id === user.role)?.nome || user.papel || user.role || 'Visitante'}
+                            </p>
+                        </div>
 
                         <div className="flex gap-2 pt-4 border-t border-slate-100">
                             <button
                                 onClick={() => abrirEdicao(user)}
-                                className="flex-1 py-2 rounded-lg bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                                className="flex-1 py-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-bold transition-colors flex items-center justify-center gap-2 border border-slate-100 hover:border-indigo-100"
                             >
-                                <Edit2 size={14} /> Editar
+                                <Edit2 size={16} /> Editar
                             </button>
                             <button
                                 onClick={() => toggleStatus(user)}
                                 disabled={user.email === usuarioAtual?.email}
-                                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2 border 
+                                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 border 
                                 ${user.email === usuarioAtual?.email
                                         ? 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200'
                                         : user.ativo
@@ -241,20 +247,9 @@ export default function Usuarios() {
                                             : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border-emerald-100'
                                     }`}
                             >
-                                {user.ativo ? <UserX size={14} /> : <UserCheck size={14} />}
+                                {user.ativo ? <UserX size={16} /> : <UserCheck size={16} />}
                                 {user.ativo ? 'Desativar' : 'Ativar'}
                             </button>
-
-                            {/* Botão de Exclusão (Apenas madebycotrim e não pode ser ele mesmo) */}
-                            {usuarioAtual?.email?.includes('madebycotrim') && user.email !== usuarioAtual?.email && (
-                                <button
-                                    onClick={() => excluirUsuario(user)}
-                                    className="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 border border-rose-100 transition-colors"
-                                    title="Excluir Definitivamente"
-                                >
-                                    <Trash2 size={14} />
-                                </button>
-                            )}
                         </div>
                     </div>
                 ))}

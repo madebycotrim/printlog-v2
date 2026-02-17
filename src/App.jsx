@@ -62,14 +62,46 @@ function App() {
             <Layout>
               <Routes>
                 <Route path="/login" element={<Login />} />
-                <Route path="/leitor" element={<LeitorPortaria />} />
-                <Route path="/painel" element={<Painel />} />
-                <Route path="/alunos" element={<Alunos />} />
-                <Route path="/turmas" element={<Turmas />} />
-                <Route path="/relatorios" element={<Relatorios />} />
-                <Route path="/logs" element={<Logs />} />
-                <Route path="/usuarios" element={<Usuarios />} />
-                <Route path="/banco-dados" element={<BancoDados />} />
+                <Route path="/leitor" element={
+                  <RotaPrivada>
+                    <LeitorPortaria />
+                  </RotaPrivada>
+                } />
+                <Route path="/painel" element={
+                  <RotaPrivada>
+                    <Painel />
+                  </RotaPrivada>
+                } />
+                <Route path="/alunos" element={
+                  <RotaPrivada>
+                    <Alunos />
+                  </RotaPrivada>
+                } />
+                <Route path="/turmas" element={
+                  <RotaPrivada>
+                    <Turmas />
+                  </RotaPrivada>
+                } />
+                <Route path="/relatorios" element={
+                  <RotaPrivada>
+                    <Relatorios />
+                  </RotaPrivada>
+                } />
+                <Route path="/logs" element={
+                  <RotaPrivada>
+                    <Logs />
+                  </RotaPrivada>
+                } />
+                <Route path="/usuarios" element={
+                  <RotaPrivada>
+                    <Usuarios />
+                  </RotaPrivada>
+                } />
+                <Route path="/banco-dados" element={
+                  <RotaPrivada>
+                    <BancoDados />
+                  </RotaPrivada>
+                } />
                 <Route path="*" element={<Navigate to="/painel" replace />} />
               </Routes>
             </Layout>

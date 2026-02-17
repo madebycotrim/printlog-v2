@@ -428,114 +428,124 @@ export default function Alunos() {
                 </div>
             </div>
 
-            {/* Students Table */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            {/* Students Grid */}
+            <div className="space-y-6">
                 {carregando ? (
-                    <div className="p-12 text-center text-slate-400">Carregando alunos...</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
+                        {[...Array(8)].map((_, i) => (
+                            <div key={i} className="h-64 bg-slate-100/50 rounded-3xl"></div>
+                        ))}
+                    </div>
                 ) : alunosFiltrados.length === 0 ? (
-                    <div className="p-20 text-center">
-                        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 mx-auto shadow-sm border border-slate-100">
+                    <div className="bg-white rounded-3xl border border-slate-100 p-20 text-center animate-fade-in">
+                        <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6 mx-auto shadow-sm border border-slate-100">
                             <Users size={40} className="text-slate-300" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-700 mb-2">Nenhum aluno encontrado</h3>
-                        <p className="text-slate-400 text-sm">Tente mudar os filtros ou adicione um aluno.</p>
+                        <h3 className="text-xl font-black text-slate-700 mb-2">Nenhum aluno encontrado</h3>
+                        <p className="text-slate-400 max-w-xs mx-auto text-sm font-medium">Tente ajustar seus filtros ou adicione um novo aluno ao sistema.</p>
                     </div>
                 ) : (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="w-full whitespace-nowrap">
-                                <thead className="bg-slate-50/80 border-b border-slate-200">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase text-slate-400 tracking-widest">Aluno</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase text-slate-400 tracking-widest">Matrícula</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase text-slate-400 tracking-widest">Turma</th>
-                                        <th className="px-6 py-4 text-center text-[10px] font-black uppercase text-slate-400 tracking-widest">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {paginados.map((aluno) => (
-                                        <tr key={aluno.matricula} className="group hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`
-                                                        w-12 h-12 rounded-2xl bg-gradient-to-br ${getAvatarColor(aluno.matricula)} 
-                                                        flex items-center justify-center text-white font-bold text-sm 
-                                                        shadow-lg shadow-indigo-500/10 ring-4 ring-white
-                                                    `}>
-                                                        {aluno.nome_completo.split(' ').map((n, i, arr) => i === 0 || i === arr.length - 1 ? n[0] : '').join('').toUpperCase().substring(0, 2)}
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-slate-800 text-sm">{aluno.nome_completo}</div>
-                                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                                                            {aluno.turma_id || 'Sem Turma'}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="font-mono text-sm font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded-md inline-block">
-                                                    {aluno.matricula}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                                    {aluno.turma_id}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex justify-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={() => verQRCode(aluno.matricula)}
-                                                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                                                        title="Ver QR Code"
-                                                    >
-                                                        <QrCode size={18} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => abrirEdicao(aluno)}
-                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                                        title="Editar"
-                                                    >
-                                                        <Edit2 size={18} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => solicitarExclusao(aluno)}
-                                                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                                                        title="Excluir"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-slide-up">
+                        {paginados.map((aluno) => (
+                            <div
+                                key={aluno.matricula}
+                                className="group relative bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
+                            >
+                                {/* Pattern Background */}
+                                <div className={`absolute top-0 inset-x-0 h-24 bg-gradient-to-br ${getAvatarColor(aluno.matricula)} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
 
-                        {/* Pagination */}
-                        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50/30">
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">
-                                Mostrando {paginados.length} de {alunosFiltrados.length}
-                            </span>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => definirPaginaAtual(p => Math.max(1, p - 1))}
-                                    disabled={paginaAtual === 1}
-                                    className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-white disabled:opacity-50 transition"
-                                >
-                                    <ChevronLeft size={16} />
-                                </button>
-                                <button
-                                    onClick={() => definirPaginaAtual(p => Math.min(totalPaginas, p + 1))}
-                                    disabled={paginaAtual === totalPaginas}
-                                    className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-white disabled:opacity-50 transition"
-                                >
-                                    <ChevronRight size={16} />
-                                </button>
+                                {/* Avatar & Header */}
+                                <div className="relative px-6 pt-8 pb-4 flex flex-col items-center flex-1">
+                                    <div className={`
+                                        w-20 h-20 rounded-2xl bg-gradient-to-br ${getAvatarColor(aluno.matricula)} 
+                                        flex items-center justify-center text-white font-black text-2xl 
+                                        shadow-lg shadow-indigo-500/20 ring-4 ring-white group-hover:scale-110 transition-transform duration-300
+                                        mb-4
+                                    `}>
+                                        {aluno.nome_completo.split(' ').map((n, i, arr) => i === 0 || i === arr.length - 1 ? n[0] : '').join('').toUpperCase().substring(0, 2)}
+                                    </div>
+
+                                    <h3 className="text-slate-800 font-bold text-lg text-center leading-tight mb-1 line-clamp-2 min-h-[3.5rem] flex items-center justify-center">
+                                        {aluno.nome_completo}
+                                    </h3>
+
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 text-xs font-bold font-mono tracking-wide border border-slate-200">
+                                            {aluno.matricula}
+                                        </span>
+                                    </div>
+
+                                    <div className="w-full grid grid-cols-2 gap-2 mt-auto">
+                                        <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 text-center">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Turma</p>
+                                            <p className="text-indigo-600 font-black text-sm">{aluno.turma_id || '---'}</p>
+                                        </div>
+                                        <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 text-center">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</p>
+                                            <div className="flex items-center justify-center gap-1.5">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                                <p className="text-emerald-600 font-bold text-xs">Ativo</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Actions Footer */}
+                                <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between gap-2">
+                                    <button
+                                        onClick={() => verQRCode(aluno.matricula)}
+                                        className="flex-1 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-bold hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors shadow-sm flex items-center justify-center gap-2"
+                                    >
+                                        <QrCode size={16} /> QR
+                                    </button>
+                                    <div className="flex gap-1">
+                                        <button
+                                            onClick={() => abrirEdicao(aluno)}
+                                            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 hover:border-indigo-200 transition-all shadow-sm"
+                                            title="Editar"
+                                        >
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => solicitarExclusao(aluno)}
+                                            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-all shadow-sm"
+                                            title="Excluir"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Pagination */}
+                {paginados.length > 0 && (
+                    <div className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center justify-between shadow-sm">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                            Mostrando {paginados.length} de {alunosFiltrados.length}
+                        </span>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => definirPaginaAtual(p => Math.max(1, p - 1))}
+                                disabled={paginaAtual === 1}
+                                className="p-2.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 disabled:opacity-50 disabled:hover:bg-transparent transition-all"
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+                            <span className="flex items-center px-4 font-bold text-sm text-slate-600 bg-slate-50 rounded-xl border border-slate-100">
+                                {paginaAtual} / {totalPaginas}
+                            </span>
+                            <button
+                                onClick={() => definirPaginaAtual(p => Math.min(totalPaginas, p + 1))}
+                                disabled={paginaAtual === totalPaginas}
+                                className="p-2.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 disabled:opacity-50 disabled:hover:bg-transparent transition-all"
+                            >
+                                <ChevronRight size={18} />
+                            </button>
                         </div>
-                    </>
+                    </div>
                 )}
             </div>
 

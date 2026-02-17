@@ -47,68 +47,80 @@ ChartJS.register(
 
 // Componentes Auxiliares
 const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendencia, inverterTendencia }) => (
-    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-shadow group">
-        <div className="flex justify-between items-start mb-4">
-            <div className={`p-3 rounded-xl bg-${cor}-50 text-${cor}-600 bg-opacity-50`}>
+    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
+        <div className={`absolute top-0 right-0 p-8 opacity-[0.03] transform translate-x-1/4 -translate-y-1/4`}>
+            <Icone size={120} />
+        </div>
+
+        <div className="flex justify-between items-start mb-4 relative z-10">
+            <div className={`p-3.5 rounded-2xl bg-${cor}-50 text-${cor}-600 bg-opacity-60 ring-1 ring-${cor}-100 shadow-sm`}>
                 <Icone size={24} />
             </div>
             {tendencia !== undefined && (
                 <div className={`
-                    flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full 
+                    flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-full 
                     ${(inverterTendencia ? tendencia < 0 : tendencia > 0)
-                        ? 'bg-emerald-50 text-emerald-600'
-                        : 'bg-rose-50 text-rose-600'}
+                        ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
+                        : 'bg-rose-50 text-rose-600 ring-1 ring-rose-100'}
                 `}>
                     {tendencia > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                     {Math.abs(tendencia)}%
                 </div>
             )}
         </div>
-        <div>
-            <h3 className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{titulo}</h3>
-            <p className="text-3xl font-black text-slate-800 tracking-tight mb-1">{valor}</p>
-            <p className="text-xs text-slate-400 font-medium">{subtitulo}</p>
+        <div className="relative z-10">
+            <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">{titulo}</h3>
+            <p className="text-3xl font-black text-slate-800 tracking-tight mb-2">{valor}</p>
+            <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                <span className={`w-1.5 h-1.5 rounded-full bg-${cor}-400`}></span>
+                {subtitulo}
+            </p>
         </div>
     </div>
 );
 
 const WidgetRisco = ({ alunosRisco }) => (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full overflow-hidden hover:shadow-md transition-shadow">
+        <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
             <div>
                 <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                     <AlertOctagon size={20} className="text-rose-500" />
                     Alunos em Risco
                 </h3>
-                <p className="text-sm text-slate-500">Detectado por análise comportamental (IA Heurística)</p>
+                <p className="text-xs text-slate-500 mt-1 font-medium">Análise preditiva baseada em IA</p>
             </div>
-            <span className="px-3 py-1 bg-rose-100 text-rose-700 text-xs font-bold rounded-full">
+            <span className="px-3 py-1 bg-rose-100 text-rose-700 text-xs font-bold rounded-full ring-1 ring-rose-200 shadow-sm">
                 {alunosRisco.length} Críticos
             </span>
         </div>
-        <div className="flex-1 overflow-y-auto p-0 custom-scrollbar max-h-[350px]">
+        <div className="flex-1 overflow-y-auto p-0 custom-scrollbar max-h-[350px] bg-white">
             {alunosRisco.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                    <CheckCircle2 size={48} className="text-emerald-500/20 mb-3" />
-                    <p className="text-slate-400 font-medium">Nenhum aluno em situação de risco crítico detectado.</p>
+                    <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4 ring-1 ring-emerald-100">
+                        <CheckCircle2 size={32} className="text-emerald-500" />
+                    </div>
+                    <p className="text-slate-800 font-bold">Tudo sob controle!</p>
+                    <p className="text-slate-400 text-sm mt-1">Nenhum aluno em alto risco detectado.</p>
                 </div>
             ) : (
                 <div className="divide-y divide-slate-50">
                     {alunosRisco.map((item, idx) => (
-                        <div key={item.aluno.matricula} className="p-4 hover:bg-slate-50 transition-colors flex items-center gap-4">
-                            <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs">
+                        <div key={item.aluno.matricula} className="p-4 hover:bg-slate-50/80 transition-colors flex items-center gap-4 group">
+                            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 ring-1 ring-rose-100 flex items-center justify-center font-bold text-xs group-hover:scale-110 transition-transform">
                                 {idx + 1}
                             </div>
-                            <div className="flex-1">
-                                <h4 className="font-bold text-slate-800 text-sm">{item.aluno.nome_completo}</h4>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-slate-800 text-sm truncate">{item.aluno.nome_completo}</h4>
                                 <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-xs text-slate-500">{item.turma?.nome || 'Sem Turma'}</span>
-                                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                    <span className="text-xs font-bold text-rose-500">{item.faltasConsecutivas} dias ausente</span>
+                                    <span className="text-xs text-slate-500 px-1.5 py-0.5 bg-slate-100 rounded-md font-medium">{item.turma?.nome || 'Sem Turma'}</span>
+                                    <span className="text-xs font-bold text-rose-500 flex items-center gap-1">
+                                        <AlertTriangle size={10} />
+                                        {item.faltasConsecutivas} ausências seguidas
+                                    </span>
                                 </div>
                             </div>
-                            <div className="text-right">
-                                <div className="text-xs font-bold text-slate-400">Frequência</div>
+                            <div className="text-right pl-2">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Frequência</div>
                                 <div className={`text-sm font-black ${item.frequencia < 50 ? 'text-rose-600' : 'text-amber-500'}`}>
                                     {item.frequencia.toFixed(0)}%
                                 </div>
@@ -119,7 +131,7 @@ const WidgetRisco = ({ alunosRisco }) => (
             )}
         </div>
         <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
-            <button className="text-xs font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wide">
+            <button className="text-xs font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-widest hover:underline underline-offset-2">
                 Ver Relatório Completo
             </button>
         </div>
@@ -136,7 +148,7 @@ export default function Painel() {
         historicoPresenca: [],
         distribuicaoTurnos: [],
         alunosRisco: [],
-        feedAtividade: [],
+
         taxaPontualidade: { pontuais: 0, atrasados: 0 }
     });
     const [carregando, definirCarregando] = useState(true);
@@ -211,7 +223,7 @@ export default function Painel() {
     };
 
     const processarDados = (dados) => {
-        const { alunos, turmas, registros, logs } = dados;
+        const { alunos, turmas, registros } = dados;
         const hojeStr = format(new Date(), 'yyyy-MM-dd');
 
         // 1. Presença Hoje
@@ -259,17 +271,7 @@ export default function Painel() {
         // 4. Risco de Evasão
         const alunosRisco = calcularRiscoEvasao(alunos, registros, turmas);
 
-        // 5. Atividades (Logs)
-        const atividades = logs
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-            .slice(0, 5)
-            .map(log => ({
-                id: log.id,
-                icone: log.acao?.includes('LOGIN') ? Users : AlertTriangle, // Simplificado
-                titulo: log.acao,
-                hora: format(new Date(log.timestamp), 'HH:mm'),
-                descricao: log.usuario_email
-            }));
+
 
         definirEstatisticas({
             totalAlunos: alunos.length,
@@ -279,7 +281,7 @@ export default function Painel() {
             historicoPresenca: historico,
             distribuicaoTurnos: [], // Manter lógica se necessário, mas focar no novo
             alunosRisco,
-            feedAtividade: atividades,
+
             taxaPontualidade: { pontuais: presentesHoje - atrasos, atrasados: atrasos }
         });
     };
@@ -307,10 +309,31 @@ export default function Painel() {
         responsive: true,
         plugins: { legend: { display: false } },
         scales: {
-            x: { grid: { display: false } },
-            y: { grid: { color: '#f1f5f9' }, min: 0 } // Começa do 0 para melhor noção de escala
+            x: {
+                grid: { display: false },
+                ticks: { font: { family: "'Outfit', sans-serif" } }
+            },
+            y: {
+                grid: { color: '#f1f5f9', borderDash: [5, 5] },
+                min: 0,
+                border: { display: false },
+                ticks: { font: { family: "'Outfit', sans-serif" } }
+            }
         },
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        elements: {
+            point: {
+                radius: 4,
+                backgroundColor: '#ffffff',
+                borderWidth: 2,
+                borderColor: '#6366f1',
+                hoverRadius: 6
+            },
+            line: {
+                borderWidth: 3,
+                tension: 0.4
+            }
+        }
     };
 
     const dataLine = {
@@ -319,9 +342,14 @@ export default function Painel() {
             label: 'Alunos',
             data: estatisticas.historicoPresenca.map(h => h.total),
             borderColor: '#6366f1',
-            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            backgroundColor: (context) => {
+                const ctx = context.chart.ctx;
+                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                gradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
+                gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+                return gradient;
+            },
             fill: true,
-            tension: 0.4
         }]
     };
 
@@ -330,7 +358,9 @@ export default function Painel() {
         datasets: [{
             data: [estatisticas.taxaPontualidade.pontuais, estatisticas.taxaPontualidade.atrasados],
             backgroundColor: ['#10b981', '#f59e0b'],
-            borderWidth: 0
+            borderWidth: 5,
+            borderColor: '#ffffff',
+            hoverOffset: 4
         }]
     };
 
@@ -339,7 +369,7 @@ export default function Painel() {
             <div className="space-y-6 pb-10">
 
                 {/* KPI Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up">
                     <CardEstatistica
                         titulo="Total Alunos"
                         valor={estatisticas.totalAlunos}
@@ -350,7 +380,7 @@ export default function Painel() {
                     <CardEstatistica
                         titulo="Presença Hoje"
                         valor={estatisticas.presentesHoje}
-                        subtitulo={`${((estatisticas.presentesHoje / (estatisticas.totalAlunos || 1)) * 100).toFixed(1)}% de comparecimento`}
+                        subtitulo={`${estatisticas.totalAlunos > 0 ? ((estatisticas.presentesHoje / estatisticas.totalAlunos) * 100).toFixed(1) : 0}% de comparecimento`}
                         icone={TrendingUp}
                         cor="emerald"
                         tendencia={5.2}
@@ -376,62 +406,61 @@ export default function Painel() {
                 </div>
 
                 {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up delay-100">
 
                     {/* Left Col: Charts */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Line Chart */}
-                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                            <h3 className="font-bold text-slate-800 mb-4">Tendência de Frequência (7 Dias)</h3>
-                            <div className="h-64">
+                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <h3 className="font-bold text-slate-800 text-lg">Tendência de Frequência</h3>
+                                    <p className="text-sm text-slate-500">Comparecimento nos últimos 7 dias</p>
+                                </div>
+                                <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                                    <Activity size={20} />
+                                </div>
+                            </div>
+                            <div className="h-72">
                                 <Line data={dataLine} options={optionsLine} />
                             </div>
                         </div>
 
-                        {/* Recent Activity (Table Style) */}
-                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                            <h3 className="font-bold text-slate-800 mb-4">Logs Recentes do Sistema</h3>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm text-left">
-                                    <thead className="text-xs text-slate-400 uppercase bg-slate-50/50">
-                                        <tr>
-                                            <th className="px-4 py-2">Ação</th>
-                                            <th className="px-4 py-2">Usuário</th>
-                                            <th className="px-4 py-2">Horário</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {estatisticas.feedAtividade.map(log => (
-                                            <tr key={log.id} className="border-b border-slate-50 hover:bg-slate-50/50">
-                                                <td className="px-4 py-3 font-medium text-slate-700">{log.titulo}</td>
-                                                <td className="px-4 py-3 text-slate-500">{log.descricao}</td>
-                                                <td className="px-4 py-3 text-slate-400 font-mono text-xs">{log.hora}</td>
-                                            </tr>
-                                        ))}
-                                        {estatisticas.feedAtividade.length === 0 && (
-                                            <tr>
-                                                <td colSpan="3" className="px-4 py-8 text-center text-slate-400">Sem atividades recentes</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+
                     </div>
 
                     {/* Right Col: Widgets */}
                     <div className="space-y-6">
 
                         {/* Risk Widget (The new AI feature) */}
-                        <div className="h-[400px]">
+                        <div className="h-[450px]">
                             <WidgetRisco alunosRisco={estatisticas.alunosRisco} />
                         </div>
 
                         {/* Doughnut Chart (Pontualidade) */}
-                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                            <h3 className="font-bold text-slate-800 mb-4">Pontualidade Hoje</h3>
-                            <div className="h-48 flex justify-center">
-                                <Doughnut data={dataDoughnut} options={{ cutout: '70%', plugins: { legend: { position: 'bottom' } } }} />
+                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-center items-center">
+                            <h3 className="font-bold text-slate-800 mb-2 w-full text-left text-lg">Pontualidade</h3>
+                            <p className="text-sm text-slate-500 w-full text-left mb-6">Proporção de atrasos hoje</p>
+
+                            <div className="h-56 w-56 relative">
+                                <Doughnut data={dataDoughnut} options={{ cutout: '75%', plugins: { legend: { display: false } } }} />
+                                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <span className="text-3xl font-black text-slate-800">
+                                        {estatisticas.totalAlunos > 0 ? ((estatisticas.taxaPontualidade.pontuais / estatisticas.totalAlunos) * 100).toFixed(0) : 0}%
+                                    </span>
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Pontuais</span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 mt-6 w-full justify-center">
+                                <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                                    <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                    No Horário
+                                </div>
+                                <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                                    <span className="w-3 h-3 rounded-full bg-amber-500"></span>
+                                    Atrasados
+                                </div>
                             </div>
                         </div>
 

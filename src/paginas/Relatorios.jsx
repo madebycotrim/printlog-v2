@@ -316,15 +316,18 @@ export default function Relatorios() {
         <button
             onClick={onClick}
             disabled={carregando}
-            className="flex flex-col items-start p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-left group w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex flex-col items-start p-6 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left group w-full disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden relative"
         >
-            <div className={`p-3 rounded-xl bg-${cor}-50 text-${cor}-600 mb-4 group-hover:scale-110 transition-transform`}>
+            {/* Gradient Background on Hover */}
+            <div className={`absolute inset-0 bg-${cor}-50/0 group-hover:bg-${cor}-50/30 transition-colors duration-300`}></div>
+
+            <div className={`p-3 rounded-2xl bg-${cor}-50 text-${cor}-600 mb-4 group-hover:scale-110 group-hover:bg-white group-hover:shadow-md transition-all relative z-10`}>
                 <Icone size={24} />
             </div>
-            <h3 className="text-lg font-bold text-slate-800 mb-1">{titulo}</h3>
-            <p className="text-sm text-slate-500 mb-4 flex-1">{descricao}</p>
+            <h3 className="text-lg font-black text-slate-800 mb-2 relative z-10">{titulo}</h3>
+            <p className="text-sm font-medium text-slate-500 mb-6 flex-1 leading-relaxed relative z-10">{descricao}</p>
 
-            <div className={`mt-auto flex items-center gap-2 text-sm font-bold text-${cor}-600 group-hover:underline`}>
+            <div className={`mt-auto flex items-center gap-2 text-xs font-black uppercase tracking-wide text-${cor}-600 group-hover:gap-3 transition-all relative z-10`}>
                 <Download size={16} />
                 Baixar PDF
             </div>
@@ -349,32 +352,50 @@ export default function Relatorios() {
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <div className="bg-indigo-600 rounded-2xl p-6 text-white shadow-lg shadow-indigo-600/20 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                        <FileText size={80} />
+                <div className="bg-indigo-600 rounded-3xl p-6 text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden group">
+                    <div className="absolute -right-4 -top-4 text-white/10 group-hover:scale-110 transition-transform duration-500">
+                        <FileText size={100} />
                     </div>
-                    <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest mb-1">Total de Registros</p>
-                    <p className="text-3xl font-black">{carregando ? '-' : estatisticas.totalRegistros}</p>
+                    <p className="text-indigo-200 text-[10px] font-black uppercase tracking-widest mb-1">Total de Registros</p>
+                    <p className="text-4xl font-black relative z-10">{carregando ? '-' : estatisticas.totalRegistros}</p>
                 </div>
-                <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Acessos Hoje</p>
-                    <p className="text-3xl font-black text-slate-800">{carregando ? '-' : estatisticas.registrosHoje}</p>
+
+                <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm group hover:shadow-md transition-all">
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Acessos Hoje</p>
+                    <div className="flex items-center justify-between">
+                        <p className="text-3xl font-black text-slate-800">{carregando ? '-' : estatisticas.registrosHoje}</p>
+                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                            <Calendar size={20} />
+                        </div>
+                    </div>
                 </div>
-                <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Turma + Ativa</p>
-                    <p className="text-3xl font-black text-slate-800">{carregando ? '-' : estatisticas.turmaMaisAtiva}</p>
+
+                <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm group hover:shadow-md transition-all">
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Turma + Ativa</p>
+                    <div className="flex items-center justify-between">
+                        <p className="text-3xl font-black text-slate-800">{carregando ? '-' : estatisticas.turmaMaisAtiva}</p>
+                        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <BarChart2 size={20} />
+                        </div>
+                    </div>
                 </div>
-                <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Horário de Pico</p>
-                    <p className="text-xl font-black text-slate-800 pt-1.5">{carregando ? '-' : estatisticas.horarioPico}</p>
+
+                <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm group hover:shadow-md transition-all">
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Horário de Pico</p>
+                    <div className="flex items-center justify-between">
+                        <p className="text-xl font-black text-slate-800 pt-1.5">{carregando ? '-' : estatisticas.horarioPico}</p>
+                        <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
+                            <Clock size={20} />
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Action Area */}
                 <div className="lg:col-span-2 space-y-6">
-                    <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <FileCheck className="text-emerald-500" size={20} />
+                    <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                        <FileCheck className="text-emerald-500" size={24} />
                         Relatórios Oficiais (SEEDF)
                     </h2>
 

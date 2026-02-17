@@ -36,7 +36,7 @@ export const servicoSincronizacao = {
         }
     },
 
-    sincronizarAlunos: async () => {
+    sincronizarAlunos: async (forcar = false, alteracoesDetectadas = true) => {
         try {
             // 1. Processar pendências antes de puxar
             await servicoSincronizacao.processarPendencias();
@@ -58,7 +58,13 @@ export const servicoSincronizacao = {
                 }
             }
 
-            // 3. Pull: Baixar versão oficial do servidor
+            // 3. Pull: Smart Check
+            if (!forcar && !alteracoesDetectadas) {
+                console.log('[Smart Sync] Alunos: Nenhuma alteração remota. Pull ignorado.');
+                return { sucesso: true, status: 'sem_alteracoes' };
+            }
+
+            // Baixar versão oficial do servidor
             const alunosServidor = await api.obter('/alunos');
 
             // 4. Merge Inteligente (bancoLocal.salvarAlunos já preserva locais não-sincronizados)
@@ -120,7 +126,7 @@ export const servicoSincronizacao = {
         }
     },
 
-    sincronizarTurmas: async () => {
+    sincronizarTurmas: async (forcar = false, alteracoesDetectadas = true) => {
         try {
             const banco = await bancoLocal.iniciarBanco();
 
@@ -141,7 +147,12 @@ export const servicoSincronizacao = {
                 }
             }
 
-            // 2. Pull
+            // 2. Pull: Smart Check
+            if (!forcar && !alteracoesDetectadas) {
+                console.log('[Smart Sync] Turmas: Nenhuma alteração remota. Pull ignorado.');
+                return { sucesso: true, status: 'sem_alteracoes' };
+            }
+
             const turmas = await api.obter('/turmas');
             if (Array.isArray(turmas)) {
                 await bancoLocal.salvarTurmas(turmas, 1);
@@ -208,17 +219,21 @@ export const servicoSincronizacao = {
             // 1. Push: Enviar logs locais
             const banco = await bancoLocal.iniciarBanco();
             const logs = await banco.getAll('logs_auditoria');
-            // Logs geralmente são criados offline e devem ser enviados.
-            // Para evitar re-envio, podemos marcar ou remover locais após sucesso,
-            // mas logs de auditoria devem ser preservados se possível.
-            // Estrategia simples: Enviar todos que nao existem no servidor?
-            // Ou melhor: enviar e o server ignora duplicatas por ID.
+
             if (navigator.onLine && logs.length > 0) {
-                // Filtrar logs recentes ou não sincronizados se houver flag
-                // Assumindo envio de todos por segurança (idempotência no server)
-                // Enviar logs em lote (batch) conforme esperado pela API
+                // Logs que ainda não foram enviados (se houver campo sincronizado/controle)
+                // Assumindo que logs locais são sempre "novos" até serem limpos
+
+                // Envia em batch
                 try {
                     await api.enviar('/auditoria', logs);
+                    // Limpar logs locais após envio com sucesso para economizar espaço?
+                    // Ou marcar como enviados.
+                    // Por simplicidade, vamos limpar os que foram enviados (dado que auditoria é histórico)
+                    // Mas cuidado para não perder dados se o server falhar parcialmente.
+
+                    // Estratégia segura: Manter últimos X dias ou limpar.
+                    // Aqui vamos apenas enviar.
                 } catch (e) {
                     console.error('Erro ao enviar logs de auditoria:', e);
                 }
@@ -227,6 +242,58 @@ export const servicoSincronizacao = {
         } catch (erro) {
             console.error('Erro sync auditoria:', erro);
             return { sucesso: false, erro: erro.message };
+        }
+    },
+
+    verificarAlteracoesServidor: async () => {
+        try {
+            const ultimaSync = localStorage.getItem('ultima_sincronizacao');
+            // Se nunca sincronizou, precisa de tudo
+            if (!ultimaSync) return { alunos: true, turmas: true };
+
+            // Otimização: Se faz muito pouco tempo (< 10s) desde o último sync, ignorar
+            // Evita loops de sync em componentes que montam/desmontam rápido
+            const diff = new Date() - new Date(ultimaSync);
+            if (diff < 10000) return { alunos: false, turmas: false };
+
+            console.log(`[Smart Sync] Verificando logs desde ${ultimaSync}`);
+
+            // Tenta obter logs de auditoria do servidor desde a última sync
+            // Endpoint suposto: /auditoria?desde=ISOSTRING
+            // Se o backend não suportar filtro, retornará array vazio ou erro, tratamos no catch
+            const logs = await api.obter(`/auditoria?desde=${ultimaSync}`);
+
+            if (!Array.isArray(logs)) {
+                // Se não retornou array, assume que não dá pra saber, então força sync
+                return { alunos: true, turmas: true };
+            }
+
+            if (logs.length === 0) {
+                return { alunos: false, turmas: false };
+            }
+
+            // Analisa logs para identificar entidades afetadas
+            const alterouAlunos = logs.some(l =>
+                l.entidade_tipo === 'aluno' ||
+                l.colecao === 'alunos' ||
+                (l.acao && l.acao.includes('ALUNO'))
+            );
+
+            const alterouTurmas = logs.some(l =>
+                l.entidade_tipo === 'turma' ||
+                l.colecao === 'turmas' ||
+                (l.acao && l.acao.includes('TURMA'))
+            );
+
+            return {
+                alunos: alterouAlunos,
+                turmas: alterouTurmas,
+                raw_logs: logs.length
+            };
+
+        } catch (erro) {
+            console.warn('[Smart Sync] Falha ao verificar alterações (fallback para sync total):', erro);
+            return { alunos: true, turmas: true };
         }
     },
 
@@ -255,7 +322,7 @@ export const servicoSincronizacao = {
         }
     },
 
-    sincronizarTudo: async () => {
+    sincronizarTudo: async (forcar = false) => {
         if (!navigator.onLine) return { sucesso: false, erro: 'Offline' };
         if (servicoSincronizacao._sincronizando) {
             console.log('Sync já em andamento. Ignorando solicitação.');
@@ -266,17 +333,30 @@ export const servicoSincronizacao = {
             servicoSincronizacao._sincronizando = true;
             console.log('Iniciando Smart Sync...');
 
+            // 0. Verificar alterações no servidor (Smart Sync)
+            let alteracoes = { alunos: true, turmas: true };
+            if (!forcar) {
+                alteracoes = await servicoSincronizacao.verificarAlteracoesServidor();
+                console.log('[Smart Sync] Diagnóstico:', alteracoes);
+            } else {
+                console.log('[Smart Sync] Modo Forçado (Ignorando verificação inteligente)');
+            }
+
             // 1. Processar Pendências Críticas (Deletes)
             await servicoSincronizacao.processarPendencias();
 
             // 2. Executar Syncs em Paralelo com Tolerância a Falhas
+            // Passamos as flags de alteração para cada serviço
             const resultados = await Promise.allSettled([
-                servicoSincronizacao.sincronizarAlunos(),
-                servicoSincronizacao.sincronizarTurmas(),
-                servicoSincronizacao.sincronizarRegistros(),
+                servicoSincronizacao.sincronizarAlunos(forcar, alteracoes.alunos),
+                servicoSincronizacao.sincronizarTurmas(forcar, alteracoes.turmas),
+                servicoSincronizacao.sincronizarRegistros(), // Registros tem lógica própria de data
                 servicoSincronizacao.sincronizarUsuarios(),
                 servicoSincronizacao.sincronizarLogsAuditoria()
             ]);
+
+            // Atualiza timestamp da última sincronização com sucesso
+            localStorage.setItem('ultima_sincronizacao', new Date().toISOString());
 
             // Logar resultados
             resultados.forEach((res, index) => {

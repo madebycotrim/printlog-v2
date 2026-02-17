@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAutenticacao } from '../contexts/ContextoAutenticacao';
 import { ShieldCheck, Chrome, GraduationCap, BookOpen, School } from 'lucide-react';
@@ -9,7 +9,7 @@ export default function Login() {
     const [erro, definirErro] = useState('');
     const [carregando, definirCarregando] = useState(false);
 
-    // Estado removido pois o login admin agora é direto
+    // Estado removido pois o login admin agora ├® direto
 
     const { entrar, sair } = useAutenticacao();
     const navegar = useNavigate();
@@ -20,7 +20,7 @@ export default function Login() {
 
         try {
             // 1. Iniciar Login com Google
-            // Para admin: sugere o email específico. Para usuários: restringe ao domínio institucional.
+            // Para admin: sugere o email espec├¡fico. Para usu├írios: restringe ao dom├¡nio institucional.
             const params = tipo === 'admin'
                 ? { login_hint: 'madebycotrim@gmail.com' }
                 : { hd: 'edu.se.df.gov.br' };
@@ -29,21 +29,21 @@ export default function Login() {
             const usuario = resultado.user;
             const email = usuario.email;
 
-            // 2. Validação de Segurança
+            // 2. Valida├º├úo de Seguran├ºa
             if (tipo === 'admin') {
                 if (email !== 'madebycotrim@gmail.com') {
                     await sair();
-                    throw new Error('ACESSO NEGADO: Este email não tem permissão de administrador.');
+                    throw new Error('ACESSO NEGADO: Este email n├úo tem permiss├úo de administrador.');
                 }
                 toast.success('Bem-vindo, Administrador!');
             } else {
                 // Permite APENAS @edu.se.df.gov.br (Email Institucional Exclusivo)
-                // Opcionalmente ainda validamos aqui caso o 'hd' seja burlado ou o usuário use outra conta
+                // Opcionalmente ainda validamos aqui caso o 'hd' seja burlado ou o usu├írio use outra conta
                 const dominioValido = email.endsWith('@edu.se.df.gov.br');
 
                 if (!dominioValido) {
                     await sair();
-                    throw new Error('ACESSO NEGADO: Apenas emails institucionais (@edu.se.df.gov.br) são permitidos.');
+                    throw new Error('ACESSO NEGADO: Apenas emails institucionais (@edu.se.df.gov.br) s├úo permitidos.');
                 }
                 toast.success('Login realizado com sucesso!');
             }
@@ -59,14 +59,14 @@ export default function Login() {
 
         } catch (error) {
             console.error('Erro no login:', error);
-            // Tratamento de erros do Firebase ou Validação
+            // Tratamento de erros do Firebase ou Valida├º├úo
             let mensagem = error.message;
-            if (error?.code === 'auth/popup-closed-by-user') mensagem = 'Login cancelado pelo usuário.';
-            if (error?.code === 'auth/network-request-failed') mensagem = 'Erro de conexão. Verifique sua internet.';
+            if (error?.code === 'auth/popup-closed-by-user') mensagem = 'Login cancelado pelo usu├írio.';
+            if (error?.code === 'auth/network-request-failed') mensagem = 'Erro de conex├úo. Verifique sua internet.';
 
             definirErro(mensagem);
             toast.error(mensagem);
-            await sair(); // Garante logout em caso de erro pós-auth
+            await sair(); // Garante logout em caso de erro p├│s-auth
         } finally {
             definirCarregando(false);
         }
@@ -77,8 +77,11 @@ export default function Login() {
             {/* Badge Escola Top Right - Minimalista */}
             <div className="absolute top-8 right-8 z-50 flex items-center gap-3 animate-fade-in group cursor-default">
                 <div className="text-right hidden sm:block">
-                    <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest leading-tight">CEM 03</p>
-                    <p className="text-sm font-black text-slate-700 uppercase tracking-tight leading-tight">Taguatinga</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-tight">CEM 03</p>
+                    <p className="text-sm font-black text-slate-700 uppercase tracking-tight leading-tight group-hover:text-indigo-600 transition-colors">Taguatinga</p>
+                </div>
+                <div className="p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm group-hover:border-indigo-200 transition-colors">
+                    <School className="text-indigo-600" size={20} />
                 </div>
             </div>
 
@@ -108,11 +111,11 @@ export default function Login() {
 
                         <div className="relative z-10 space-y-6">
                             <h2 className="text-4xl md:text-5xl font-black text-white leading-[1.1] tracking-tight">
-                                Gestão Escolar <br />
+                                Gest├úo Escolar <br />
                                 <span className="text-indigo-400">Inteligente</span>
                             </h2>
                             <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
-                                Conectando segurança, controle de acesso e frequência em uma única plataforma unificada.
+                                Conectando seguran├ºa, controle de acesso e frequ├¬ncia em uma ├║nica plataforma unificada.
                             </p>
 
                             <div className="flex items-center gap-2 pt-4">

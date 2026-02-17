@@ -131,27 +131,32 @@ export default function Logs() {
                 </div>
 
                 {/* Table Area */}
-                <div className="flex-1 overflow-auto relative">
+                <div className="flex-1 overflow-auto relative custom-scrollbar">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                        <thead className="bg-slate-50/90 backdrop-blur-md sticky top-0 z-10 shadow-sm">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Ação</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Usuário</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Entidade</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Data / Hora</th>
-                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Ações</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Ação</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Usuário</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Entidade</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Data / Hora</th>
+                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Ações</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-50">
                             {logsPaginados.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="p-8 text-center text-slate-400 font-medium">Nenhum registro de auditoria encontrado.</td>
+                                    <td colSpan="5" className="p-12 text-center text-slate-400 font-medium">
+                                        <div className="flex flex-col items-center justify-center opacity-50">
+                                            <Activity size={40} className="mb-2" />
+                                            <span>Nenhum registro de auditoria encontrado.</span>
+                                        </div>
+                                    </td>
                                 </tr>
                             ) : logsPaginados.map((log) => (
-                                <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
+                                <tr key={log.id} className="hover:bg-indigo-50/50 transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+                                            <div className="p-2 bg-slate-100 rounded-lg text-slate-500 group-hover:bg-white group-hover:text-indigo-600 transition-colors shadow-sm">
                                                 <Activity size={16} />
                                             </div>
                                             <StatusBadge action={log.acao} />
@@ -159,25 +164,25 @@ export default function Logs() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            <User size={14} className="text-slate-400" />
-                                            <span className="text-sm font-medium text-slate-700">{log.usuario_email}</span>
+                                            <User size={14} className="text-slate-300 group-hover:text-indigo-400" />
+                                            <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">{log.usuario_email}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-xs font-mono bg-slate-100 px-2 py-1 rounded text-slate-600">
+                                        <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 px-2 py-1 rounded-lg text-slate-500 border border-slate-200 group-hover:border-indigo-200 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all">
                                             {log.entidade_tipo}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2 text-sm text-slate-500 font-mono">
-                                            <Clock size={14} />
+                                        <div className="flex items-center gap-2 text-xs font-mono font-medium text-slate-500">
+                                            <Clock size={12} className="text-slate-300" />
                                             {log.timestamp ? format(new Date(log.timestamp), "dd/MM/yyyy HH:mm:ss") : '-'}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right flex justify-end gap-2">
                                         <button
                                             onClick={() => definirLogSelecionado(log)}
-                                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-indigo-100 rounded-lg transition-all shadow-sm hover:shadow-md"
                                             title="Ver Detalhes"
                                         >
                                             <Eye size={18} />
@@ -186,7 +191,7 @@ export default function Logs() {
                                         {EH_ADMIN_SUPREMO && (
                                             <button
                                                 onClick={() => excluirLog(log.id)}
-                                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-white border border-transparent hover:border-rose-100 rounded-lg transition-all shadow-sm hover:shadow-md"
                                                 title="Excluir Registro (Admin Supremo)"
                                             >
                                                 <Trash2 size={18} />
