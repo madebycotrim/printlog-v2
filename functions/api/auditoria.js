@@ -45,4 +45,32 @@ async function processarRecebimentoLogs(contexto) {
 }
 
 // Exportações com Alias
-export { processarRecebimentoLogs as onRequestPost };
+// Handler para GET (Smart Sync)
+async function processarVerificacaoLogs(contexto) {
+    const { request, env } = contexto;
+    const url = new URL(request.url);
+    const desde = url.searchParams.get('desde');
+
+    try {
+        let query = `SELECT * FROM logs_auditoria`;
+        const params = [];
+
+        if (desde) {
+            query += ` WHERE timestamp > ?`;
+            params.push(desde);
+        }
+
+        query += ` ORDER BY timestamp DESC LIMIT 500`;
+
+        const { results } = await env.DB_SCAE.prepare(query).bind(...params).all();
+        return Response.json(results);
+    } catch (erro) {
+        return new Response(JSON.stringify({ erro: erro.message }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+}
+
+// Exportações com Alias
+export { processarRecebimentoLogs as onRequestPost, processarVerificacaoLogs as onRequestGet };

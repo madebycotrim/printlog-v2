@@ -14,7 +14,8 @@ import {
     FileCheck,
     Loader2,
     RefreshCw,
-    CloudDownload
+    CloudDownload,
+    Clock
 } from 'lucide-react';
 import { format, subDays, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
