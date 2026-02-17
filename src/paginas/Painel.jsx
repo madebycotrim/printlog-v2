@@ -26,7 +26,7 @@ import {
     Filler,
     ArcElement
 } from 'chart.js';
-import { format, subDays, isSameDay, isWeekend, startOfHour, parseISO } from 'date-fns';
+import { format, subDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 ChartJS.register(

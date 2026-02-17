@@ -14,16 +14,12 @@ import {
     FileCheck,
     Clock
 } from 'lucide-react';
-import { format, subDays, parseISO, startOfDay, eachDayOfInterval } from 'date-fns';
+import { format, subDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-
-// Componentes do ChartJS
-
-// Componentes do ChartJS - REMOVIDOS
 
 
 export default function Relatorios() {

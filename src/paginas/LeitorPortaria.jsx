@@ -9,10 +9,8 @@ import {
     ArrowLeft,
     Zap,
     ShieldCheck,
-    AlertTriangle,
     UserX,
     Clock,
-    X,
     Wifi,
     WifiOff
 } from 'lucide-react';

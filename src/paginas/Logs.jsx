@@ -23,7 +23,6 @@ import ModalUniversal from '../componentes/ModalUniversal';
 export default function Logs() {
     const { usuarioAtual } = useAutenticacao();
     const [logs, definirLogs] = useState([]);
-    const [, definirCarregando] = useState(true);
     const [busca, definirBusca] = useState('');
     const [pagina, definirPagina] = useState(1);
     const [logSelecionado, definirLogSelecionado] = useState(null);
@@ -37,7 +36,6 @@ export default function Logs() {
 
     const carregarLogs = async () => {
         try {
-            definirCarregando(true);
             const todosLogs = await bancoLocal.listarLogs();
 
             // Ordenar por data (mais recente primeiro)
@@ -47,8 +45,6 @@ export default function Logs() {
         } catch (e) {
             console.error(e);
             toast.error("Erro ao carregar logs.");
-        } finally {
-            definirCarregando(false);
         }
     };
 
