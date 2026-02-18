@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react';
 
-export function Header() {
-    const [scrolled, setScrolled] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+export function Cabecalho() {
+    const [rolouTela, definirRolouTela] = useState(false);
+    const [menuMobileAberto, definirMenuMobileAberto] = useState(false);
 
     useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 20);
+        const lidarRolagem = () => {
+            definirRolouTela(window.scrollY > 20);
         };
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', lidarRolagem);
+        return () => window.removeEventListener('scroll', lidarRolagem);
     }, []);
 
     return (
         <>
             <header
-                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 border-b ${scrolled
+                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 border-b ${rolouTela
                     ? 'bg-[#050505]/95 backdrop-blur-xl border-zinc-800/80 py-3 shadow-lg shadow-black/20'
                     : 'bg-transparent border-transparent py-6'
                     }`}
@@ -37,7 +37,7 @@ export function Header() {
                         </span>
                     </div>
 
-                    {/* Desktop Actions */}
+                    {/* Ações Desktop */}
                     <div className="hidden lg:flex items-center gap-4">
                         <a
                             href="/cadastro"
@@ -54,31 +54,31 @@ export function Header() {
                         </a>
                     </div>
 
-                    {/* Mobile Menu Button */}
+                    {/* Botão Menu Mobile */}
                     <button
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        onClick={() => definirMenuMobileAberto(!menuMobileAberto)}
                         className="lg:hidden relative z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 transition-all duration-300"
-                        aria-label="Toggle menu"
+                        aria-label="Alternar menu"
                     >
-                        <span className={`w-6 h-0.5 bg-white rounded-full transition-all duration-300 ${mobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
-                        <span className={`w-6 h-0.5 bg-white rounded-full transition-all duration-300 ${mobileMenuOpen ? 'opacity-0' : ''}`}></span>
-                        <span className={`w-6 h-0.5 bg-white rounded-full transition-all duration-300 ${mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
+                        <span className={`w-6 h-0.5 bg-white rounded-full transition-all duration-300 ${menuMobileAberto ? 'rotate-45 translate-y-2' : ''}`}></span>
+                        <span className={`w-6 h-0.5 bg-white rounded-full transition-all duration-300 ${menuMobileAberto ? 'opacity-0' : ''}`}></span>
+                        <span className={`w-6 h-0.5 bg-white rounded-full transition-all duration-300 ${menuMobileAberto ? '-rotate-45 -translate-y-2' : ''}`}></span>
                     </button>
                 </div>
             </header>
 
-            {/* Mobile Menu Overlay */}
+            {/* Overlay Menu Mobile */}
             <div
-                className={`fixed inset-0 z-40 lg:hidden transition-all duration-500 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                className={`fixed inset-0 z-40 lg:hidden transition-all duration-500 ${menuMobileAberto ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
             >
                 <div
                     className="absolute inset-0 bg-black/95 backdrop-blur-xl"
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={() => definirMenuMobileAberto(false)}
                 />
 
                 <div className="relative h-full flex flex-col items-center justify-center gap-8 p-6">
                     <div
-                        className={`flex flex-col items-center gap-4 w-full max-w-xs transition-all duration-500 ${mobileMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+                        className={`flex flex-col items-center gap-4 w-full max-w-xs transition-all duration-500 ${menuMobileAberto ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
                         style={{ transitionDelay: '200ms' }}
                     >
                         <a

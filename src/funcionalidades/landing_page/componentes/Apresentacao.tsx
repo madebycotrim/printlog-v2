@@ -1,32 +1,29 @@
-import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useRef, useState, Fragment } from 'react';
 
-/* ─── Types ────────────────────────────────────────────────────────────── */
-interface Line { d: string; x1: number; y1: number; x2: number; y2: number; color: string; }
+/* ─── Tipos ────────────────────────────────────────────────────────────── */
+interface Linha { d: string; x1: number; y1: number; x2: number; y2: number; cor: string; }
 
-
-
-
-/* ─── Floating Badge (forwardRef so parent can measure its DOM position) ── */
-const FloatingBadge = forwardRef<HTMLDivElement, {
+/* ─── Emblema Flutuante (forwardRef para medição de posição) ── */
+const EmblemaFlutuante = forwardRef<HTMLDivElement, {
     children: React.ReactNode;
-    delay?: string;
+    atraso?: string;
     className?: string;
     style?: React.CSSProperties;
-}>(({ children, delay = '0s', className = '', style }, ref) => (
+}>(({ children, atraso: delay = '0s', className = '', style }, ref) => (
     <div
         ref={ref}
         className={`absolute bg-[#0c0c0e]/90 backdrop-blur-xl border border-white/8 rounded-2xl shadow-2xl ${className}`}
-        style={{ animation: `heroFloat 5s ease-in-out infinite`, animationDelay: delay, ...style }}
+        style={{ animation: `flutuacaoApresentacao 5s ease-in-out infinite`, animationDelay: delay, ...style }}
     >
         {children}
     </div>
 ));
-FloatingBadge.displayName = 'FloatingBadge';
+EmblemaFlutuante.displayName = 'EmblemaFlutuante';
 
-/* ─── Helper: get rect relative to a parent element ───────────────────── */
-function relRect(el: HTMLElement, parent: HTMLElement) {
+/* ─── Auxiliar: obter rect relativo a um elemento pai ───────────────────── */
+function rectRel(el: HTMLElement, pai: HTMLElement) {
     const er = el.getBoundingClientRect();
-    const pr = parent.getBoundingClientRect();
+    const pr = pai.getBoundingClientRect();
     return {
         left: er.left - pr.left,
         top: er.top - pr.top,
@@ -39,247 +36,248 @@ function relRect(el: HTMLElement, parent: HTMLElement) {
     };
 }
 
-/* ─── Main Hero ────────────────────────────────────────────────────────── */
-export function Hero() {
-    const [visible, setVisible] = useState(false);
-    const [scrollY, setScrollY] = useState(0);
-    const [tick, setTick] = useState(0);
-    const [lines, setLines] = useState<Line[]>([]);
+/* ─── Apresentação Principal ────────────────────────────────────────────────────────── */
+export function Apresentacao() {
+    const [visivel, definirVisivel] = useState(false);
+    const [rolagemY, definirRolagemY] = useState(0);
+    const [tick, definirTick] = useState(0);
+    const [linhas, definirLinhas] = useState<Linha[]>([]);
 
-    // Refs for dynamic line measurement
-    const wrapperRef = useRef<HTMLDivElement>(null);
-    const cardRef = useRef<HTMLDivElement>(null);
-    const badge1Ref = useRef<HTMLDivElement>(null); // Lucro Garantido (left)
-    const badge2Ref = useRef<HTMLDivElement>(null); // Rolo no Fim (right-bottom)
-    const badge3Ref = useRef<HTMLDivElement>(null); // Sugestão IA (right-top)
+    // Refs para medição dinâmica de linhas
+    const refEnvelope = useRef<HTMLDivElement>(null);
+    const refCartao = useRef<HTMLDivElement>(null);
+    const refEmblema1 = useRef<HTMLDivElement>(null); // Lucro Garantido (esquerda)
+    const refEmblema2 = useRef<HTMLDivElement>(null); // Rolo no Fim (direita-baixo)
+    const refEmblema3 = useRef<HTMLDivElement>(null); // Sugestão IA (direita-cima)
 
-    const computeLines = useCallback(() => {
-        const w = wrapperRef.current;
-        const c = cardRef.current;
-        const b1 = badge1Ref.current;
-        const b2 = badge2Ref.current;
-        const b3 = badge3Ref.current;
-        if (!w || !c) return;
+    const calcularLinhas = useCallback(() => {
+        const env = refEnvelope.current;
+        const cart = refCartao.current;
+        const emb1 = refEmblema1.current;
+        const emb2 = refEmblema2.current;
+        const emb3 = refEmblema3.current;
+        if (!env || !cart) return;
 
-        const card = relRect(c, w);
-        const result: Line[] = [];
+        const cartao = rectRel(cart, env);
+        const resultado: Linha[] = [];
 
-        // Badge 1 — Lucro Garantido (left side) → left edge of card
-        if (b1) {
-            const b = relRect(b1, w);
-            // Connect right edge of badge to left edge of card, at badge vertical center
+        // Emblema 1 — Lucro Garantido (lado esquerdo) → borda esquerda do cartão
+        if (emb1) {
+            const b = rectRel(emb1, env);
+            // Conecta borda direita do emblema à borda esquerda do cartão
             const x1 = b.right;
             const y1 = b.cy;
-            const x2 = card.left;
-            const y2 = card.top + card.height * 0.25;
+            const x2 = cartao.left;
+            const y2 = cartao.top + cartao.height * 0.25;
             const cx1 = x1 + (x2 - x1) * 0.5;
             const cy1 = y1;
             const cx2 = x2 - (x2 - x1) * 0.3;
             const cy2 = y2;
-            result.push({
+            resultado.push({
                 d: `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`,
                 x1, y1, x2, y2,
-                color: 'rgba(16,185,129,0.55)',
+                cor: 'rgba(16,185,129,0.55)',
             });
         }
 
-        // Badge 2 — Rolo no Fim (right side, bottom) → right edge of card
-        if (b2) {
-            const b = relRect(b2, w);
+        // Emblema 2 — Rolo no Fim (lado direito, baixo) → borda direita do cartão
+        if (emb2) {
+            const b = rectRel(emb2, env);
             const x1 = b.left;
             const y1 = b.cy;
-            const x2 = card.right;
-            const y2 = card.top + card.height * 0.78;
+            const x2 = cartao.right;
+            const y2 = cartao.top + cartao.height * 0.78;
             const cx1 = x1 - (x1 - x2) * 0.5;
             const cy1 = y1;
             const cx2 = x2 + (x1 - x2) * 0.3;
             const cy2 = y2;
-            result.push({
+            resultado.push({
                 d: `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`,
                 x1, y1, x2, y2,
-                color: 'rgba(244,63,94,0.55)',
+                cor: 'rgba(244,63,94,0.55)',
             });
         }
 
-        // Badge 3 — Sugestão IA (right side, top) → right edge of card
-        if (b3) {
-            const b = relRect(b3, w);
+        // Emblema 3 — Sugestão IA (lado direito, cima) → borda direita do cartão
+        if (emb3) {
+            const b = rectRel(emb3, env);
             const x1 = b.left;
             const y1 = b.cy;
-            const x2 = card.right;
-            const y2 = card.top + card.height * 0.18;
+            const x2 = cartao.right;
+            const y2 = cartao.top + cartao.height * 0.18;
             const cx1 = x1 - (x1 - x2) * 0.5;
             const cy1 = y1;
             const cx2 = x2 + (x1 - x2) * 0.3;
             const cy2 = y2;
-            result.push({
+            resultado.push({
                 d: `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`,
                 x1, y1, x2, y2,
-                color: 'rgba(99,102,241,0.55)',
+                cor: 'rgba(99,102,241,0.55)',
             });
         }
 
-        setLines(result);
+        definirLinhas(resultado);
     }, []);
 
     useEffect(() => {
-        const t = setTimeout(() => setVisible(true), 80);
-        const onScroll = () => setScrollY(window.scrollY);
-        window.addEventListener('scroll', onScroll, { passive: true });
-        const interval = setInterval(() => setTick(p => p + 1), 3200);
+        const t = setTimeout(() => definirVisivel(true), 80);
+        const aoRolar = () => definirRolagemY(window.scrollY);
+        window.addEventListener('scroll', aoRolar, { passive: true });
+        const intervalo = setInterval(() => definirTick(p => p + 1), 3200);
 
-        // Measure after paint
+        // Medir após pintura
         const raf = requestAnimationFrame(() => {
-            setTimeout(computeLines, 200);
+            setTimeout(calcularLinhas, 200);
         });
 
-        // Re-measure on resize
-        const ro = new ResizeObserver(computeLines);
-        if (wrapperRef.current) ro.observe(wrapperRef.current);
+        // Re-medir ao redimensionar
+        const ro = new ResizeObserver(calcularLinhas);
+        if (refEnvelope.current) ro.observe(refEnvelope.current);
 
         return () => {
             clearTimeout(t);
-            window.removeEventListener('scroll', onScroll);
-            clearInterval(interval);
+            window.removeEventListener('scroll', aoRolar);
+            clearInterval(intervalo);
             cancelAnimationFrame(raf);
             ro.disconnect();
         };
-    }, [computeLines]);
+    }, [calcularLinhas]);
 
-    const prices = ['R$ 38,50', 'R$ 42,00', 'R$ 35,90', 'R$ 51,20'];
-    const currentPrice = prices[tick % prices.length];
+    const precos = ['R$ 38,50', 'R$ 42,00', 'R$ 35,90', 'R$ 51,20'];
+    const precoAtual = precos[tick % precos.length];
 
     return (
         <>
-            {/* ── Styles ── */}
+            {/* ── Estilos ── */}
             <style>{`
-                @keyframes heroFloat {
+                @keyframes flutuacaoApresentacao {
                     0%,100% { transform: translateY(0px) rotate(0deg); }
                     50%      { transform: translateY(-10px) rotate(0.5deg); }
                 }
-                @keyframes heroGlow {
+                @keyframes brilhoApresentacao {
                     0%,100% { opacity: .5; transform: scale(1); }
                     50%      { opacity: 1;  transform: scale(1.08); }
                 }
-                @keyframes heroPulse {
+                @keyframes pulsoApresentacao {
                     0%,100% { box-shadow: 0 0 0 0 rgba(14,165,233,.4); }
                     50%      { box-shadow: 0 0 0 12px rgba(14,165,233,0); }
                 }
-                @keyframes heroScan {
+                @keyframes varreduraApresentacao {
                     0%   { transform: translateY(-100%); }
                     100% { transform: translateY(400%); }
                 }
-                @keyframes heroShimmer {
+                @keyframes cintilanciaApresentacao {
                     0%   { background-position: -200% center; }
                     100% { background-position:  200% center; }
                 }
-                @keyframes heroFadeUp {
+                @keyframes surgirCimaApresentacao {
                     from { opacity:0; transform:translateY(24px); }
                     to   { opacity:1; transform:translateY(0); }
                 }
-                @keyframes heroSlideRight {
+                @keyframes deslizarDireitaApresentacao {
                     from { opacity:0; transform:translateX(-24px); }
                     to   { opacity:1; transform:translateX(0); }
                 }
-                @keyframes heroSlideLeft {
+                @keyframes deslizarEsquerdaApresentacao {
                     from { opacity:0; transform:translateX(24px); }
                     to   { opacity:1; transform:translateX(0); }
                 }
-                @keyframes heroPriceFlip {
+                @keyframes virarPrecoApresentacao {
                     0%   { opacity:0; transform:translateY(-12px); }
                     15%  { opacity:1; transform:translateY(0); }
                     85%  { opacity:1; transform:translateY(0); }
                     100% { opacity:0; transform:translateY(12px); }
                 }
-                @keyframes heroGridMove {
+                @keyframes movimentoGradeApresentacao {
                     from { background-position: 0 0; }
-                    to   { background-position: 28px 28px; }
+                    to   { background-position: 40px 40px; }
                 }
-                @keyframes heroBeam {
+                @keyframes feixeApresentacao {
                     0%   { transform: translateX(-100%) skewX(-15deg); opacity:0; }
                     10%  { opacity:1; }
                     90%  { opacity:1; }
                     100% { transform: translateX(400%) skewX(-15deg); opacity:0; }
                 }
-                @keyframes dashMarch {
+                @keyframes marchaTraco {
                     to { stroke-dashoffset: -24; }
                 }
-                @keyframes heroScrollDot {
+                @keyframes pontoRolagemApresentacao {
                     0%   { opacity: 1; transform: translateY(0); }
                     60%  { opacity: 0; transform: translateY(10px); }
                     61%  { opacity: 0; transform: translateY(0); }
                     100% { opacity: 1; transform: translateY(0); }
                 }
-                @keyframes heroLineRun {
+                @keyframes corridaLinhaApresentacao {
                     0%   { transform: translateX(-50%) translateY(0);    opacity: 0; }
                     10%  { opacity: 1; }
                     80%  { opacity: 1; }
                     100% { transform: translateX(-50%) translateY(36px); opacity: 0; }
                 }
 
-                .hero-shimmer-text {
+                .texto-cintilante-apresentacao {
                     background: linear-gradient(90deg, #38bdf8 0%, #7dd3fc 30%, #fff 50%, #7dd3fc 70%, #38bdf8 100%);
                     background-size: 200% auto;
                     -webkit-background-clip: text;
                     background-clip: text;
                     -webkit-text-fill-color: transparent;
-                    animation: heroShimmer 4s linear infinite;
+                    animation: cintilanciaApresentacao 4s linear infinite;
                 }
-                .hero-card-glow {
+                .brilho-cartao-apresentacao {
                     box-shadow:
                         0 0 0 1px rgba(255,255,255,.06),
                         0 32px 80px -12px rgba(0,0,0,.9),
                         0 0 60px -20px rgba(14,165,233,.15);
                 }
-                .hero-card-glow:hover {
+                .brilho-cartao-apresentacao:hover {
                     box-shadow:
                         0 0 0 1px rgba(14,165,233,.2),
                         0 40px 100px -12px rgba(0,0,0,.95),
                         0 0 80px -15px rgba(14,165,233,.3);
                 }
-                .conn-line {
+                .linha-conector {
                     fill: none;
                     stroke-width: 1.5;
                     stroke-dasharray: 5 4;
-                    animation: dashMarch 1.4s linear infinite;
+                    animation: marchaTraco 1.4s linear infinite;
                 }
             `}</style>
 
             <section
-                id="hero"
+                id="apresentacao"
                 className="relative min-h-screen flex items-center pt-28 pb-24 overflow-hidden"
                 style={{ background: '#050507' }}
             >
-                {/* ── Animated Grid ── */}
-                <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                        backgroundImage: 'linear-gradient(to right,rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.04) 1px,transparent 1px)',
-                        backgroundSize: '28px 28px',
-                        animation: 'heroGridMove 8s linear infinite',
-                        transform: `translateY(${scrollY * 0.4}px)`,
-                    }}
-                />
-
-                {/* ── Vignette ── */}
+                {/* ── Vinheta ── */}
                 <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 0%, transparent 0%, #050507 70%)' }} />
                 <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 100%, transparent 0%, #050507 60%)' }} />
 
-                {/* ── Glow Orbs ── */}
-                <div className="absolute pointer-events-none" style={{ top: '-10%', left: '50%', transform: `translateX(-50%) translateY(${scrollY * 0.25}px)`, width: 800, height: 500, background: 'radial-gradient(ellipse, rgba(14,165,233,.18) 0%, transparent 70%)', animation: 'heroGlow 6s ease-in-out infinite' }} />
-                <div className="absolute pointer-events-none" style={{ top: '20%', left: '15%', width: 400, height: 400, background: 'radial-gradient(ellipse, rgba(99,102,241,.12) 0%, transparent 70%)', animation: 'heroGlow 8s ease-in-out infinite 2s' }} />
-                <div className="absolute pointer-events-none" style={{ top: '30%', right: '10%', width: 350, height: 350, background: 'radial-gradient(ellipse, rgba(16,185,129,.1) 0%, transparent 70%)', animation: 'heroGlow 7s ease-in-out infinite 1s' }} />
+                {/* ── Orbes de Brilho ── */}
+                <div className="absolute pointer-events-none" style={{ top: '-10%', left: '50%', transform: `translateX(-50%) translateY(${rolagemY * 0.25}px)`, width: 800, height: 500, background: 'radial-gradient(ellipse, rgba(14,165,233,.18) 0%, transparent 70%)', animation: 'brilhoApresentacao 6s ease-in-out infinite' }} />
+                <div className="absolute pointer-events-none" style={{ top: '20%', left: '15%', width: 400, height: 400, background: 'radial-gradient(ellipse, rgba(99,102,241,.12) 0%, transparent 70%)', animation: 'brilhoApresentacao 8s ease-in-out infinite 2s' }} />
+                <div className="absolute pointer-events-none" style={{ top: '30%', right: '10%', width: 350, height: 350, background: 'radial-gradient(ellipse, rgba(16,185,129,.1) 0%, transparent 70%)', animation: 'brilhoApresentacao 7s ease-in-out infinite 1s' }} />
 
-                {/* ── Content ── */}
+                {/* ── Grade Animada (Camada sobre efeitos) ── */}
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                        backgroundImage: 'linear-gradient(to right,rgba(14,165,233,.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(14,165,233,.04) 1px,transparent 1px)',
+                        backgroundSize: '40px 40px',
+                        animation: 'movimentoGradeApresentacao 20s linear infinite',
+                        transform: `translateY(${rolagemY * 0.4}px)`,
+                        zIndex: 1
+                    }}
+                />
+
+                {/* ── Conteúdo ── */}
                 <div className="container mx-auto px-6 z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20 items-center">
 
-                    {/* ── LEFT ── */}
-                    <div className="flex flex-col items-start" style={{ animation: visible ? 'heroFadeUp .8s ease both' : 'none' }}>
+                    {/* ── ESQUERDA ── */}
+                    <div className="flex flex-col items-start" style={{ animation: visivel ? 'surgirCimaApresentacao .8s ease both' : 'none' }}>
 
-                        {/* Badge */}
+                        {/* Emblema */}
                         <div
                             className="inline-flex items-center gap-2.5 px-4 py-2 mb-10 rounded-full border"
-                            style={{ background: 'rgba(14,165,233,.08)', borderColor: 'rgba(14,165,233,.25)', animation: visible ? 'heroSlideRight .7s .1s ease both' : 'none' }}
+                            style={{ background: 'rgba(14,165,233,.08)', borderColor: 'rgba(14,165,233,.25)', animation: visivel ? 'deslizarDireitaApresentacao .7s .1s ease both' : 'none' }}
                         >
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
@@ -288,31 +286,31 @@ export function Hero() {
                             <span className="text-sky-400 text-[11px] font-bold tracking-[.2em] uppercase font-mono">Beta Público Liberado</span>
                         </div>
 
-                        {/* Headline */}
+                        {/* Título Principal */}
                         <h1
                             className="font-black leading-[.88] tracking-tighter mb-8 uppercase"
-                            style={{ fontSize: 'clamp(3.2rem, 7vw, 5.5rem)', animation: visible ? 'heroFadeUp .8s .2s ease both' : 'none', opacity: 0 }}
+                            style={{ fontSize: 'clamp(3.2rem, 7vw, 5.5rem)', animation: visivel ? 'surgirCimaApresentacao .8s .2s ease both' : 'none', opacity: 0 }}
                         >
                             <span className="text-white block">Transforme</span>
-                            <span className="hero-shimmer-text block italic">Filamento</span>
+                            <span className="texto-cintilante-apresentacao block italic">Filamento</span>
                             <span className="text-white block">em Lucro.</span>
                         </h1>
 
-                        {/* Sub */}
-                        <p className="text-zinc-400 text-lg leading-relaxed mb-10 max-w-lg" style={{ animation: visible ? 'heroFadeUp .8s .35s ease both' : 'none', opacity: 0 }}>
+                        {/* Subtítulo */}
+                        <p className="text-zinc-400 text-lg leading-relaxed mb-10 max-w-lg" style={{ animation: visivel ? 'surgirCimaApresentacao .8s .35s ease both' : 'none', opacity: 0 }}>
                             Pare de precificar no <span className="text-white font-semibold">"chutômetro"</span>. Gestão profissional para makers e farms de impressão 3D — calcule custos reais, gerencie materiais e garanta lucro em cada peça.
                         </p>
 
 
 
-                        {/* CTAs */}
-                        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto" style={{ animation: visible ? 'heroFadeUp .8s .55s ease both' : 'none', opacity: 0 }}>
+                        {/* Chamadas para Ação (CTAs) */}
+                        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto" style={{ animation: visivel ? 'surgirCimaApresentacao .8s .55s ease both' : 'none', opacity: 0 }}>
                             <button
                                 onClick={() => window.location.href = '/cadastro'}
                                 className="group relative px-8 py-4 rounded-xl font-bold text-sm tracking-wide uppercase overflow-hidden transition-all duration-300 hover:scale-[1.03] hover:-translate-y-0.5"
-                                style={{ background: 'linear-gradient(135deg, #0ea5e9, #2563eb)', color: '#fff', animation: 'heroPulse 2.5s ease-in-out infinite', boxShadow: '0 0 40px -8px rgba(14,165,233,.6)' }}
+                                style={{ background: 'linear-gradient(135deg, #0ea5e9, #2563eb)', color: '#fff', animation: 'pulsoApresentacao 2.5s ease-in-out infinite', boxShadow: '0 0 40px -8px rgba(14,165,233,.6)' }}
                             >
-                                <div className="absolute inset-0 w-1/3 h-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent)', animation: 'heroBeam 3s ease-in-out infinite 1s' }} />
+                                <div className="absolute inset-0 w-1/3 h-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent)', animation: 'feixeApresentacao 3s ease-in-out infinite 1s' }} />
                                 <span className="relative z-10 flex items-center justify-center gap-2">
                                     Começar Grátis
                                     <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,12 +322,12 @@ export function Hero() {
 
                         </div>
 
-                        {/* Trust */}
-                        <div className="mt-10 flex items-center gap-3" style={{ animation: visible ? 'heroFadeUp .8s .65s ease both' : 'none', opacity: 0 }}>
+                        {/* Selo de Confiança */}
+                        <div className="mt-10 flex items-center gap-3" style={{ animation: visivel ? 'surgirCimaApresentacao .8s .65s ease both' : 'none', opacity: 0 }}>
                             <div className="flex -space-x-2">
-                                {(['#0ea5e9', '#6366f1', '#10b981', '#f59e0b'] as const).map((c, i) => (
+                                {(['#06b6d4', '#0ea5e9', '#0284c7', '#2563eb', '#6366f1', '#10b981', '#fbbf24', '#f59e0b'] as const).map((c, i) => (
                                     <div key={i} className="w-7 h-7 rounded-full border-2 border-[#050507] flex items-center justify-center text-[10px] font-bold text-white" style={{ background: c, zIndex: 4 - i }}>
-                                        {['M', 'A', 'R', 'K'][i]}
+                                        {['P', 'R', 'I', 'N', 'T', 'L', 'O', 'G'][i]}
                                     </div>
                                 ))}
                             </div>
@@ -339,58 +337,58 @@ export function Hero() {
                         </div>
                     </div>
 
-                    {/* ── RIGHT — Mockup ── */}
+                    {/* ── DIREITA — Mockup ── */}
                     <div
-                        ref={wrapperRef}
+                        ref={refEnvelope}
                         className="relative flex items-center justify-center"
                         style={{
-                            animation: visible ? 'heroSlideLeft .9s .3s ease both' : 'none',
+                            animation: visivel ? 'deslizarEsquerdaApresentacao .9s .3s ease both' : 'none',
                             opacity: 0,
                             minHeight: 560,
                             padding: '60px 150px',
                             overflow: 'visible',
                         }}
                     >
-                        {/* Glow behind card */}
-                        <div className="absolute pointer-events-none" style={{ inset: '-40px', background: 'radial-gradient(ellipse at center, rgba(14,165,233,.12) 0%, transparent 65%)', animation: 'heroGlow 5s ease-in-out infinite' }} />
+                        {/* Brilho atrás do cartão */}
+                        <div className="absolute pointer-events-none" style={{ inset: '-40px', background: 'radial-gradient(ellipse at center, rgba(14,165,233,.12) 0%, transparent 65%)', animation: 'brilhoApresentacao 5s ease-in-out infinite' }} />
 
-                        {/* ── Dynamic SVG connector lines ── */}
-                        {lines.length > 0 && (
+                        {/* ── Linhas conectoras SVG dinâmicas ── */}
+                        {linhas.length > 0 && (
                             <svg
                                 className="absolute pointer-events-none hidden lg:block"
                                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible', zIndex: 15 }}
                             >
-                                {lines.map((l, i) => (
+                                {linhas.map((l, i) => (
                                     <g key={i}>
                                         <path
-                                            className="conn-line"
+                                            className="linha-conector"
                                             d={l.d}
-                                            stroke={l.color}
+                                            stroke={l.cor}
                                             style={{ animationDelay: `${i * 0.45}s` }}
                                         />
-                                        {/* Dot at badge end */}
-                                        <circle cx={l.x1} cy={l.y1} r="3.5" fill={l.color} />
-                                        {/* Dot at card end */}
-                                        <circle cx={l.x2} cy={l.y2} r="3.5" fill={l.color} />
-                                        {/* Subtle glow dot at card end */}
-                                        <circle cx={l.x2} cy={l.y2} r="6" fill={l.color} opacity="0.2" />
+                                        {/* Ponto no final do emblema */}
+                                        <circle cx={l.x1} cy={l.y1} r="3.5" fill={l.cor} />
+                                        {/* Ponto no final do cartão */}
+                                        <circle cx={l.x2} cy={l.y2} r="3.5" fill={l.cor} />
+                                        {/* Ponto de brilho sutil no final do cartão */}
+                                        <circle cx={l.x2} cy={l.y2} r="6" fill={l.cor} opacity="0.2" />
                                     </g>
                                 ))}
                             </svg>
                         )}
 
-                        {/* ── Main Card ── */}
+                        {/* ── Cartão Principal ── */}
                         <div
-                            ref={cardRef}
-                            className="relative hero-card-glow rounded-3xl transition-all duration-500 hover:-translate-y-2 group"
+                            ref={refCartao}
+                            className="relative brilho-cartao-apresentacao rounded-3xl transition-all duration-500 hover:-translate-y-2 group"
                             style={{ background: 'linear-gradient(145deg, #0e0e12, #0a0a0d)', border: '1px solid rgba(255,255,255,.07)', width: 380, padding: '28px' }}
                         >
-                            {/* Scan line */}
+                            {/* Linha de varredura */}
                             <div className="absolute left-0 right-0 h-px pointer-events-none overflow-hidden rounded-3xl" style={{ top: 0, bottom: 0 }}>
-                                <div style={{ position: 'absolute', left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(14,165,233,.6), transparent)', animation: 'heroScan 4s ease-in-out infinite' }} />
+                                <div style={{ position: 'absolute', left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(14,165,233,.6), transparent)', animation: 'varreduraApresentacao 4s ease-in-out infinite' }} />
                             </div>
 
-                            {/* Card Header */}
+                            {/* Cabeçalho do Cartão */}
                             <div className="flex justify-between items-start mb-6 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,.06)' }}>
                                 <div>
                                     <div className="flex items-center gap-1.5 mb-1.5">
@@ -402,35 +400,63 @@ export function Hero() {
                                 </div>
                                 <div className="text-right">
                                     <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Preço Final</div>
-                                    <div key={currentPrice} className="text-3xl font-black font-mono tracking-tighter group-hover:text-sky-400 transition-colors" style={{ color: '#fff', animation: 'heroPriceFlip 3.2s ease both' }}>
-                                        {currentPrice}
+                                    <div key={precoAtual} className="text-3xl font-black font-mono tracking-tighter group-hover:text-sky-400 transition-colors" style={{ color: '#fff', animation: 'virarPrecoApresentacao 3.2s ease both' }}>
+                                        {precoAtual}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Cost Breakdown */}
-                            <div className="space-y-3 mb-6">
+                            {/* Detalhamento de Custos */}
+                            {/* Detalhamento de Custos - Layout de Colunas */}
+                            <div className="flex items-center justify-between gap-2 mb-8 px-1">
                                 {[
-                                    { icon: '⚡', label: 'Energia', sub: '12h 45m', value: 'R$ 5,20', color: '#0ea5e9', bg: 'rgba(14,165,233,.08)', border: 'rgba(14,165,233,.15)' },
-                                    { icon: '🧵', label: 'Material', sub: '112g PLA', value: 'R$ 12,80', color: '#f97316', bg: 'rgba(249,115,22,.08)', border: 'rgba(249,115,22,.15)' },
-                                    { icon: '⏱', label: 'Mão de Obra', sub: '15 min setup', value: 'R$ 3,00', color: '#a78bfa', bg: 'rgba(167,139,250,.08)', border: 'rgba(167,139,250,.15)' },
-                                ].map(item => (
-                                    <div key={item.label} className="flex justify-between items-center p-3.5 rounded-xl transition-all duration-300 hover:-translate-x-1 cursor-default group/row" style={{ background: item.bg, border: `1px solid ${item.border}` }}>
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base transition-transform group-hover/row:scale-110" style={{ background: `${item.color}18`, border: `1px solid ${item.color}30` }}>
-                                                {item.icon}
+                                    {
+                                        path: 'M13 10V3L4 14h7v7l9-11h-7z',
+                                        label: 'Energia',
+                                        value: 'R$ 5,20',
+                                        color: '#0ea5e9',
+                                        bg: 'rgba(14,165,233,.1)',
+                                        border: 'rgba(14,165,233,.2)'
+                                    },
+                                    {
+                                        path: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
+                                        label: 'Material',
+                                        value: 'R$ 12,80',
+                                        color: '#f97316',
+                                        bg: 'rgba(249,115,22,.1)',
+                                        border: 'rgba(249,115,22,.2)'
+                                    },
+                                    {
+                                        path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+                                        label: 'Setup',
+                                        value: 'R$ 3,00',
+                                        color: '#a78bfa',
+                                        bg: 'rgba(167,139,250,.1)',
+                                        border: 'rgba(167,139,250,.2)'
+                                    },
+                                ].map((item, index) => (
+                                    <Fragment key={item.label}>
+                                        <div className="text-center group/item cursor-default flex-1">
+                                            <div
+                                                className="w-10 h-10 mx-auto rounded-full flex items-center justify-center mb-2.5 transition-all duration-300 group-hover/item:scale-110 shadow-[0_0_15px_-5px_transparent] group-hover/item:shadow-[0_0_15px_-5px_var(--shadow-cor)]"
+                                                style={{ background: item.bg, border: `1px solid ${item.border}`, '--shadow-cor': item.color } as React.CSSProperties}
+                                            >
+                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke={item.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d={item.path} />
+                                                </svg>
                                             </div>
-                                            <div>
-                                                <div className="text-sm font-semibold text-zinc-200">{item.label}</div>
-                                                <div className="text-xs text-zinc-500">{item.sub}</div>
-                                            </div>
+                                            <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">{item.label}</div>
+                                            <div className="text-white font-bold font-mono text-base md:text-lg tracking-tight hover:text-white/90 transition-colors" style={{ textShadow: `0 0 10px ${item.color}40` }}>{item.value}</div>
                                         </div>
-                                        <div className="font-mono font-bold text-sm" style={{ color: item.color }}>{item.value}</div>
-                                    </div>
+                                        {/* Divisor */}
+                                        {index < 2 && (
+                                            <div className="w-px h-10 bg-gradient-to-b from-transparent via-zinc-800 to-transparent" />
+                                        )}
+                                    </Fragment>
                                 ))}
                             </div>
 
-                            {/* Profit Bar */}
+                            {/* Barra de Lucro */}
                             <div className="p-4 rounded-2xl" style={{ background: 'rgba(16,185,129,.06)', border: '1px solid rgba(16,185,129,.15)' }}>
                                 <div className="flex justify-between items-center mb-3">
                                     <div>
@@ -447,10 +473,10 @@ export function Hero() {
                             </div>
                         </div>
 
-                        {/* ── Badge: Lucro Garantido (top-left) ── */}
-                        <FloatingBadge
-                            ref={badge1Ref}
-                            delay="0s"
+                        {/* ── Emblema: Lucro Garantido (esquerda-cima) ── */}
+                        <EmblemaFlutuante
+                            ref={refEmblema1}
+                            atraso="0s"
                             className="hidden lg:flex items-center gap-3 p-3.5 pr-5"
                             style={{ top: '60px', left: '-145px', zIndex: 20 }}
                         >
@@ -463,12 +489,12 @@ export function Hero() {
                                 <div className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest mb-0.5">Status</div>
                                 <div className="text-white font-bold text-sm">Lucro Garantido</div>
                             </div>
-                        </FloatingBadge>
+                        </EmblemaFlutuante>
 
-                        {/* ── Badge: Rolo no Fim (bottom-right) ── */}
-                        <FloatingBadge
-                            ref={badge2Ref}
-                            delay="2s"
+                        {/* ── Emblema: Rolo no Fim (direita-baixo) ── */}
+                        <EmblemaFlutuante
+                            ref={refEmblema2}
+                            atraso="2s"
                             className="hidden lg:block p-4"
                             style={{ bottom: '60px', right: '-145px', width: 230, zIndex: 20 }}
                         >
@@ -501,12 +527,12 @@ export function Hero() {
                                     Suficiente para esta impressão (112g)
                                 </div>
                             </div>
-                        </FloatingBadge>
+                        </EmblemaFlutuante>
 
-                        {/* ── Badge: AI Suggestion (top-right) ── */}
-                        <FloatingBadge
-                            ref={badge3Ref}
-                            delay="1s"
+                        {/* ── Emblema: Sugestão IA (direita-cima) ── */}
+                        <EmblemaFlutuante
+                            ref={refEmblema3}
+                            atraso="1s"
                             className="hidden xl:flex items-center gap-2.5 px-4 py-3"
                             style={{ top: '-10px', right: '-145px', zIndex: 20 }}
                         >
@@ -517,17 +543,17 @@ export function Hero() {
                                 <div className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest mb-0.5">Sugestão IA</div>
                                 <div className="text-white font-semibold text-xs">Aumente 12% o preço</div>
                             </div>
-                        </FloatingBadge>
+                        </EmblemaFlutuante>
                     </div>
                 </div>
 
-                {/* ── Scroll Indicator ── */}
+                {/* ── Indicador de Rolagem ── */}
                 <div
                     className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-end gap-3 cursor-pointer group/scroll"
-                    style={{ animation: visible ? 'heroFadeUp .8s .9s ease both' : 'none', opacity: 0 }}
+                    style={{ animation: visivel ? 'surgirCimaApresentacao .8s .9s ease both' : 'none', opacity: 0 }}
                     onClick={() => window.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}
                 >
-                    {/* Label rotated */}
+                    {/* Rótulo rotacionado */}
                     <span
                         className="text-[9px] uppercase font-bold transition-colors duration-300 group-hover/scroll:text-sky-400"
                         style={{ color: 'rgba(255,255,255,.2)', letterSpacing: '0.3em', writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
@@ -535,12 +561,12 @@ export function Hero() {
                         Role para descobrir
                     </span>
 
-                    {/* Animated vertical line */}
+                    {/* Linha vertical animada */}
                     <div className="relative flex flex-col items-center" style={{ height: 64 }}>
-                        {/* Track */}
+                        {/* Trilho */}
                         <div className="absolute inset-x-0 top-0 bottom-0 mx-auto" style={{ width: 1, background: 'rgba(255,255,255,.07)' }} />
-                        {/* Glowing runner */}
-                        <div style={{ animation: 'heroLineRun 1.8s ease-in-out infinite', position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)' }}>
+                        {/* Corredor brilhante */}
+                        <div style={{ animation: 'corridaLinhaApresentacao 1.8s ease-in-out infinite', position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)' }}>
                             <div style={{ width: 1, height: 28, background: 'linear-gradient(180deg, transparent, #0ea5e9)' }} />
                             <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#38bdf8', boxShadow: '0 0 10px 3px rgba(14,165,233,.7)', marginLeft: -2 }} />
                         </div>
