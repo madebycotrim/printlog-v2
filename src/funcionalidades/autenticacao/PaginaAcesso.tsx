@@ -1,38 +1,26 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight, AlertCircle, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { LayoutAutenticacao } from './componentes/LayoutAutenticacao';
 import { PainelBranding } from './componentes/PainelBranding';
 import { InputAuth } from './componentes/InputAuth';
 
-export function PaginaCadastro() {
+export function PaginaAcesso() {
     const navegar = useNavigate();
-    const [nome, definirNome] = useState('');
     const [email, definirEmail] = useState('');
     const [senha, definirSenha] = useState('');
-    const [aceiteTermos, definirAceiteTermos] = useState(false);
     const [erro, definirErro] = useState('');
 
-    const realizarCadastro = (e: React.FormEvent) => {
+    const realizarAcesso = (e: React.FormEvent) => {
         e.preventDefault();
         definirErro('');
 
-        if (!nome || !email || !senha) {
+        if (!email || !senha) {
             definirErro('Por favor, preencha todos os campos.');
             return;
         }
 
-        if (!aceiteTermos) {
-            definirErro('Você deve aceitar os termos para continuar.');
-            return;
-        }
-
-        if (senha.length < 8) {
-            definirErro('A senha deve ter pelo menos 8 caracteres.');
-            return;
-        }
-
-        console.log('Cadastro:', { nome, email, senha, aceiteTermos });
+        console.log('Acesso:', { email, senha });
         setTimeout(() => {
             navegar('/app');
         }, 800);
@@ -46,55 +34,48 @@ export function PaginaCadastro() {
         <LayoutAutenticacao>
             {/* ESQUERDA - BRANDING (Componente Padronizado) */}
             <PainelBranding
-                fundoEfeito="emerald"
                 titulo={
                     <>
-                        Junte-se à Elite<br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-[#0ea5e9]">dos Makers.</span>
+                        Sua Farm,<br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0ea5e9] to-emerald-400">Lucro Real.</span>
                     </>
                 }
-                descricao="Comece hoje a profissionalizar sua gestão. O PrintLog é a ferramenta que faltava na sua bancada."
+                descricao="Controle total sobre custos, materiais e produção. Deixe o PrintLog calcular enquanto você cria."
                 beneficios={
                     <>
                         <div className="flex items-center gap-3 group">
                             <div className="p-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/10 group-hover:border-emerald-500/30 transition-all">
-                                <ShieldCheck size={16} className="text-emerald-500" />
+                                <CheckCircle2 size={16} className="text-emerald-500" />
                             </div>
-                            <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Segurança total dos seus dados</span>
+                            <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Precificação automática em segundos</span>
                         </div>
                         <div className="flex items-center gap-3 group">
                             <div className="p-1.5 rounded-full bg-blue-500/10 border border-blue-500/10 group-hover:border-blue-500/30 transition-all">
                                 <CheckCircle2 size={16} className="text-blue-500" />
                             </div>
-                            <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Acesso imediato a todas as ferramentas</span>
+                            <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Gestão inteligente de filamentos</span>
                         </div>
                         <div className="flex items-center gap-3 group">
                             <div className="p-1.5 rounded-full bg-purple-500/10 border border-purple-500/10 group-hover:border-purple-500/30 transition-all">
                                 <CheckCircle2 size={16} className="text-purple-500" />
                             </div>
-                            <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Suporte exclusivo na comunidade</span>
-                        </div>
-                        <div className="flex items-center gap-3 group">
-                            <div className="p-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/10 group-hover:border-cyan-500/30 transition-all">
-                                <CheckCircle2 size={16} className="text-cyan-500" />
-                            </div>
-                            <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Sem custo de adesão (Beta)</span>
+                            <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Dashboard de performance financeira</span>
                         </div>
                     </>
                 }
             />
 
-            {/* DIREITA - FORMULÁRIO */}
+            {/* DIREITA - LOGIN FORM (DARK) */}
             <div className="w-full lg:w-1/2 p-8 lg:p-14 flex flex-col justify-center relative bg-black/20">
                 {/* Mobile Logo */}
-                <div className="lg:hidden flex items-center gap-2 mb-6">
+                <div className="lg:hidden flex items-center gap-2 mb-8">
                     <img src="/logo-colorida.png" alt="Logo" className="w-8 h-8 object-contain" />
                     <span className="text-white font-black tracking-tighter text-xl">PRINTLOG</span>
                 </div>
 
-                <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-white mb-2">Crie sua conta grátis</h2>
-                    <p className="text-zinc-500 text-sm">Preencha os dados abaixo para começar.</p>
+                <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-white mb-2">Acesse sua conta</h2>
+                    <p className="text-zinc-500 text-sm">Bem-vindo de volta! Insira seus dados para continuar.</p>
                 </div>
 
                 {erro && (
@@ -104,24 +85,16 @@ export function PaginaCadastro() {
                     </div>
                 )}
 
-                <form onSubmit={realizarCadastro} className="space-y-4">
+                <form onSubmit={realizarAcesso} className="space-y-5">
                     <InputAuth
-                        label="Nome Completo"
-                        type="text"
-                        value={nome}
-                        onChange={(e) => definirNome(e.target.value)}
-                        placeholder="Seu nome"
-                        icone={User}
-                    />
-
-                    <InputAuth
-                        label="Email Profissional"
+                        label="E-mail"
                         type="email"
                         value={email}
                         onChange={(e) => definirEmail(e.target.value)}
                         placeholder="seu@email.com"
                         icone={Mail}
                     />
+
 
                     <InputAuth
                         label="Senha"
@@ -130,38 +103,23 @@ export function PaginaCadastro() {
                         onChange={(e) => definirSenha(e.target.value)}
                         placeholder="••••••••"
                         icone={Lock}
+                        labelDireita={
+                            <a href="/recuperar-senha" className="text-xs font-medium text-[#0ea5e9] hover:text-[#0284c7] hover:underline transition-colors">
+                                Esqueceu a senha?
+                            </a>
+                        }
                     />
-
-                    {/* Termos de Uso (Checkbox) */}
-                    <div className="flex items-start gap-3 mt-2">
-                        <div className="relative flex items-center">
-                            <input
-                                type="checkbox"
-                                id="termos"
-                                checked={aceiteTermos}
-                                onChange={(e) => definirAceiteTermos(e.target.checked)}
-                                className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-zinc-700 bg-zinc-900/50 transition-all checked:border-[#0ea5e9] checked:bg-[#0ea5e9]"
-                            />
-                            <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                        </div>
-                        <label htmlFor="termos" className="text-sm text-zinc-400 cursor-pointer select-none leading-tight">
-                            Concordo com os <a href="/termos-de-uso" className="text-[#0ea5e9] hover:underline">Termos de Uso</a> e <a href="/politica-de-privacidade" className="text-[#0ea5e9] hover:underline">Política de Privacidade</a>.
-                        </label>
-                    </div>
 
                     <button
                         type="submit"
                         className="w-full bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(14,165,233,0.4)] hover:shadow-[0_6px_25px_-5px_rgba(14,165,233,0.6)] active:transform active:scale-[0.98] flex items-center justify-center gap-2 mt-2 border border-blue-400/20"
                     >
-                        <span>Criar Minha Conta</span>
+                        <span>Acessar Minha Conta</span>
                         <ArrowRight size={18} />
                     </button>
                 </form>
 
+                {/* Divider & Social */}
                 <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
                         <div className="w-full border-t border-white/5"></div>
@@ -170,6 +128,7 @@ export function PaginaCadastro() {
                         <span className="px-2 bg-transparent text-zinc-600 font-medium uppercase tracking-wider backdrop-blur-xl">ou</span>
                     </div>
                 </div>
+
 
                 <button
                     type="button"
@@ -198,9 +157,9 @@ export function PaginaCadastro() {
                 </button>
 
                 <p className="mt-8 text-center text-sm text-zinc-500">
-                    Já tem uma conta?{' '}
-                    <a href="/login" className="font-bold text-[#0ea5e9] hover:underline hover:text-[#0284c7]">
-                        Acessar conta
+                    Não tem uma conta?{' '}
+                    <a href="/cadastro" className="font-bold text-[#0ea5e9] hover:underline hover:text-[#0284c7]">
+                        Cadastre-se grátis
                     </a>
                 </p>
             </div>

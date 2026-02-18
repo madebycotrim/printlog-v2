@@ -11,8 +11,9 @@ import { SegurancaPrivacidade } from './funcionalidades/landing_page/SegurancaPr
 import { PoliticaPrivacidade } from './funcionalidades/landing_page/PoliticaPrivacidade';
 import { TermosUso } from './funcionalidades/landing_page/TermosUso';
 
-import { PaginaLogin } from './funcionalidades/autenticacao/PaginaLogin';
+import { PaginaAcesso } from './funcionalidades/autenticacao/PaginaAcesso';
 import { PaginaCadastro } from './funcionalidades/autenticacao/PaginaCadastro';
+import { PaginaRecuperacaoSenha } from './funcionalidades/autenticacao/PaginaRecuperacaoSenha';
 
 export function RoteadorPrincipal() {
     return (
@@ -20,11 +21,12 @@ export function RoteadorPrincipal() {
             <Routes>
                 {/* Landing Page Pública */}
                 <Route path="/" element={<PaginaLanding />} />
-                <Route path="/seguranca-privacidade" element={<SegurancaPrivacidade />} />
-                <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
-                <Route path="/termos-uso" element={<TermosUso />} />
-                <Route path="/login" element={<PaginaLogin />} />
+                <Route path="/seguranca-e-privacidade" element={<SegurancaPrivacidade />} />
+                <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
+                <Route path="/termos-de-uso" element={<TermosUso />} />
+                <Route path="/login" element={<PaginaAcesso />} />
                 <Route path="/cadastro" element={<PaginaCadastro />} />
+                <Route path="/recuperar-senha" element={<PaginaRecuperacaoSenha />} />
 
                 {/* Aplicação Interna */}
                 <Route path="/app" element={<Layout><PaginaInicial /></Layout>} />

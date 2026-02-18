@@ -56,9 +56,9 @@ export function Rodape() {
                             <span className="hidden md:block w-px h-3 bg-white/10 mx-2"></span>
 
                             <div className="flex flex-wrap justify-center gap-6">
-                                <a href="/seguranca-privacidade" className="hover:text-sky-400 transition-colors duration-300">Segurança e Privacidade</a>
-                                <a href="/politica-privacidade" className="hover:text-sky-400 transition-colors duration-300">Política de Privacidade</a>
-                                <a href="/termos-uso" className="hover:text-sky-400 transition-colors duration-300">Termos de Uso</a>
+                                <a href="/seguranca-e-privacidade" className="hover:text-sky-400 transition-colors duration-300">Segurança e Privacidade</a>
+                                <a href="/politica-de-privacidade" className="hover:text-sky-400 transition-colors duration-300">Política de Privacidade</a>
+                                <a href="/termos-de-uso" className="hover:text-sky-400 transition-colors duration-300">Termos de Uso</a>
                             </div>
                         </div>
 

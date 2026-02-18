@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 export function SegurancaPrivacidade() {
     const navigate = useNavigate();
@@ -28,14 +29,12 @@ export function SegurancaPrivacidade() {
                 <nav className="flex items-center justify-between mb-16">
                     <button
                         onClick={() => navigate('/')}
-                        className="group flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+                        className="group flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-sm font-medium"
                     >
-                        <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/5 group-hover:bg-white/10 transition-colors">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
+                        <div className="p-1.5 rounded-lg bg-white/5 border border-white/5 group-hover:bg-white/10 transition-all">
+                            <ArrowLeft size={14} />
                         </div>
-                        Voltar para a página inicial
+                        Voltar ao site
                     </button>
                 </nav>
 
@@ -166,9 +165,9 @@ export function SegurancaPrivacidade() {
                     {/* Footer Links */}
                     <footer className="border-t border-white/5 pt-10 mt-10 text-center">
                         <div className="flex flex-wrap justify-center gap-6 mb-8">
-                            <a href="/politica-privacidade" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Política de Privacidade</a>
+                            <a href="/politica-de-privacidade" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Política de Privacidade</a>
                             <span className="text-zinc-800">•</span>
-                            <a href="/termos-uso" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Termos de Uso</a>
+                            <a href="/termos-de-uso" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Termos de Uso</a>
                             <span className="text-zinc-800">•</span>
                             <a href="mailto:contato@printlog.com.br" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Contato</a>
                         </div>
