@@ -3,7 +3,7 @@ import { Apresentacao } from './componentes/Apresentacao';
 import { Demonstracao } from './componentes/Demonstracao';
 import { Beneficios } from './componentes/Beneficios';
 
-import { ChamadaAcao } from './componentes/ChamadaAcao';
+import { ChamadaAcao } from './componentes/CTA';
 import { Rodape } from './componentes/Rodape';
 
 export function PaginaLanding() {

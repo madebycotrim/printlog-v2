@@ -1,3 +1,5 @@
+import { Mail } from 'lucide-react';
+
 export function Rodape() {
     return (
         <>
@@ -37,9 +39,7 @@ export function Rodape() {
                                 className="group flex items-center gap-3 text-zinc-500 text-sm hover:text-sky-400 transition-all duration-200"
                             >
                                 <div className="w-9 h-9 bg-zinc-900 rounded-lg flex items-center justify-center border border-zinc-800 group-hover:border-sky-500/50 group-hover:bg-sky-500/10 transition-all duration-300 shrink-0">
-                                    <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
+                                    <Mail className="w-4 h-4 group-hover:scale-110 transition-transform" />
                                 </div>
                                 suporte@printlog.com.br
                             </a>

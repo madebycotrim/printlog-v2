@@ -1,4 +1,5 @@
 import { forwardRef, useCallback, useEffect, useRef, useState, Fragment } from 'react';
+import { ArrowRight, Zap, Box, Clock, Check, AlertTriangle, Sparkles } from 'lucide-react';
 
 /* ─── Tipos ────────────────────────────────────────────────────────────── */
 interface Linha { d: string; x1: number; y1: number; x2: number; y2: number; cor: string; }
@@ -313,9 +314,7 @@ export function Apresentacao() {
                                 <div className="absolute inset-0 w-1/3 h-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent)', animation: 'feixeApresentacao 3s ease-in-out infinite 1s' }} />
                                 <span className="relative z-10 flex items-center justify-center gap-2">
                                     Começar Grátis
-                                    <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                    </svg>
+                                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                                 </span>
                             </button>
 
@@ -378,9 +377,8 @@ export function Apresentacao() {
                         )}
 
                         {/* ── Cartão Principal ── */}
-                        <div
-                            ref={refCartao}
-                            className="relative brilho-cartao-apresentacao rounded-3xl transition-all duration-500 hover:-translate-y-2 group"
+                        <div ref={refCartao}
+                            className="relative brilho-cartao-apresentacao rounded-3xl"
                             style={{ background: 'linear-gradient(145deg, #0e0e12, #0a0a0d)', border: '1px solid rgba(255,255,255,.07)', width: 380, padding: '28px' }}
                         >
                             {/* Linha de varredura */}
@@ -391,10 +389,6 @@ export function Apresentacao() {
                             {/* Cabeçalho do Cartão */}
                             <div className="flex justify-between items-start mb-6 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,.06)' }}>
                                 <div>
-                                    <div className="flex items-center gap-1.5 mb-1.5">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                        <span className="text-[10px] text-emerald-400 font-mono tracking-widest uppercase">Online</span>
-                                    </div>
                                     <div className="text-white font-bold text-base tracking-tight">Peça Final GCODE</div>
                                     <div className="text-zinc-500 text-xs mt-0.5">Vaso Decorativo v3.gcode</div>
                                 </div>
@@ -411,7 +405,7 @@ export function Apresentacao() {
                             <div className="flex items-center justify-between gap-2 mb-8 px-1">
                                 {[
                                     {
-                                        path: 'M13 10V3L4 14h7v7l9-11h-7z',
+                                        Icon: Zap,
                                         label: 'Energia',
                                         value: 'R$ 5,20',
                                         color: '#0ea5e9',
@@ -419,7 +413,7 @@ export function Apresentacao() {
                                         border: 'rgba(14,165,233,.2)'
                                     },
                                     {
-                                        path: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
+                                        Icon: Box,
                                         label: 'Material',
                                         value: 'R$ 12,80',
                                         color: '#f97316',
@@ -427,7 +421,7 @@ export function Apresentacao() {
                                         border: 'rgba(249,115,22,.2)'
                                     },
                                     {
-                                        path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+                                        Icon: Clock,
                                         label: 'Setup',
                                         value: 'R$ 3,00',
                                         color: '#a78bfa',
@@ -441,9 +435,7 @@ export function Apresentacao() {
                                                 className="w-10 h-10 mx-auto rounded-full flex items-center justify-center mb-2.5 transition-all duration-300 group-hover/item:scale-110 shadow-[0_0_15px_-5px_transparent] group-hover/item:shadow-[0_0_15px_-5px_var(--shadow-cor)]"
                                                 style={{ background: item.bg, border: `1px solid ${item.border}`, '--shadow-cor': item.color } as React.CSSProperties}
                                             >
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke={item.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d={item.path} />
-                                                </svg>
+                                                <item.Icon className="w-5 h-5" style={{ color: item.color }} strokeWidth={2} />
                                             </div>
                                             <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">{item.label}</div>
                                             <div className="text-white font-bold font-mono text-base md:text-lg tracking-tight hover:text-white/90 transition-colors" style={{ textShadow: `0 0 10px ${item.color}40` }}>{item.value}</div>
@@ -481,9 +473,7 @@ export function Apresentacao() {
                             style={{ top: '60px', left: '-145px', zIndex: 20 }}
                         >
                             <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)' }}>
-                                <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                </svg>
+                                <Check className="w-5 h-5 text-emerald-400" strokeWidth={2.5} />
                             </div>
                             <div>
                                 <div className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest mb-0.5">Status</div>
@@ -501,9 +491,7 @@ export function Apresentacao() {
                             <div className="flex justify-between items-start mb-3">
                                 <div className="flex items-center gap-2.5">
                                     <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(244,63,94,.1)', border: '1px solid rgba(244,63,94,.2)' }}>
-                                        <svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                                        </svg>
+                                        <AlertTriangle className="w-4 h-4 text-rose-400" strokeWidth={2} />
                                     </div>
                                     <div>
                                         <div className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Alerta</div>
@@ -521,9 +509,7 @@ export function Apresentacao() {
                                     <div className="h-full rounded-full" style={{ width: '15%', background: '#f43f5e', boxShadow: '0 0 8px rgba(244,63,94,.5)' }} />
                                 </div>
                                 <div className="flex items-center gap-1.5 text-[10px] text-zinc-500">
-                                    <svg className="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
+                                    <Check className="w-3 h-3 text-emerald-400" strokeWidth={2} />
                                     Suficiente para esta impressão (112g)
                                 </div>
                             </div>
@@ -537,7 +523,7 @@ export function Apresentacao() {
                             style={{ top: '-10px', right: '-145px', zIndex: 20 }}
                         >
                             <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-sm" style={{ background: 'rgba(99,102,241,.12)', border: '1px solid rgba(99,102,241,.25)' }}>
-                                ✦
+                                <Sparkles className="w-4 h-4" />
                             </div>
                             <div>
                                 <div className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest mb-0.5">Sugestão IA</div>
