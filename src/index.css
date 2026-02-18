@@ -1,127 +1,111 @@
 @import "tailwindcss";
-@import "@fontsource/outfit/100.css";
-@import "@fontsource/outfit/300.css";
-@import "@fontsource/outfit/400.css";
-@import "@fontsource/outfit/500.css";
-@import "@fontsource/outfit/700.css";
-@import "@fontsource/outfit/900.css";
+@import "@fontsource/inter/100.css";
+@import "@fontsource/inter/200.css";
+@import "@fontsource/inter/300.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/inter/800.css";
+@import "@fontsource/inter/900.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/700.css";
 
 :root {
-  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* Premium High-End Palette */
-  --color-primary: #6366f1;
-  /* Indigo 500 */
-  --color-primary-dark: #4f46e5;
-  /* Indigo 600 */
-  --color-secondary: #a855f7;
-  /* Purple 500 */
+  /* Palette Exata PrintLog (Zinc/Neutral based) */
+  --bg-page: #050505;
+  /* Fundo Principal - Quase preto absoluto */
+  --bg-card: #09090b;
+  /* Fundo de cartões */
+  --border-subtle: #27272a;
+  /* Bordas sutis (Zinc 800) */
 
-  --bg-app: #f8fafc;
-  /* Slate 50 */
-  --bg-surface: #ffffff;
+  /* Accents */
+  --accent-blue: #0ea5e9;
+  /* Sky 500 */
+  --accent-green: #10b981;
+  /* Emerald 500 */
 
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-surface: rgba(255, 255, 255, 0.85);
-  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
 body {
-  background-color: var(--bg-app);
-  color: #1e293b;
-  /* Slate 800 */
+  background-color: var(--bg-page);
+  color: #fff;
 }
 
-/* Polished Custom Scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
-  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--bg-page);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-  transition: background 0.2s;
+  background: #27272a;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #3f3f46;
 }
 
-/* Glassmorphism Utilities - Refined */
-.glass {
-  background: var(--glass-surface);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+/* Grid Pattern Especial - PrintLog Style */
+.bg-grid-printlog {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, rgba(39, 39, 42, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(39, 39, 42, 0.3) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
 }
 
-.glass-dark {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-}
-
-/* Text Gradients */
-.text-gradient {
+/* Utilitários de Texto */
+.text-gradient-title {
+  background: linear-gradient(to right, #fff 0%, #cbd5e1 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-image: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
 }
 
-.text-gradient-gold {
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-image: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+.font-mono-numbers {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Force Html5Qrcode video to fill container */
-#reader video {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  border-radius: inherit !important;
-}
-
-/* Hide potential shaded region overlay if present */
-#qr-shaded-region {
-  display: none !important;
-}
-
-/* Animations */
-@keyframes varredura {
+/* Animações Personalizadas */
+@keyframes float {
 
   0%,
   100% {
-    top: 10%;
-    opacity: 0;
-  }
-
-  10% {
-    opacity: 1;
+    transform: translateY(0);
   }
 
   50% {
-    top: 90%;
-  }
-
-  90% {
-    opacity: 1;
+    transform: translateY(-20px);
   }
 }
 
-@keyframes fade-in {
+@keyframes gradient {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes grid-fade-in {
   from {
     opacity: 0;
   }
@@ -131,60 +115,14 @@ body {
   }
 }
 
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.animate-float-slow {
+  animation: float 6s ease-in-out infinite;
 }
 
-@keyframes zoom-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.animate-float-medium {
+  animation: float 4s ease-in-out infinite;
 }
 
-.animate-fade-in {
-  animation: fade-in 0.6s ease-out forwards;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.7s ease-out forwards;
-}
-
-.animate-zoom-in {
-  animation: zoom-in 0.4s ease-out forwards;
-}
-
-.delay-100 {
-  animation-delay: 100ms;
-}
-
-.delay-200 {
-  animation-delay: 200ms;
-}
-
-.delay-300 {
-  animation-delay: 300ms;
-}
-
-/* Utility Classes for Premium UI */
-.card-hover {
-  transition: all 0.3s ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+.animate-float-fast {
+  animation: float 3s ease-in-out infinite;
 }

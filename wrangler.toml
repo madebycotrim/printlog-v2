@@ -1,7 +1,7 @@
-name = "scae"
+name = "printlog"
 pages_build_output_dir = "dist"
 
 [[d1_databases]]
-binding = "DB_SCAE"
-database_name = "scae_db"
-database_id = "6c8d714d-582a-4452-880d-e2ee35c12b15"
+binding = "DB"
+database_name = "printlog_db"
+database_id = "48e53769-4e08-4f61-bfd3-8b328c14aacf"
