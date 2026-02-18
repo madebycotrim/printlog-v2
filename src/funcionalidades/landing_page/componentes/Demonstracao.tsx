@@ -2,37 +2,37 @@ import { useEffect, useRef, useState } from 'react';
 import { Carretel, GarrafaResina } from '../../../compartilhado/componentes_ui/VisualizacaoMaterial';
 
 export function Demonstracao() {
-    const sectionRef = useRef<HTMLElement>(null);
-    const [isVisible, setIsVisible] = useState(false);
-    const [activeTab] = useState('dashboard');
+    const refSecao = useRef<HTMLElement>(null);
+    const [visivel, definirVisivel] = useState(false);
+    const [abaAtiva] = useState('painel');
 
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
+        const observador = new IntersectionObserver(
+            ([entrada]) => { if (entrada.isIntersecting) definirVisivel(true); },
             { threshold: 0.15 }
         );
-        if (sectionRef.current) observer.observe(sectionRef.current);
-        return () => observer.disconnect();
+        if (refSecao.current) observador.observe(refSecao.current);
+        return () => observador.disconnect();
     }, []);
 
     return (
         <section
-            id="command-center"
-            ref={sectionRef}
+            id="centro-comando"
+            ref={refSecao}
             className="py-32 relative overflow-hidden bg-[#050505]"
         >
-            {/* ── Background Effects ── */}
+            {/* ── Efeitos de Fundo ── */}
             <div className="absolute inset-0 bg-[#050505]" />
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50" />
 
-            {/* Ambient Glows */}
+            {/* Brilhos Ambientais */}
             <div className="absolute top-1/4 left-1/4 w-[800px] h-[800px] bg-sky-500/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
             <div className="absolute bottom-1/4 right-1/4 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
 
             <div className="container mx-auto px-6 relative z-10">
 
-                {/* ── Header ── */}
-                <div className={`text-center max-w-4xl mx-auto mb-20 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                {/* ── Cabeçalho ── */}
+                <div className={`text-center max-w-4xl mx-auto mb-20 transition-all duration-1000 ${visivel ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-sky-500/10 bg-sky-500/5 text-sky-400 mb-6 backdrop-blur-md">
                         <div className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
                         <span className="text-[10px] font-bold uppercase tracking-widest">PrintLog OS 2.0</span>
@@ -46,15 +46,15 @@ export function Demonstracao() {
                     </p>
                 </div>
 
-                {/* ── Main Dashboard Interface ── */}
+                {/* ── Interface Principal do Painel ── */}
                 <div
-                    className={`relative transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 rotate-1 scale-95'}`}
+                    className={`relative transition-all duration-1000 delay-200 ${visivel ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 rotate-1 scale-95'}`}
                     style={{ perspective: '2000px' }}
                 >
-                    {/* The "Window" */}
-                    <div className="relative mx-auto max-w-6xl bg-[#09090b]/80 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden ring-1 ring-white/5 group/window">
+                    {/* A "Janela" */}
+                    <div className="relative mx-auto max-w-6xl bg-[#09090b]/80 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden ring-1 ring-white/5 group/janela">
 
-                        {/* Title Bar */}
+                        {/* Barra de Título */}
                         <div className="h-10 bg-[#09090b] border-b border-white/5 flex items-center px-4 justify-between select-none">
                             <div className="flex gap-2">
                                 <div className="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e]/50" />
@@ -65,42 +65,42 @@ export function Demonstracao() {
                                 <img src="/logo-branca.png" alt="PrintLog" className="w-4 h-4 object-contain opacity-50" />
                                 printlog.com.br
                             </div>
-                            <div className="w-14" /> {/* Spacer */}
+                            <div className="w-14" /> {/* Espaçador */}
                         </div>
 
-                        {/* App Content */}
+                        {/* Conteúdo do App */}
                         <div className="flex h-[640px] overflow-hidden">
 
-                            {/* Sidebar */}
+                            {/* Barra Lateral */}
                             <div className="w-[72px] bg-[#0c0c0e] border-r border-white/5 flex flex-col items-center py-6 gap-6 z-20">
                                 <div className="w-8 h-8 flex items-center justify-center mb-4">
                                     <img src="/logo-branca.png" alt="PrintLog" className="w-6 h-6 object-contain opacity-80" />
                                 </div>
                                 <div className="flex-1 flex flex-col gap-4 w-full px-3">
-                                    {['dashboard', 'stock', 'printers', 'finance', 'settings'].map(icon => (
+                                    {['painel', 'estoque', 'impressoras', 'financeiro', 'configuracoes'].map(icone => (
                                         <button
-                                            key={icon}
-                                            // onClick={() => setActiveTab(icon)} // Disabled by user request
-                                            className={`w-full aspect-square rounded-xl flex items-center justify-center transition-all duration-300 group/icon relative ${activeTab === icon ? 'bg-white/10 text-sky-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5 cursor-default'}`}
+                                            key={icone}
+                                            // onClick={() => definirAbaAtiva(icone)} // Desativado a pedido do usuário
+                                            className={`w-full aspect-square rounded-xl flex items-center justify-center transition-all duration-300 group/icone relative ${abaAtiva === icone ? 'bg-white/10 text-sky-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5 cursor-default'}`}
                                         >
-                                            <SidebarIcon type={icon} active={activeTab === icon} />
-                                            {activeTab === icon && (
+                                            <IconeBarraLateral tipo={icone} ativo={abaAtiva === icone} />
+                                            {abaAtiva === icone && (
                                                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-3 bg-sky-400 rounded-r-full shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
                                             )}
                                         </button>
                                     ))}
                                 </div>
                                 <div className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 overflow-hidden mt-auto">
-                                    <img src="https://ui-avatars.com/api/?name=Maker+Pro&background=random&color=fff" alt="User" className="w-full h-full opacity-80" />
+                                    <img src="https://ui-avatars.com/api/?name=Maker+Pro&background=random&color=fff" alt="Usuário" className="w-full h-full opacity-80" />
                                 </div>
                             </div>
 
-                            {/* Main Area */}
+                            {/* Área Principal */}
                             <div className="flex-1 bg-[#09090b] flex flex-col relative overflow-hidden">
 
-                                {/* Background Grid REMOVED */}
+                                {/* Grade de Fundo REMOVIDA */}
 
-                                {/* Top Navigation */}
+                                {/* Navegação Superior */}
                                 <div className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-[#09090b]/50 backdrop-blur-sm z-10">
                                     <div>
                                         <h3 className="text-white font-bold text-lg">Visão Geral</h3>
@@ -116,8 +116,8 @@ export function Demonstracao() {
                                     </div>
                                 </div>
 
-                                {/* Content Grid */}
-                                <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
+                                {/* Grade de Conteúdo */}
+                                <div className="flex-1 p-8 overflow-y-auto barra-rolagem-personalizada">
                                     <div className="grid grid-cols-12 gap-6 ">
 
                                         {/* ── WIDGET: Orçamentos Recentes (Col 1-8) ── */}
@@ -127,43 +127,43 @@ export function Demonstracao() {
                                                 <button className="text-[10px] text-sky-400 font-bold hover:underline">VER TODOS</button>
                                             </div>
 
-                                            {/* Projects List */}
+                                            {/* Lista de Projetos */}
                                             <div className="flex-1 overflow-y-auto">
                                                 {[
-                                                    { id: '1', name: 'Peças de Reposição Drone', client: 'TechLab Solutions', date: 'Hoje, 14:30', value: 'R$ 450,00', status: 'Aprovado' },
-                                                    { id: '2', name: 'Protótipo Suporte V3', client: 'Engenharia Silva', date: 'Ontem, 09:15', value: 'R$ 125,50', status: 'Pendente' },
-                                                    { id: '3', name: 'Action Figure 15cm', client: 'Roberto Mendes', date: '16 Fev, 18:20', value: 'R$ 89,90', status: 'Rascunho' },
-                                                ].map((job) => (
-                                                    <div key={job.id} className="flex items-center p-4 border-b border-white/5 hover:bg-white/5 transition-colors group/row">
-                                                        <div className="w-10 h-10 rounded bg-[#18181b] flex items-center justify-center border border-white/5 mr-4 text-zinc-500 group-hover/row:text-sky-500 group-hover/row:border-sky-500/20 transition-all">
+                                                    { id: '1', nome: 'Peças de Reposição Drone', cliente: 'TechLab Solutions', data: 'Hoje, 14:30', valor: 'R$ 450,00', status: 'Aprovado' },
+                                                    { id: '2', nome: 'Protótipo Suporte V3', cliente: 'Engenharia Silva', data: 'Ontem, 09:15', valor: 'R$ 125,50', status: 'Pendente' },
+                                                    { id: '3', nome: 'Action Figure 15cm', cliente: 'Roberto Mendes', data: '16 Fev, 18:20', valor: 'R$ 89,90', status: 'Rascunho' },
+                                                ].map((trabalho) => (
+                                                    <div key={trabalho.id} className="flex items-center p-4 border-b border-white/5 hover:bg-white/5 transition-colors group/linha">
+                                                        <div className="w-10 h-10 rounded bg-[#18181b] flex items-center justify-center border border-white/5 mr-4 text-zinc-500 group-hover/linha:text-sky-500 group-hover/linha:border-sky-500/20 transition-all">
                                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                             </svg>
                                                         </div>
                                                         <div className="flex-1 min-w-0 mr-4">
-                                                            <div className="text-sm font-bold text-white truncate">{job.name}</div>
+                                                            <div className="text-sm font-bold text-white truncate">{trabalho.nome}</div>
                                                             <div className="text-[10px] text-zinc-500 flex items-center gap-2">
-                                                                <span>{job.client}</span> • <span>{job.date}</span>
+                                                                <span>{trabalho.cliente}</span> • <span>{trabalho.data}</span>
                                                             </div>
                                                         </div>
 
                                                         <div className="text-right mr-6">
-                                                            <div className="text-sm font-bold text-white">{job.value}</div>
+                                                            <div className="text-sm font-bold text-white">{trabalho.valor}</div>
                                                             <div className="text-[10px] text-zinc-500">Valor Final</div>
                                                         </div>
 
                                                         <div>
-                                                            {job.status === 'Aprovado' && (
+                                                            {trabalho.status === 'Aprovado' && (
                                                                 <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-500">
                                                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aprovado
                                                                 </span>
                                                             )}
-                                                            {job.status === 'Pendente' && (
+                                                            {trabalho.status === 'Pendente' && (
                                                                 <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold text-amber-500">
                                                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Pendente
                                                                 </span>
                                                             )}
-                                                            {job.status === 'Rascunho' && (
+                                                            {trabalho.status === 'Rascunho' && (
                                                                 <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-500/10 border border-zinc-500/20 text-[10px] font-bold text-zinc-500">
                                                                     <span className="w-1.5 h-1.5 rounded-full bg-zinc-500"></span> Rascunho
                                                                 </span>
@@ -184,9 +184,9 @@ export function Demonstracao() {
                                                 </div>
                                             </div>
 
-                                            {/* CSS-only Area Chart */}
+                                            {/* Gráfico de Área Apenas com CSS */}
                                             <div className="h-28 w-full flex items-end gap-1 relative pl-2 border-l border-white/5 border-b pb-2">
-                                                {/* Grid lines */}
+                                                {/* Linhas de Grade */}
                                                 <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                                                     <div className="h-px bg-white/5 w-full" />
                                                     <div className="h-px bg-white/5 w-full" />
@@ -194,13 +194,13 @@ export function Demonstracao() {
                                                 </div>
 
                                                 {[30, 45, 40, 60, 55, 70, 65, 80, 75, 95].map((h, i) => (
-                                                    <div key={i} className="flex-1 group/bar relative h-full flex items-end">
+                                                    <div key={i} className="flex-1 group/barra relative h-full flex items-end">
                                                         <div
                                                             className="w-full bg-indigo-500/20 border-t border-indigo-500/50 rounded-t-sm transition-all duration-1000 ease-out hover:bg-indigo-500 relative"
-                                                            style={{ height: isVisible ? `${h}%` : '0%' }}
+                                                            style={{ height: visivel ? `${h}%` : '0%' }}
                                                         >
                                                             {/* Tooltip */}
-                                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 opacity-0 group-hover/bar:opacity-100 transition-opacity bg-zinc-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded border border-white/10 whitespace-nowrap z-10 pointer-events-none">
+                                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 opacity-0 group-hover/barra:opacity-100 transition-opacity bg-zinc-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded border border-white/10 whitespace-nowrap z-10 pointer-events-none">
                                                                 R$ {h * 150}
                                                             </div>
                                                         </div>
@@ -211,7 +211,7 @@ export function Demonstracao() {
 
                                         {/* ── WIDGET: Quadro de Avisos (Col 1-4) ── */}
                                         <div
-                                            className={`col-span-12 lg:col-span-4 bg-gradient-to-br from-[#0c0c0e] to-[#121214] border border-white/5 rounded-xl p-5 flex flex-col transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                                            className={`col-span-12 lg:col-span-4 bg-gradient-to-br from-[#0c0c0e] to-[#121214] border border-white/5 rounded-xl p-5 flex flex-col transition-all duration-700 ease-out ${visivel ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
                                             style={{ transitionDelay: '300ms' }}
                                         >
                                             <div className="flex justify-between items-center mb-4">
@@ -223,26 +223,24 @@ export function Demonstracao() {
 
                                             <div className="space-y-3 flex-1 overflow-y-auto">
                                                 {/* Aviso 1: Manutenção */}
-                                                <div className="flex gap-3 p-3 rounded-lg bg-pink-500/5 border border-pink-500/10 group/notice hover:bg-pink-500/10 transition-colors cursor-pointer">
+                                                <div className="flex gap-3 p-3 rounded-lg bg-pink-500/5 border border-pink-500/10 group/aviso hover:bg-pink-500/10 transition-colors cursor-pointer">
                                                     <div className="min-w-8 h-8 rounded-full bg-pink-500/10 flex items-center justify-center border border-pink-500/20 mt-0.5">
                                                         <svg className="w-3.5 h-3.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                                                     </div>
                                                     <div>
-                                                        <div className="text-xs font-bold text-white mb-0.5 group-hover/notice:text-pink-400 transition-colors">Manutenção Necessária</div>
+                                                        <div className="text-xs font-bold text-white mb-0.5 group-hover/aviso:text-pink-400 transition-colors">Manutenção Necessária</div>
                                                         <div className="text-[10px] text-zinc-400 leading-relaxed">
                                                             A impressora <span className="text-zinc-300 font-medium">Ender 3 V2</span> atingiu 500h de uso contínuo.
                                                         </div>
                                                         <button className="mt-2 text-[9px] font-bold text-pink-400 uppercase tracking-wider hover:underline">Agendar</button>
                                                     </div>
                                                 </div>
-
-
                                             </div>
                                         </div>
 
                                         {/* ── WIDGET: Insumos (Col 5-8) ── */}
                                         <div
-                                            className={`col-span-12 lg:col-span-4 bg-[#0c0c0e] border border-white/5 rounded-xl p-5 h-64 md:h-auto transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                                            className={`col-span-12 lg:col-span-4 bg-[#0c0c0e] border border-white/5 rounded-xl p-5 h-64 md:h-auto transition-all duration-700 ease-out ${visivel ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
                                             style={{ transitionDelay: '400ms' }}
                                         >
                                             <div className="flex justify-between items-center mb-4">
@@ -283,7 +281,7 @@ export function Demonstracao() {
 
                                         {/* ── WIDGET: Materiais (Col 9-12) ── */}
                                         <div
-                                            className={`col-span-12 lg:col-span-4 bg-[#0c0c0e] border border-white/5 rounded-xl p-5 h-64 md:h-auto transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                                            className={`col-span-12 lg:col-span-4 bg-[#0c0c0e] border border-white/5 rounded-xl p-5 h-64 md:h-auto transition-all duration-700 ease-out ${visivel ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
                                             style={{ transitionDelay: '500ms' }}
                                         >
                                             <div className="flex justify-between items-center mb-4">
@@ -323,40 +321,40 @@ export function Demonstracao() {
                             </div>
                         </div>
                     </div>
-                    {/* Reflection / Ground */}
+                    {/* Reflexo / Chão */}
                     <div className="absolute -bottom-20 inset-x-20 h-[100px] bg-sky-500/20 blur-[80px] opacity-30 pointer-events-none transform scale-y-50" />
                 </div>
             </div>
 
             <style>{`
-                @keyframes progress {
+                @keyframes progresso {
                     0% { transform: translateX(-100%); }
                     100% { transform: translateX(100%); }
                 }
-                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+                .barra-rolagem-personalizada::-webkit-scrollbar { width: 4px; }
+                .barra-rolagem-personalizada::-webkit-scrollbar-track { background: transparent; }
+                .barra-rolagem-personalizada::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+                .barra-rolagem-personalizada::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
             `}</style>
         </section>
     );
 }
 
-function SidebarIcon({ type, active }: { type: string; active?: boolean }) {
-    const icons: any = {
-        dashboard: <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />,
-        stock: <path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.66 0-3 1.34-3 3 0 .35.07.69.18 1H11.82C11.93 5.69 12 5.35 12 5c0-1.66-1.34-3-3-3S6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.11-.9-2-2-2zM9 5c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1zm6 0c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1z" />,
-        printers: <path d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 12v2H8v-4h8v2zm2-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z" />,
-        finance: <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />,
-        settings: <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.5.43l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49 1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />
+function IconeBarraLateral({ tipo, ativo }: { tipo: string; ativo?: boolean }) {
+    const icones: any = {
+        painel: <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />,
+        estoque: <path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.66 0-3 1.34-3 3 0 .35.07.69.18 1H11.82C11.93 5.69 12 5.35 12 5c0-1.66-1.34-3-3-3S6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.11-.9-2-2-2zM9 5c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1zm6 0c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1z" />,
+        impressoras: <path d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 12v2H8v-4h8v2zm2-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z" />,
+        financeiro: <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />,
+        configuracoes: <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.5.43l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49 1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />
     };
 
     return (
         <svg
-            className={`w-5 h-5 transition-all duration-300 ${active ? 'fill-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]' : 'fill-current'}`}
+            className={`w-5 h-5 transition-all duration-300 ${ativo ? 'fill-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]' : 'fill-current'}`}
             viewBox="0 0 24 24"
         >
-            {icons[type]}
+            {icones[tipo]}
         </svg>
     );
 }

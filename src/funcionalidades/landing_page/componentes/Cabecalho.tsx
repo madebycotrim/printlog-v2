@@ -30,9 +30,9 @@ export function Cabecalho() {
                         <img
                             src="/logo-colorida.png"
                             alt="Logo PrintLog"
-                            className="h-8 w-auto transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(14,165,233,0.5)]"
+                            className="h-8 w-auto"
                         />
-                        <span className="text-white font-black text-xl tracking-tighter transition-all duration-300 group-hover:text-[#0ea5e9]">
+                        <span className="text-white font-black text-xl tracking-tighter">
                             PRINTLOG <span className="text-[#0ea5e9] text-xs not-italic font-bold bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20 align-top ml-1 animate-pulse">BETA</span>
                         </span>
                     </div>

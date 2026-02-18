@@ -1,7 +1,7 @@
 export function Rodape() {
     return (
         <>
-            {/* Footer */}
+            {/* Rodapé */}
             <footer className="bg-black py-12 border-t border-zinc-900 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-sky-500/40 to-transparent"></div>
                 <div className="absolute bottom-0 left-1/3 w-[500px] h-[200px] bg-sky-500/5 blur-[100px] rounded-full pointer-events-none"></div>
@@ -9,17 +9,16 @@ export function Rodape() {
                 <div className="container mx-auto px-6 relative z-10">
                     <div className="flex flex-col md:flex-row justify-between gap-12 mb-8">
 
-                        {/* Brand */}
+                        {/* Marca */}
                         <div>
                             <div className="flex items-center gap-3 mb-5 group cursor-pointer w-fit">
                                 <img
                                     src="/logo-colorida.png"
                                     alt="PrintLog"
-                                    className="h-9 w-auto transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(14,165,233,0.6)] group-hover:scale-105"
+                                    className="h-8 w-auto"
                                 />
-                                <span className="text-white font-black text-2xl tracking-tighter group-hover:text-sky-400 transition-colors">
-                                    PRINTLOG
-                                    <span className="ml-2 text-[10px] font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded align-middle">BETA</span>
+                                <span className="text-white font-black text-xl tracking-tighter">
+                                    PRINTLOG <span className="text-[#0ea5e9] text-xs not-italic font-bold bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20 align-top ml-1 animate-pulse">BETA</span>
                                 </span>
                             </div>
                             <p className="text-zinc-500 text-sm leading-relaxed max-w-sm">
@@ -47,13 +46,13 @@ export function Rodape() {
                         </div>
                     </div>
 
-                    {/* Bottom Bar */}
+                    {/* Barra Inferior */}
 
                     <div className="pt-8 mt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
                         <div className="flex flex-col md:flex-row items-center gap-6 text-zinc-500 text-xs">
                             <span>© 2026 PrintLog. Todos os direitos reservados.</span>
 
-                            {/* Desktop Separator - Hidden on mobile */}
+                            {/* Separador Desktop - Oculto em mobile */}
                             <span className="hidden md:block w-px h-3 bg-white/10 mx-2"></span>
 
                             <div className="flex flex-wrap justify-center gap-6">
