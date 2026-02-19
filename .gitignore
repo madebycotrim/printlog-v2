@@ -141,3 +141,6 @@ firebase-debug.log
 
 # Cloudflare Wrangler
 .wrangler/
+
+# Arquivos de texto
+.txt

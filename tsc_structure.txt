@@ -1,1 +1,0 @@
-src/funcionalidades/landing_page/componentes/Demonstracao.tsx(3,41): error TS2307: Cannot find module '@/compartilhado/componentes_ui/VisualizacaoMaterial' or its corresponding type declarations.
