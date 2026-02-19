@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usarAutenticacao } from './contexto/ContextoAutenticacao';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, AlertCircle, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { LayoutAutenticacao } from './componentes/LayoutAutenticacao';
@@ -7,13 +8,15 @@ import { InputAuth } from './componentes/InputAuth';
 
 export function PaginaCadastro() {
     const navegar = useNavigate();
+    const { cadastro, loginGoogle } = usarAutenticacao();
     const [nome, definirNome] = useState('');
     const [email, definirEmail] = useState('');
     const [senha, definirSenha] = useState('');
     const [aceiteTermos, definirAceiteTermos] = useState(false);
     const [erro, definirErro] = useState('');
+    const [carregandoCadastro, definirCarregandoCadastro] = useState(false);
 
-    const realizarCadastro = (e: React.FormEvent) => {
+    const realizarCadastro = async (e: React.FormEvent) => {
         e.preventDefault();
         definirErro('');
 
@@ -32,14 +35,24 @@ export function PaginaCadastro() {
             return;
         }
 
-        console.log('Cadastro:', { nome, email, senha, aceiteTermos });
-        setTimeout(() => {
+        try {
+            definirCarregandoCadastro(true);
+            await cadastro(email, senha, nome);
             navegar('/app');
-        }, 800);
+        } catch (err: any) {
+            definirErro(err.message);
+        } finally {
+            definirCarregandoCadastro(false);
+        }
     };
 
-    const entrarComGoogle = () => {
-        console.log('Entrar com Google iniciado');
+    const entrarComGoogle = async () => {
+        try {
+            await loginGoogle();
+            navegar('/app');
+        } catch (err: any) {
+            definirErro(err.message);
+        }
     };
 
     return (
@@ -155,10 +168,17 @@ export function PaginaCadastro() {
 
                     <button
                         type="submit"
-                        className="w-full bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(14,165,233,0.4)] hover:shadow-[0_6px_25px_-5px_rgba(14,165,233,0.6)] active:transform active:scale-[0.98] flex items-center justify-center gap-2 mt-2 border border-blue-400/20"
+                        disabled={carregandoCadastro}
+                        className="w-full bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(14,165,233,0.4)] hover:shadow-[0_6px_25px_-5px_rgba(14,165,233,0.6)] active:transform active:scale-[0.98] flex items-center justify-center gap-2 mt-2 border border-blue-400/20 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        <span>Criar Minha Conta</span>
-                        <ArrowRight size={18} />
+                        {carregandoCadastro ? (
+                            <span className="animate-pulse">Criando conta...</span>
+                        ) : (
+                            <>
+                                <span>Criar Minha Conta</span>
+                                <ArrowRight size={18} />
+                            </>
+                        )}
                     </button>
                 </form>
 

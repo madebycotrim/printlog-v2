@@ -1,17 +1,21 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { LayoutAutenticacao } from './componentes/LayoutAutenticacao';
 import { PainelBranding } from './componentes/PainelBranding';
 import { InputAuth } from './componentes/InputAuth';
+import { usarAutenticacao } from './contexto/ContextoAutenticacao';
 
 export function PaginaAcesso() {
     const navegar = useNavigate();
+    const { login, loginGoogle } = usarAutenticacao();
     const [email, definirEmail] = useState('');
     const [senha, definirSenha] = useState('');
     const [erro, definirErro] = useState('');
+    const [carregandoLogin, definirCarregandoLogin] = useState(false);
 
-    const realizarAcesso = (e: React.FormEvent) => {
+    const realizarAcesso = async (e: React.FormEvent) => {
         e.preventDefault();
         definirErro('');
 
@@ -20,14 +24,24 @@ export function PaginaAcesso() {
             return;
         }
 
-        console.log('Acesso:', { email, senha });
-        setTimeout(() => {
+        try {
+            definirCarregandoLogin(true);
+            await login(email, senha);
             navegar('/app');
-        }, 800);
+        } catch (err: any) {
+            definirErro(err.message);
+        } finally {
+            definirCarregandoLogin(false);
+        }
     };
 
-    const entrarComGoogle = () => {
-        console.log('Entrar com Google iniciado');
+    const entrarComGoogle = async () => {
+        try {
+            await loginGoogle();
+            navegar('/app');
+        } catch (err: any) {
+            definirErro(err.message);
+        }
     };
 
     return (
@@ -112,10 +126,17 @@ export function PaginaAcesso() {
 
                     <button
                         type="submit"
-                        className="w-full bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(14,165,233,0.4)] hover:shadow-[0_6px_25px_-5px_rgba(14,165,233,0.6)] active:transform active:scale-[0.98] flex items-center justify-center gap-2 mt-2 border border-blue-400/20"
+                        disabled={carregandoLogin}
+                        className="w-full bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(14,165,233,0.4)] hover:shadow-[0_6px_25px_-5px_rgba(14,165,233,0.6)] active:transform active:scale-[0.98] flex items-center justify-center gap-2 mt-2 border border-blue-400/20 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        <span>Acessar Minha Conta</span>
-                        <ArrowRight size={18} />
+                        {carregandoLogin ? (
+                            <span className="animate-pulse">Entrando...</span>
+                        ) : (
+                            <>
+                                <span>Acessar Minha Conta</span>
+                                <ArrowRight size={18} />
+                            </>
+                        )}
                     </button>
                 </form>
 

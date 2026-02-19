@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usarAutenticacao } from './contexto/ContextoAutenticacao';
 import { useNavigate } from 'react-router-dom';
 import { Mail, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { LayoutAutenticacao } from './componentes/LayoutAutenticacao';
@@ -7,11 +8,13 @@ import { InputAuth } from './componentes/InputAuth';
 
 export function PaginaRecuperacaoSenha() {
     const navegar = useNavigate();
+    const { recuperarSenha } = usarAutenticacao();
     const [email, definirEmail] = useState('');
     const [erro, definirErro] = useState('');
     const [sucesso, definirSucesso] = useState(false);
+    const [carregandoRecuperacao, definirCarregandoRecuperacao] = useState(false);
 
-    const enviarLinkRecuperacao = (e: React.FormEvent) => {
+    const enviarLinkRecuperacao = async (e: React.FormEvent) => {
         e.preventDefault();
         definirErro('');
 
@@ -25,10 +28,15 @@ export function PaginaRecuperacaoSenha() {
             return;
         }
 
-        console.log('Recuperação solicitada para:', email);
-        setTimeout(() => {
+        try {
+            definirCarregandoRecuperacao(true);
+            await recuperarSenha(email);
             definirSucesso(true);
-        }, 800);
+        } catch (err: any) {
+            definirErro(err.message);
+        } finally {
+            definirCarregandoRecuperacao(false);
+        }
     };
 
     return (
@@ -91,10 +99,17 @@ export function PaginaRecuperacaoSenha() {
 
                             <button
                                 type="submit"
-                                className="w-full bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(14,165,233,0.4)] hover:shadow-[0_6px_25px_-5px_rgba(14,165,233,0.6)] active:transform active:scale-[0.98] flex items-center justify-center gap-2 border border-blue-400/20"
+                                disabled={carregandoRecuperacao}
+                                className="w-full bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(14,165,233,0.4)] hover:shadow-[0_6px_25px_-5px_rgba(14,165,233,0.6)] active:transform active:scale-[0.98] flex items-center justify-center gap-2 border border-blue-400/20 disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                <span>Enviar Link de Recuperação</span>
-                                <ArrowRight size={18} />
+                                {carregandoRecuperacao ? (
+                                    <span className="animate-pulse">Enviando...</span>
+                                ) : (
+                                    <>
+                                        <span>Enviar Link de Recuperação</span>
+                                        <ArrowRight size={18} />
+                                    </>
+                                )}
                             </button>
                         </form>
                     </>

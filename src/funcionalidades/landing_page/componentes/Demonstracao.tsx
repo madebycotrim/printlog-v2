@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Settings, LayoutDashboard, Package, Printer, DollarSign, FileText, Plus, AlertTriangle, Box, SprayCan } from 'lucide-react';
-import { Carretel, GarrafaResina } from '../../../compartilhado/componentes_ui/VisualizacaoMaterial';
+import { Carretel, GarrafaResina } from '@/funcionalidades/producao/filamentos/componentes/VisualizacaoMaterial';
 
 export function Demonstracao() {
     const refSecao = useRef<HTMLElement>(null);

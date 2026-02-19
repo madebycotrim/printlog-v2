@@ -1,0 +1,3 @@
+﻿src/funcionalidades/autenticacao/PaginaAcesso.tsx(12,33): error TS6133: 'carregando' is declared but its value is never read.
+src/funcionalidades/autenticacao/PaginaCadastro.tsx(11,36): error TS6133: 'carregando' is declared but its value is never read.
+src/funcionalidades/autenticacao/PaginaRecuperacaoSenha.tsx(11,29): error TS6133: 'carregando' is declared but its value is never read.

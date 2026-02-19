@@ -1,0 +1,18 @@
+:root[data-tema="claro"] {
+  --cor-fundo: #ffffff;
+  --cor-texto: #111827;
+  --cor-borda: #e5e7eb;
+}
+
+:root[data-tema="escuro"] {
+  --cor-fundo: #0f172a; /* Slate 900 */
+  --cor-texto: #f9fafb; /* Gray 50 */
+  --cor-borda: #1e293b; /* Slate 800 */
+}
+
+/* Aplicação das variáveis para garantir consistência se não usar classes Tailwind */
+body {
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto);
+  transition: background-color 0.3s, color 0.3s;
+}

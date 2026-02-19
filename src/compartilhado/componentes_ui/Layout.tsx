@@ -1,39 +1,41 @@
-import { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { ReactNode, useState } from 'react';
+import { BarraLateral } from './BarraLateral';
+import { Cabecalho } from './Cabecalho';
+import { ProvedorCabecalho } from '@/compartilhado/contextos/ContextoCabecalho';
 
 type PropriedadesLayout = {
     children: ReactNode;
 };
 
 export function Layout({ children }: PropriedadesLayout) {
+    const [sidebarAberta, definirSidebarAberta] = useState(false);
+
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            <header className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <div className="flex items-center">
-                        <Link to="/" className="text-xl font-bold text-gray-900">
-                            PrintLog V2
-                        </Link>
+        <ProvedorCabecalho>
+            <div className="flex h-screen bg-zinc-100 dark:bg-[#09090b] font-sans text-zinc-900 dark:text-gray-100 transition-colors duration-300 relative">
+                {/* Sidebar Fixa (Desktop) / Drawer (Mobile) */}
+                <BarraLateral
+                    abertaMobile={sidebarAberta}
+                    aoFechar={() => definirSidebarAberta(false)}
+                />
+
+                {/* Área Principal */}
+                <div className="flex-1 flex flex-col min-w-0 md:ml-0 transition-all duration-300 relative">
+
+                    {/* Background Grid Pattern */}
+                    <div className="absolute inset-0 z-0 pointer-events-none">
+                        <div className="absolute inset-0 h-full w-full bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_55%_60%_at_50%_0%,#000_70%,transparent_100%)] dark:bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)]"></div>
                     </div>
-                    <nav className="flex space-x-4">
-                        <Link to="/filamentos" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Filamentos</Link>
-                        <Link to="/impressoras" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Impressoras</Link>
-                        <Link to="/projetos" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Projetos</Link>
-                        <Link to="/clientes" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Clientes</Link>
-                        <Link to="/financeiro" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Financeiro</Link>
-                    </nav>
-                </div>
-            </header>
 
-            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {children}
-            </main>
+                    <Cabecalho aoAbrirBarraLateral={() => definirSidebarAberta(true)} />
 
-            <footer className="bg-white border-t border-gray-200 mt-auto">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <p className="text-center text-sm text-gray-500">© 2026 PrintLog. Todos os direitos reservados.</p>
+                    <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+                        <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-2">
+                            {children}
+                        </div>
+                    </main>
                 </div>
-            </footer>
-        </div>
+            </div>
+        </ProvedorCabecalho>
     );
 }
