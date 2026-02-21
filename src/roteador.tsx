@@ -1,75 +1,257 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Layout } from '@/compartilhado/componentes_ui/Layout';
+﻿import { lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Layout } from "@/compartilhado/componentes_ui/Layout";
+import { RotaProtegida } from "@/compartilhado/infraestrutura/roteamento/RotaProtegida";
+import { ProvedorAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
 
-// Páginas Públicas
-import { PaginaLanding } from '@/funcionalidades/landing_page/PaginaLanding';
-import { SegurancaPrivacidade } from '@/funcionalidades/landing_page/SegurancaPrivacidade';
-import { PoliticaPrivacidade } from '@/funcionalidades/landing_page/PoliticaPrivacidade';
-import { TermosUso } from '@/funcionalidades/landing_page/TermosUso';
+// --- COMPONENTES ESTÃTICOS ESSENCIAIS ---
+// Esses nÃ£o devem usar lazy loading pois sÃ£o a base da navegaÃ§Ã£o/seguranÃ§a
 
-// Autenticação
-import { PaginaAcesso } from '@/funcionalidades/autenticacao/PaginaAcesso';
-import { PaginaCadastro } from '@/funcionalidades/autenticacao/PaginaCadastro';
-import { PaginaRecuperacaoSenha } from '@/funcionalidades/autenticacao/PaginaRecuperacaoSenha';
-import { ProvedorAutenticacao } from '@/funcionalidades/autenticacao/contexto/ContextoAutenticacao';
-import { RotaProtegida } from '@/compartilhado/infraestrutura/roteamento/RotaProtegida';
+// --- PÃGINAS COM LAZY LOADING (CODE SPLITTING) ---
+// O carregamento inicial baixa apenas o Layout e AutenticaÃ§Ã£o.
+// As pÃ¡ginas sÃ£o baixadas apenas sob demanda quando acessadas.
 
-// Páginas da Aplicação (Organizadas por Categoria)
+// Landing Page PÃºblica
+const PaginaLanding = lazy(() =>
+  import("@/funcionalidades/landing_page/PaginaLanding").then((m) => ({
+    default: m.PaginaLanding,
+  })),
+);
+const SegurancaPrivacidade = lazy(() =>
+  import("@/funcionalidades/landing_page/SegurancaPrivacidade").then((m) => ({
+    default: m.SegurancaPrivacidade,
+  })),
+);
+const PoliticaPrivacidade = lazy(() =>
+  import("@/funcionalidades/landing_page/PoliticaPrivacidade").then((m) => ({
+    default: m.PoliticaPrivacidade,
+  })),
+);
+const TermosUso = lazy(() =>
+  import("@/funcionalidades/landing_page/TermosUso").then((m) => ({
+    default: m.TermosUso,
+  })),
+);
+
+// AutenticaÃ§Ã£o
+const PaginaAcesso = lazy(() =>
+  import("@/funcionalidades/autenticacao/PaginaAcesso").then((m) => ({
+    default: m.PaginaAcesso,
+  })),
+);
+const PaginaCadastro = lazy(() =>
+  import("@/funcionalidades/autenticacao/PaginaCadastro").then((m) => ({
+    default: m.PaginaCadastro,
+  })),
+);
+const PaginaRecuperacaoSenha = lazy(() =>
+  import("@/funcionalidades/autenticacao/PaginaRecuperacaoSenha").then((m) => ({
+    default: m.PaginaRecuperacaoSenha,
+  })),
+);
+
 // 1. Geral
-import { PaginaInicial } from '@/funcionalidades/geral/painel/PaginaInicial';
-import { PaginaCalculadora } from '@/funcionalidades/geral/calculadora/pagina';
+const PaginaInicial = lazy(() =>
+  import("@/funcionalidades/geral/painel/PaginaInicial").then((m) => ({
+    default: m.PaginaInicial,
+  })),
+);
+const PaginaCalculadora = lazy(() =>
+  import("@/funcionalidades/geral/calculadora/pagina").then((m) => ({
+    default: m.PaginaCalculadora,
+  })),
+);
 
-// 2. Produção
-import { PaginaProjetos } from '@/funcionalidades/producao/projetos/pagina';
-import { PaginaImpressoras } from '@/funcionalidades/producao/impressoras/pagina';
-import { PaginaFilamentos } from '@/funcionalidades/producao/filamentos/pagina';
-import { PaginaInsumos } from '@/funcionalidades/producao/insumos/pagina';
+// 2. ProduÃ§Ã£o
+const PaginaProjetos = lazy(() =>
+  import("@/funcionalidades/producao/projetos/pagina").then((m) => ({
+    default: m.PaginaProjetos,
+  })),
+);
+const PaginaImpressoras = lazy(() =>
+  import("@/funcionalidades/producao/impressoras/pagina").then((m) => ({
+    default: m.PaginaImpressoras,
+  })),
+);
+const PaginaMateriais = lazy(() =>
+  import("@/funcionalidades/producao/materiais/pagina").then((m) => ({
+    default: m.PaginaMateriais,
+  })),
+);
+const PaginaInsumos = lazy(() =>
+  import("@/funcionalidades/producao/insumos/pagina").then((m) => ({
+    default: m.PaginaInsumos,
+  })),
+);
 
 // 3. Comercial
-import { PaginaClientes } from '@/funcionalidades/comercial/clientes/pagina';
-import { PaginaFinanceiro } from '@/funcionalidades/comercial/financeiro/pagina';
+const PaginaClientes = lazy(() =>
+  import("@/funcionalidades/comercial/clientes/pagina").then((m) => ({
+    default: m.PaginaClientes,
+  })),
+);
+const PaginaFinanceiro = lazy(() =>
+  import("@/funcionalidades/comercial/financeiro/pagina").then((m) => ({
+    default: m.PaginaFinanceiro,
+  })),
+);
 
 // 4. Sistema
-import { PaginaConfiguracoes } from '@/funcionalidades/sistema/configuracoes/PaginaConfiguracoes';
-import { PaginaAjuda } from '@/funcionalidades/sistema/ajuda/pagina';
+const PaginaConfiguracoes = lazy(() =>
+  import("@/funcionalidades/sistema/configuracoes/PaginaConfiguracoes").then(
+    (m) => ({ default: m.PaginaConfiguracoes }),
+  ),
+);
+const PaginaAjuda = lazy(() =>
+  import("@/funcionalidades/sistema/ajuda/pagina").then((m) => ({
+    default: m.PaginaAjuda,
+  })),
+);
+
+// Fallback de Carregamento Global
+const FallbackCarregamento = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0e0e11]">
+    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-sky-500"></div>
+  </div>
+);
 
 export function RoteadorPrincipal() {
-    return (
-        <ProvedorAutenticacao>
-            <BrowserRouter>
-                <Routes>
-                    {/* Landing Page Pública */}
-                    <Route path="/" element={<PaginaLanding />} />
-                    <Route path="/seguranca-e-privacidade" element={<SegurancaPrivacidade />} />
-                    <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
-                    <Route path="/termos-de-uso" element={<TermosUso />} />
+  return (
+    <ProvedorAutenticacao>
+      <BrowserRouter>
+        <Suspense fallback={<FallbackCarregamento />}>
+          <Routes>
+            {/* Landing Page PÃºblica */}
+            <Route path="/" element={<PaginaLanding />} />
+            <Route
+              path="/seguranca-e-privacidade"
+              element={<SegurancaPrivacidade />}
+            />
+            <Route
+              path="/politica-de-privacidade"
+              element={<PoliticaPrivacidade />}
+            />
+            <Route path="/termos-de-uso" element={<TermosUso />} />
 
-                    {/* Autenticação */}
-                    <Route path="/login" element={<PaginaAcesso />} />
-                    <Route path="/cadastro" element={<PaginaCadastro />} />
-                    <Route path="/recuperar-senha" element={<PaginaRecuperacaoSenha />} />
+            {/* AutenticaÃ§Ã£o */}
+            <Route path="/login" element={<PaginaAcesso />} />
+            <Route path="/cadastro" element={<PaginaCadastro />} />
+            <Route
+              path="/recuperar-senha"
+              element={<PaginaRecuperacaoSenha />}
+            />
 
-                    {/* Aplicação Interna Protegida */}
+            {/* AplicaÃ§Ã£o Interna Protegida */}
+            {/* 1. GERAL */}
+            <Route
+              path="/dashboard"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaInicial />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
+            <Route
+              path="/calculadora"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaCalculadora />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
 
-                    {/* 1. GERAL */}
-                    <Route path="/dashboard" element={<RotaProtegida><Layout><PaginaInicial /></Layout></RotaProtegida>} />
-                    <Route path="/calculadora" element={<RotaProtegida><Layout><PaginaCalculadora /></Layout></RotaProtegida>} />
+            {/* 2. PRODUÃ‡ÃƒO */}
+            <Route
+              path="/projetos"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaProjetos />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
+            <Route
+              path="/impressoras"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaImpressoras />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
+            <Route
+              path="/materiais"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaMateriais />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
+            <Route
+              path="/insumos"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaInsumos />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
 
-                    {/* 2. PRODUÇÃO */}
-                    <Route path="/projetos" element={<RotaProtegida><Layout><PaginaProjetos /></Layout></RotaProtegida>} />
-                    <Route path="/impressoras" element={<RotaProtegida><Layout><PaginaImpressoras /></Layout></RotaProtegida>} />
-                    <Route path="/materiais" element={<RotaProtegida><Layout><PaginaFilamentos /></Layout></RotaProtegida>} />
-                    <Route path="/insumos" element={<RotaProtegida><Layout><PaginaInsumos /></Layout></RotaProtegida>} />
+            {/* 3. COMERCIAL */}
+            <Route
+              path="/clientes"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaClientes />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
+            <Route
+              path="/financeiro"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaFinanceiro />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
 
-                    {/* 3. COMERCIAL */}
-                    <Route path="/clientes" element={<RotaProtegida><Layout><PaginaClientes /></Layout></RotaProtegida>} />
-                    <Route path="/financeiro" element={<RotaProtegida><Layout><PaginaFinanceiro /></Layout></RotaProtegida>} />
-
-                    {/* 4. SISTEMA */}
-                    <Route path="/configuracoes" element={<RotaProtegida><Layout><PaginaConfiguracoes /></Layout></RotaProtegida>} />
-                    <Route path="/central-maker" element={<RotaProtegida><Layout><PaginaAjuda /></Layout></RotaProtegida>} />
-                </Routes>
-            </BrowserRouter>
-        </ProvedorAutenticacao>
-    );
+            {/* 4. SISTEMA */}
+            <Route
+              path="/configuracoes"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaConfiguracoes />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
+            <Route
+              path="/central-maker"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaAjuda />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </ProvedorAutenticacao>
+  );
 }

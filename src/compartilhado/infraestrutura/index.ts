@@ -1,2 +1,2 @@
 // ─── Infraestrutura de Roteamento ───
-export * from './roteamento/RotaProtegida';
+export * from "./roteamento/RotaProtegida";

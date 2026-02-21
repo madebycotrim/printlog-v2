@@ -1,13 +1,19 @@
 :root[data-tema="claro"] {
-  --cor-fundo: #ffffff;
-  --cor-texto: #111827;
-  --cor-borda: #e5e7eb;
+  --cor-fundo: #f4f4f5;
+  /* Zinc 100 (Matching index.css page bg) */
+  --cor-texto: #18181b;
+  /* Zinc 900 */
+  --cor-borda: #e4e4e7;
+  /* Zinc 200 */
 }
 
 :root[data-tema="escuro"] {
-  --cor-fundo: #0f172a; /* Slate 900 */
-  --cor-texto: #f9fafb; /* Gray 50 */
-  --cor-borda: #1e293b; /* Slate 800 */
+  --cor-fundo: #09090b;
+  /* Zinc 950 (Matching index.css) */
+  --cor-texto: #f4f4f5;
+  /* Zinc 100 */
+  --cor-borda: #27272a;
+  /* Zinc 800 */
 }
 
 /* Aplicação das variáveis para garantir consistência se não usar classes Tailwind */
