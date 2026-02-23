@@ -45,7 +45,7 @@ export function CardImpressora({ impressora, aoEditar, aoAposentar, aoDetalhes, 
     return (
         <div
             onClick={() => aoDetalhes?.(impressora)}
-            className="group relative flex flex-col h-full rounded-[20px] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-pointer bg-white dark:bg-[#111113] border border-gray-200 dark:border-white/5"
+            className="group relative flex flex-col h-full rounded-[20px] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-pointer bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/5"
         >
             {/* Badge Superior Esquerdo (Tecnologia) */}
             <div className="absolute top-4 left-4 z-20 flex items-center gap-3">

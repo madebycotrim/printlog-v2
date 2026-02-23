@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { CorPrimaria, ModoTema } from "@/compartilhado/tipos_globais/modelos";
+import type { CorPrimaria, ModoTema, TipoFonte } from "@/compartilhado/tipos_globais/modelos";
 
 const PALETA_PRIMARIA: Record<CorPrimaria, { hex: string; rgb: string }> = {
   sky: { hex: "#0ea5e9", rgb: "14 165 233" },
@@ -12,6 +12,19 @@ const PALETA_PRIMARIA: Record<CorPrimaria, { hex: string; rgb: string }> = {
   teal: { hex: "#14b8a6", rgb: "20 184 166" },
   orange: { hex: "#f97316", rgb: "249 115 22" },
   fuchsia: { hex: "#d946ef", rgb: "217 70 239" },
+  lime: { hex: "#84cc16", rgb: "132 204 22" },
+  pink: { hex: "#ec4899", rgb: "236 72 153" },
+  blue: { hex: "#3b82f6", rgb: "59 130 246" },
+  slate: { hex: "#64748b", rgb: "100 116 139" },
+};
+
+const MAPA_FONTES: Record<TipoFonte, string> = {
+  inter: "Inter, sans-serif",
+  roboto: "Roboto, sans-serif",
+  montserrat: "Montserrat, sans-serif",
+  outfit: "Outfit, sans-serif",
+  poppins: "Poppins, sans-serif",
+  "jetbrains-mono": "'JetBrains Mono', monospace",
 };
 
 export function usar_tema() {
@@ -31,6 +44,7 @@ export function usar_tema() {
     }
     return "CLARO";
   });
+
   const [cor_primaria, definir_cor_primaria] = useState<CorPrimaria>(() => {
     if (typeof window !== "undefined") {
       const corSalva = localStorage.getItem("cor_primaria") as CorPrimaria | null;
@@ -41,22 +55,34 @@ export function usar_tema() {
     return "sky";
   });
 
+  const [fonte, definir_fonte] = useState<TipoFonte>(() => {
+    if (typeof window !== "undefined") {
+      const fonteSalva = localStorage.getItem("fonte_usuario") as TipoFonte | null;
+      if (fonteSalva && fonteSalva in MAPA_FONTES) {
+        return fonteSalva;
+      }
+    }
+    return "inter";
+  });
+
   useEffect(() => {
     // Persiste as escolhas e aplica variaveis globais de tema/cor
     localStorage.setItem("modo_tema", modo_tema);
     localStorage.setItem("cor_primaria", cor_primaria);
+    localStorage.setItem("fonte_usuario", fonte);
 
     const root = document.documentElement;
     root.setAttribute("data-tema", modo_tema.toLowerCase());
     root.style.setProperty("--cor-primaria", PALETA_PRIMARIA[cor_primaria].hex);
     root.style.setProperty("--cor-primaria-rgb", PALETA_PRIMARIA[cor_primaria].rgb);
+    root.style.setProperty("--familia-fonte", MAPA_FONTES[fonte]);
 
     if (modo_tema === "ESCURO") {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
     }
-  }, [modo_tema, cor_primaria]);
+  }, [modo_tema, cor_primaria, fonte]);
 
   function alternar_tema() {
     definir_modo_tema((tema_atual) =>
@@ -66,9 +92,12 @@ export function usar_tema() {
 
   return {
     modo_tema,
+    definir_modo_tema,
     alternar_tema,
     cor_primaria,
     definir_cor_primaria,
+    fonte,
+    definir_fonte,
     paleta_primaria: PALETA_PRIMARIA,
   };
 }

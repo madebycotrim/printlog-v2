@@ -1,5 +1,17 @@
+/* Fontes Auxiliares Modernas - NO TOPO ABSOLUTO */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Outfit:wght@100..900&family=Poppins:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
 @import "tailwindcss";
 @variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: var(--familia-fonte);
+  --font-inter: "Inter", sans-serif;
+  --color-card-fundo: var(--bg-card);
+  --color-borda-sutil: var(--border-subtle);
+}
+
+/* Fontsource - Inter & JetBrains Mono */
 @import "@fontsource/inter/100.css";
 @import "@fontsource/inter/200.css";
 @import "@fontsource/inter/300.css";
@@ -14,43 +26,55 @@
 @import "@fontsource/jetbrains-mono/700.css";
 
 :root {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --familia-fonte: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  font-family: var(--familia-fonte);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* Palette Exata PrintLog (Zinc/Neutral based) */
-  /* Light Mode Defaults */
+  /* Palette Exata PrintLog */
   --bg-page: #f4f4f5;
-  /* Zinc 100 */
   --bg-sidebar: #ffffff;
-  /* White */
   --bg-card: #ffffff;
-  /* White */
   --border-subtle: #e4e4e7;
-  /* Zinc 200 */
-
-  /* Accents */
   --accent-blue: #0ea5e9;
   --accent-green: #10b981;
-
-  --font-mono: 'JetBrains Mono', monospace;
 }
 
 .dark {
-  /* Dark Mode Overrides */
   --bg-page: #09090b;
-  /* Zinc 950 */
   --bg-sidebar: #020202;
-  /* Almost Black */
   --bg-card: #18181b;
-  /* Zinc 900 */
-  --border-subtle: #27272a;
-  /* Zinc 800 */
+  --border-subtle: rgba(255, 255, 255, 0.1);
 }
 
 body {
   background-color: var(--bg-page);
-  color: #fff;
+  font-family: var(--familia-fonte);
+}
+
+/* Forçamos a fonte em componentes que o Tailwind reseta explicitamente */
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Títulos com gradiente */
+.text-gradient-title {
+  background: linear-gradient(to right, #fff 0%, #cbd5e1 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Números Mono */
+.font-mono-numbers {
+  font-family: var(--font-mono) !important;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Scrollbar */
@@ -71,7 +95,7 @@ body {
   background: #3f3f46;
 }
 
-/* Grid Pattern Especial - PrintLog Style */
+/* Grid Patterns */
 .bg-grid-printlog {
   background-size: 40px 40px;
   background-image:
@@ -94,20 +118,7 @@ body {
     linear-gradient(to bottom, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
 }
 
-/* Utilitários de Texto */
-.text-gradient-title {
-  background: linear-gradient(to right, #fff 0%, #cbd5e1 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.font-mono-numbers {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Animações Personalizadas */
+/* Animações */
 @keyframes float {
 
   0%,
@@ -120,41 +131,10 @@ body {
   }
 }
 
-@keyframes gradient {
-
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes grid-fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
 .animate-float-slow {
   animation: float 6s ease-in-out infinite;
 }
 
-.animate-float-medium {
-  animation: float 4s ease-in-out infinite;
-}
-
-.animate-float-fast {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* Utilitário para remover spinners de input number */
 @layer utilities {
 
   .no-spinner::-webkit-inner-spin-button,

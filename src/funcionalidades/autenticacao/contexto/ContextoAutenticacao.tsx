@@ -17,6 +17,7 @@ import {
   AuthError,
   setPersistence,
   browserLocalPersistence,
+  deleteUser,
 } from "firebase/auth";
 import { autenticacao } from "@/compartilhado/infraestrutura/firebase";
 
@@ -25,6 +26,7 @@ interface Usuario {
   email: string | null;
   nome: string | null;
   fotoUrl: string | null;
+  provedorGoogle: boolean;
 }
 
 interface ContextoAutenticacaoProps {
@@ -36,6 +38,7 @@ interface ContextoAutenticacaoProps {
   recuperarSenha: (email: string) => Promise<void>;
   loginGoogle: () => Promise<void>;
   atualizarPerfil: (dados: { nome?: string; fotoUrl?: string }) => Promise<void>;
+  excluirConta: () => Promise<void>;
 }
 
 const ContextoAutenticacao = createContext<ContextoAutenticacaoProps>(
@@ -67,11 +70,15 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
 
     const cancelarInscricao = onAuthStateChanged(autenticacao, (user) => {
       if (user) {
+        const ehGoogle = user.providerData.some(
+          (provedor) => provedor.providerId === "google.com"
+        );
         definirUsuario({
           uid: user.uid,
           email: user.email,
           nome: user.displayName,
           fotoUrl: user.photoURL,
+          provedorGoogle: ehGoogle,
         });
       } else {
         definirUsuario(null);
@@ -129,6 +136,7 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
         email: credencial.user.email,
         nome: nome,
         fotoUrl: credencial.user.photoURL,
+        provedorGoogle: false,
       });
     } catch (erro: any) {
       traduzirErroFirebase(erro);
@@ -187,6 +195,15 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
     }
   };
 
+  const excluirConta = async () => {
+    try {
+      if (!autenticacao.currentUser) throw new Error("Usuário não autenticado.");
+      await deleteUser(autenticacao.currentUser);
+    } catch (erro: any) {
+      traduzirErroFirebase(erro);
+    }
+  };
+
   const valor = {
     usuario,
     carregando,
@@ -196,6 +213,7 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
     recuperarSenha,
     loginGoogle,
     atualizarPerfil,
+    excluirConta,
   };
 
   return (

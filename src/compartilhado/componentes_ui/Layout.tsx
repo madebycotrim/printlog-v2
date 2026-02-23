@@ -12,7 +12,7 @@ export function Layout({ children }: PropriedadesLayout) {
 
   return (
     <ProvedorCabecalho>
-      <div className="flex h-screen bg-zinc-100 dark:bg-[#0e0e11] font-sans text-zinc-900 dark:text-gray-100 transition-colors duration-300 relative">
+      <div className="flex h-screen bg-zinc-100 dark:bg-[#09090b] font-sans text-zinc-900 dark:text-gray-100 transition-colors duration-300 relative">
         {/* Sidebar Fixa (Desktop) / Drawer (Mobile) */}
         <BarraLateral
           abertaMobile={sidebarAberta}

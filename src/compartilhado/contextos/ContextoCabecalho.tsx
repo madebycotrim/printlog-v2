@@ -21,6 +21,7 @@ type DadosCabecalho = {
   placeholderBusca?: string;
   ocultarBusca?: boolean;
   acao?: AcaoCabecalho;
+  segundaAcao?: AcaoCabecalho;
   elementoAcao?: ReactNode; // Mantido para compatibilidade ou casos customizados
   aoBuscar?: (termo: string) => void;
 };
@@ -79,10 +80,12 @@ export function usarDefinirCabecalho(dadosInput: DadosCabecalho) {
 
   // 1. Manter as funções instáveis em refs para não trigar useEffect
   const acaoCallbackRef = useRef(dadosInput.acao?.aoClicar);
+  const segundaAcaoCallbackRef = useRef(dadosInput.segundaAcao?.aoClicar);
   const aoBuscarCallbackRef = useRef(dadosInput.aoBuscar);
 
   useEffect(() => {
     acaoCallbackRef.current = dadosInput.acao?.aoClicar;
+    segundaAcaoCallbackRef.current = dadosInput.segundaAcao?.aoClicar;
     aoBuscarCallbackRef.current = dadosInput.aoBuscar;
   });
 
@@ -90,6 +93,12 @@ export function usarDefinirCabecalho(dadosInput: DadosCabecalho) {
   const aoClicarEstavel = useCallback(() => {
     if (acaoCallbackRef.current) {
       acaoCallbackRef.current();
+    }
+  }, []);
+
+  const aoClicarSegundaEstavel = useCallback(() => {
+    if (segundaAcaoCallbackRef.current) {
+      segundaAcaoCallbackRef.current();
     }
   }, []);
 
@@ -107,6 +116,12 @@ export function usarDefinirCabecalho(dadosInput: DadosCabecalho) {
         ? {
           ...dadosInput.acao,
           aoClicar: aoClicarEstavel,
+        }
+        : undefined,
+      segundaAcao: dadosInput.segundaAcao
+        ? {
+          ...dadosInput.segundaAcao,
+          aoClicar: aoClicarSegundaEstavel,
         }
         : undefined,
       aoBuscar: dadosInput.aoBuscar ? aoBuscarEstavel : undefined,
@@ -127,7 +142,11 @@ export function usarDefinirCabecalho(dadosInput: DadosCabecalho) {
     dadosInput.acao?.texto,
     dadosInput.acao?.icone,
     dadosInput.acao?.desabilitado,
+    dadosInput.segundaAcao?.texto,
+    dadosInput.segundaAcao?.icone,
+    dadosInput.segundaAcao?.desabilitado,
     !!dadosInput.acao,
+    !!dadosInput.segundaAcao,
     !!dadosInput.aoBuscar,
   ]);
 }

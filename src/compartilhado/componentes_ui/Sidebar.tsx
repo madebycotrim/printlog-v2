@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard,
+import {
+    LayoutDashboard,
     Printer,
     Package,
     FolderKanban,
@@ -8,14 +9,11 @@ import { LayoutDashboard,
     LogOut,
     Settings,
     X,
-    Moon,
-    Sun,
     Calculator,
     Layers,
     HelpCircle,
 } from "lucide-react";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
-import { usarContextoTema } from "@/compartilhado/tema/tema_provider";
 
 type PropriedadesBarraLateral = {
     abertaMobile?: boolean;
@@ -40,7 +38,6 @@ export function BarraLateral({
 }: PropriedadesBarraLateral) {
     const localizacao = useLocation();
     const { usuario, sair } = usarAutenticacao();
-    const { modo_tema, alternar_tema } = usarContextoTema();
 
     const grupos: GrupoNavegacao[] = [
         {
@@ -75,7 +72,7 @@ export function BarraLateral({
             titulo: "Sistema",
             itens: [
                 { nome: "Configurações", icone: Settings, caminho: "/configuracoes" },
-                { nome: "Ajuda", icone: HelpCircle, caminho: "/central-maker" },
+                { nome: "Central Maker", icone: HelpCircle, caminho: "/central-maker" },
             ],
         },
     ];
@@ -212,18 +209,6 @@ export function BarraLateral({
 
                     {/* Rodapé */}
                     <div className="border-t border-gray-100 dark:border-white/[0.06] p-3 space-y-1">
-                        <button
-                            onClick={alternar_tema}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.04] hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
-                        >
-                            {modo_tema === "CLARO" ? (
-                                <Moon size={17} className="text-gray-400" />
-                            ) : (
-                                <Sun size={17} className="text-gray-400" />
-                            )}
-                            {modo_tema === "CLARO" ? "Modo Escuro" : "Modo Claro"}
-                        </button>
-
                         <div className="flex items-center gap-3 px-3 py-2 mt-1">
                             <div className="h-8 w-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300 shrink-0 overflow-hidden">
                                 {usuario?.fotoUrl ? (

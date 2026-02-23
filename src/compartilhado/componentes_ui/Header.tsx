@@ -57,30 +57,54 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
           </div>
         )}
 
-        {/* AÃ§Ã£o Padronizada - Minimalista e Tamanho AdaptÃ¡vel */}
-        {dados.acao && (
-          <button
-            onClick={dados.acao.aoClicar}
-            disabled={dados.acao.desabilitado}
-            className={`flex items-center justify-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-bold text-xs md:text-sm active:scale-95 transition-all duration-200 shadow-sm shrink-0 ${dados.acao.desabilitado
+        {/* Ações Padronizadas */}
+        <div className="flex items-center gap-2 md:gap-3">
+          {dados.segundaAcao && (
+            <button
+              onClick={dados.segundaAcao.aoClicar}
+              disabled={dados.segundaAcao.desabilitado}
+              className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-lg font-bold text-xs md:text-sm active:scale-95 transition-all duration-200 shrink-0 ${dados.segundaAcao.desabilitado
+                ? "text-gray-300 dark:text-zinc-700 cursor-not-allowed opacity-50"
+                : "text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5"
+                }`}
+            >
+              {dados.segundaAcao.icone && (
+                <dados.segundaAcao.icone
+                  size={16}
+                  strokeWidth={2.5}
+                  className="md:w-[18px] md:h-[18px]"
+                />
+              )}
+              <span className="hidden sm:inline">{dados.segundaAcao.texto}</span>
+              <span className="sm:hidden">
+                {dados.segundaAcao.texto.split(" ")[0]}
+              </span>
+            </button>
+          )}
+
+          {dados.acao && (
+            <button
+              onClick={dados.acao.aoClicar}
+              disabled={dados.acao.desabilitado}
+              className={`flex items-center justify-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-bold text-xs md:text-sm active:scale-95 transition-all duration-200 shadow-sm shrink-0 ${dados.acao.desabilitado
                 ? "bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-zinc-600 cursor-not-allowed opacity-70"
                 : "bg-gray-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-black dark:hover:bg-gray-100"
-              }`}
-          >
-            {dados.acao.icone && (
-              <dados.acao.icone
-                size={16}
-                strokeWidth={2.5}
-                className="md:w-[18px] md:h-[18px]"
-              />
-            )}
-            <span className="hidden sm:inline">{dados.acao.texto}</span>
-            <span className="sm:hidden">
-              {dados.acao.texto.split(" ")[0]}
-            </span>{" "}
-            {/* No mobile, tenta usar apenas a primeira palavra */}
-          </button>
-        )}
+                }`}
+            >
+              {dados.acao.icone && (
+                <dados.acao.icone
+                  size={16}
+                  strokeWidth={2.5}
+                  className="md:w-[18px] md:h-[18px]"
+                />
+              )}
+              <span className="hidden sm:inline">{dados.acao.texto}</span>
+              <span className="sm:hidden">
+                {dados.acao.texto.split(" ")[0]}
+              </span>
+            </button>
+          )}
+        </div>
 
         {/* Fallback para elementos customizados (Legado) */}
         {!dados.acao && dados.elementoAcao && (

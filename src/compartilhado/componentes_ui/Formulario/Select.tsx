@@ -1,7 +1,7 @@
 import { SelectHTMLAttributes, forwardRef } from "react";
 import { AlertCircle, ChevronDown } from "lucide-react";
 
-export interface OpcaoSelect {
+interface OpcaoSelect {
     valor: string;
     formatado: string;
 }

@@ -1,5 +1,6 @@
 :root[data-tema="claro"] {
   --cor-fundo: #f4f4f5;
+  --cor-fundo-card: #ffffff;
   /* Zinc 100 (Matching index.css page bg) */
   --cor-texto: #18181b;
   /* Zinc 900 */
@@ -11,6 +12,7 @@
 
 :root[data-tema="escuro"] {
   --cor-fundo: #09090b;
+  --cor-fundo-card: #18181b;
   /* Zinc 950 (Matching index.css) */
   --cor-texto: #f4f4f5;
   /* Zinc 100 */

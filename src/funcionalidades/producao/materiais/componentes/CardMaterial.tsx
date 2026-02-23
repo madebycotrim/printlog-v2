@@ -83,7 +83,7 @@ export function CardMaterial({
   const unidade = material.tipo === "FDM" ? "g" : "ml";
 
   return (
-    <div ref={cardRef} className="group relative flex flex-col h-full rounded-[20px] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-default bg-white dark:bg-[#111113] border border-gray-200 dark:border-white/5">
+    <div ref={cardRef} className="group relative flex flex-col h-full rounded-[20px] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-default bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/5">
       {/* Badge Superior Esquerdo (Tipo de Material) */}
       <div className="absolute top-4 left-4 z-20">
         <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 dark:text-[#a1a1aa] bg-gray-50/50 dark:bg-transparent border border-gray-200 dark:border-white/5 flex items-center justify-center shadow-sm dark:shadow-none">

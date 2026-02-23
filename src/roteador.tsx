@@ -98,7 +98,7 @@ const PaginaFinanceiro = lazy(() =>
 
 // 4. Sistema
 const PaginaConfiguracoes = lazy(() =>
-  import("@/funcionalidades/sistema/configuracoes/PaginaConfiguracoes").then(
+  import("@/funcionalidades/sistema/configuracoes/pagina").then(
     (m) => ({ default: m.PaginaConfiguracoes }),
   ),
 );
