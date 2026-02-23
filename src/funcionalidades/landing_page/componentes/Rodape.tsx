@@ -39,13 +39,13 @@ export function Rodape() {
                 Contato
               </h4>
               <a
-                href="mailto:suporte@printlog.com.br"
+                href="mailto:contato@printlog.com.br"
                 className="group flex items-center gap-3 text-zinc-500 text-sm hover:text-sky-400 transition-all duration-200"
               >
                 <div className="w-9 h-9 bg-zinc-900 rounded-lg flex items-center justify-center border border-zinc-800 group-hover:border-sky-500/50 group-hover:bg-sky-500/10 transition-all duration-300 shrink-0">
                   <Mail className="w-4 h-4 group-hover:scale-110 transition-transform" />
                 </div>
-                suporte@printlog.com.br
+                contato@printlog.com.br
               </a>
             </div>
           </div>

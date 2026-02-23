@@ -6,6 +6,7 @@ import {
   AlertCircle,
   ArrowRight,
   CheckCircle2,
+  User,
 } from "lucide-react";
 import { LayoutAutenticacao } from "./componentes/LayoutAutenticacao";
 import { PainelBranding } from "./componentes/PainelBranding";
@@ -15,7 +16,7 @@ import { ComponenteTurnstile } from "./componentes/ComponenteTurnstile";
 
 export function PaginaAcesso() {
   const navegar = useNavigate();
-  const { login, loginGoogle, usuario, carregando } = usarAutenticacao();
+  const { login, loginGoogle, loginAnonimo, usuario, carregando } = usarAutenticacao();
   const [email, definirEmail] = useState("");
   const [senha, definirSenha] = useState("");
   const [erro, definirErro] = useState("");
@@ -59,6 +60,18 @@ export function PaginaAcesso() {
       navegar("/dashboard");
     } catch (err: any) {
       definirErro(err.message);
+    }
+  };
+
+  const entrarComoConvidado = async () => {
+    try {
+      definirCarregandoLogin(true);
+      await loginAnonimo();
+      navegar("/dashboard");
+    } catch (err: any) {
+      definirErro(err.message);
+    } finally {
+      definirCarregandoLogin(false);
     }
   };
 
@@ -224,6 +237,15 @@ export function PaginaAcesso() {
             />
           </svg>
           Entrar com Google
+        </button>
+
+        <button
+          type="button"
+          onClick={entrarComoConvidado}
+          className="w-full bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 text-zinc-300 font-semibold py-3 mt-3 rounded-xl transition-all flex items-center justify-center gap-3 text-sm backdrop-blur-sm"
+        >
+          <User className="w-5 h-5 text-zinc-400" />
+          Entrar como Convidado
         </button>
 
         <p className="mt-8 text-center text-sm text-zinc-500">

@@ -102,11 +102,8 @@ export function SegurancaPrivacidade() {
                 </h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
                   Cada conta possui dados separados e inacessíveis por outros
-                  usuários. Utilizamos{" "}
-                  <strong className="text-sky-300">
-                    Row-Level Security (RLS)
-                  </strong>{" "}
-                  no banco de dados para garantir o isolamento completo.
+                  usuários. Utilizamos tecnologias de isolamento de dados na
+                  infraestrutura da <strong className="text-sky-300">Cloudflare</strong> para garantir o isolamento completo.
                 </p>
               </div>
               <div className="space-y-3">
@@ -129,18 +126,18 @@ export function SegurancaPrivacidade() {
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 {
-                  title: "Criptografia SSL/TLS",
-                  desc: "Todas as conexões são protegidas com criptografia SSL de ponta a ponta, garantindo que seus dados não possam ser interceptados.",
+                  title: "Rede Cloudflare",
+                  desc: "Utilizamos a infraestrutura global da Cloudflare para garantir criptografia de ponta a ponta, proteção contra ataques DDoS e segurança automatizada.",
                   icon: "lock",
                 },
                 {
-                  title: "Armazenamento seguro",
-                  desc: "Utilizamos infraestrutura de nível empresarial com servidores seguros e políticas de acesso rigorosas.",
+                  title: "Armazenamento Blindado",
+                  desc: "Seus dados estão em infraestrutura de alta resiliência na Cloudflare, garantindo baixa latência e conformidade.",
                   icon: "server",
                 },
                 {
-                  title: "Controle de acesso",
-                  desc: "Sistema de autenticação robusto com verificação de e-mail e proteção contra senhas comprometidas.",
+                  title: "Google Firebase Auth",
+                  desc: "A autenticação é processada de forma segura pelo Google Firebase, com padrões internacionais de proteção de identidade.",
                   icon: "shield-check",
                 },
               ].map((item, i) => (
@@ -174,12 +171,11 @@ export function SegurancaPrivacidade() {
                   <div className="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                   <div>
                     <h4 className="text-white font-bold text-sm">
-                      Sem compartilhamento com terceiros
+                      Privacidade comercial absoluta
                     </h4>
                     <p className="text-zinc-400 text-sm mt-1">
-                      Seus dados pessoais e informações de negócio nunca são
-                      compartilhados com empresas terceiras, parceiros ou
-                      anunciantes.
+                      Seus dados pessoais e informações estratégicas nunca são
+                      vendidos, alugados ou compartilhados com terceiros para fins comerciais ou publicitários.
                     </p>
                   </div>
                 </li>
@@ -207,10 +203,10 @@ export function SegurancaPrivacidade() {
                 <div className="p-4 rounded-xl border border-dashed border-zinc-700 hover:border-zinc-500 transition-colors cursor-default">
                   <h4 className="text-white font-bold text-sm mb-1 flex items-center gap-2">
                     <Icon name="download" className="w-4 h-4 text-zinc-400" />{" "}
-                    Exportar dados
+                    Portabilidade de dados
                   </h4>
-                  <p className="text-zinc-500 text-xs">
-                    Baixe todos os seus dados em formato CSV a qualquer momento.
+                  <p className="text-zinc-500 text-xs text-justify">
+                    A exportação estruturada está em desenvolvimento — Fase 2. Em breve você poderá exportar o histórico de consumo e relatórios em formato CSV (Art. 18, V).
                   </p>
                 </div>
                 <div className="p-4 rounded-xl border border-dashed border-zinc-700 hover:border-red-500/50 hover:bg-red-500/5 transition-colors cursor-default group">
@@ -267,13 +263,6 @@ export function SegurancaPrivacidade() {
                 className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
               >
                 Termos de Uso
-              </a>
-              <span className="text-zinc-800">•</span>
-              <a
-                href="mailto:contato@printlog.com.br"
-                className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-              >
-                Contato
               </a>
             </div>
             <p className="text-xs text-zinc-600">

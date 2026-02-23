@@ -29,7 +29,7 @@ export function ModalSuporte({ aberto, aoFechar }: Propriedades) {
                         </div>
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-0.5">Suporte Direto</p>
-                            <h4 className="text-sm font-bold text-gray-900 dark:text-white select-all">contato@printlog.com.br</h4>
+                            <h4 className="text-sm font-bold text-gray-900 dark:text-white select-all">suporte@printlog.com.br</h4>
                         </div>
                     </div>
 

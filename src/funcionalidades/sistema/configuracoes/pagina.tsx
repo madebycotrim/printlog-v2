@@ -13,7 +13,7 @@ import { usarContextoTema } from "@/compartilhado/tema/tema_provider";
 
 export function PaginaConfiguracoes() {
   const { usuario, atualizarPerfil, recuperarSenha } = usarAutenticacao();
-  const themeContext = usarContextoTema();
+  const contextoTema = usarContextoTema();
 
   const [nome, definirNome] = useState(usuario?.nome || "");
   const [salvando, definirSalvando] = useState(false);
@@ -30,9 +30,9 @@ export function PaginaConfiguracoes() {
 
   // Estado Inicial da Aparencia para detectar mudancas
   const [inicialAparencia, definirInicialAparencia] = useState({
-    modo: themeContext.modo_tema,
-    cor: themeContext.cor_primaria,
-    fonte: themeContext.fonte
+    modo: contextoTema.modoTema,
+    cor: contextoTema.corPrimaria,
+    fonte: contextoTema.fonte
   });
 
   // Detecção de Alterações Pendentes
@@ -44,9 +44,9 @@ export function PaginaConfiguracoes() {
     margemLucro !== "150,00%";
 
   const aparenciaPendente =
-    themeContext.modo_tema !== inicialAparencia.modo ||
-    themeContext.cor_primaria !== inicialAparencia.cor ||
-    themeContext.fonte !== inicialAparencia.fonte;
+    contextoTema.modoTema !== inicialAparencia.modo ||
+    contextoTema.corPrimaria !== inicialAparencia.cor ||
+    contextoTema.fonte !== inicialAparencia.fonte;
 
   const totalAlteracoes = [perfilPendente, operacionalPendente, aparenciaPendente].filter(Boolean).length;
   const temAlteracoes = totalAlteracoes > 0;
@@ -79,9 +79,9 @@ export function PaginaConfiguracoes() {
     definirMargemLucro("150,00%");
 
     // Reset Aparencia (Usando os valores capturados no mount)
-    themeContext.definir_modo_tema(inicialAparencia.modo);
-    themeContext.definir_cor_primaria(inicialAparencia.cor);
-    themeContext.definir_fonte(inicialAparencia.fonte);
+    contextoTema.definirModoTema(inicialAparencia.modo);
+    contextoTema.definirCorPrimaria(inicialAparencia.cor);
+    contextoTema.definirFonte(inicialAparencia.fonte);
   };
 
   const lidarComSalvar = async () => {
@@ -92,9 +92,9 @@ export function PaginaConfiguracoes() {
 
       // Atualiza o estado "Original" para as novas configuracoes salvas
       definirInicialAparencia({
-        modo: themeContext.modo_tema,
-        cor: themeContext.cor_primaria,
-        fonte: themeContext.fonte
+        modo: contextoTema.modoTema,
+        cor: contextoTema.corPrimaria,
+        fonte: contextoTema.fonte
       });
 
       definirSucesso(true);
@@ -133,8 +133,9 @@ export function PaginaConfiguracoes() {
   });
 
   return (
-    <div className="flex-1 w-full overflow-y-auto p-4 md:p-6">
-      <div className="mx-auto w-full max-w-6xl space-y-6 animate-in fade-in duration-500">
+    <div className="flex-1 w-full overflow-y-auto p-4 md:p-6 relative">
+      <div className="absolute inset-0 bg-grid-printlog pointer-events-none opacity-50 dark:opacity-100" />
+      <div className="relative mx-auto w-full max-w-6xl space-y-6 animate-in fade-in duration-500">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <CardPerfil
             usuario={usuario}
@@ -171,11 +172,23 @@ export function PaginaConfiguracoes() {
       </div>
 
       {toastVisivel && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-          <div className="rounded-xl border border-white/20 bg-gradient-to-r from-emerald-500 to-sky-500 px-4 py-3 text-[10px] font-black uppercase tracking-[0.14em] text-white flex items-center gap-2 shadow-2xl">
-            <Check size={16} />
-            {sucesso ? "Configuracoes salvas com sucesso!" : "E-mail enviado com sucesso!"}
-          </div>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]">
+          {sucesso ? (
+            <div className="rounded-2xl border border-gray-200/50 dark:border-white/10 bg-white/95 dark:bg-zinc-900/95 shadow-xl backdrop-blur-md px-4 py-3 flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+                <Check size={16} strokeWidth={3} />
+              </div>
+              <div className="pr-2">
+                <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">Configurações salvas</p>
+                <p className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 mt-0.5 leading-tight">Suas preferências foram atualizadas com sucesso.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-white/20 bg-gradient-to-r from-emerald-500 to-sky-500 px-4 py-3 text-[10px] font-black uppercase tracking-[0.14em] text-white flex items-center gap-2 shadow-2xl animate-in slide-in-from-bottom-5 fade-in duration-300">
+              <Check size={16} />
+              E-mail enviado com sucesso!
+            </div>
+          )}
         </div>
       )}
     </div>

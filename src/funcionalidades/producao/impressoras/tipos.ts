@@ -8,14 +8,14 @@ export interface VolumeImpressao {
     altura: number;
 }
 
-/** Perfil de impressora proveniente do catálogo público `impressoras.json` */
+/** Perfil de impressora proveniente do catálogo público `impressoras.json` (Mapeado) */
 export interface PerfilImpressoraCatalogo {
-    brand: string;
-    model: string;
-    name: string;
+    marca: string;
+    modelo: string;
+    nome: string;
     consumoKw: number;
-    type: string;
-    img: string;
+    tipo: string;
+    imagem: string;
 }
 
 export interface RegistroManutencao {

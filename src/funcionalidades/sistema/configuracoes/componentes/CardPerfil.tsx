@@ -13,7 +13,8 @@ interface PropsCardPerfil {
 
 export function CardPerfil({ usuario, nome, definirNome, enviandoEmail, sucessoEmail, lidarComTrocaSenha, pendente }: PropsCardPerfil) {
     return (
-        <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-card-fundo p-5 md:p-6 flex flex-col gap-5">
+        <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#18181b] p-5 md:p-6 flex flex-col gap-5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/[0.03] to-zinc-500/[0.01] dark:from-zinc-500/[0.05] dark:to-zinc-500/[0.02] pointer-events-none" />
             <CabecalhoCard titulo="Perfil Maker" descricao="Sua conta de acesso e segurança" icone={User} corIcone="text-sky-500" pendente={pendente} />
 
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
@@ -36,7 +37,9 @@ export function CardPerfil({ usuario, nome, definirNome, enviandoEmail, sucessoE
                         </label>
                         <div className="h-11 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.02] px-4 flex items-center gap-3">
                             <Mail size={16} className="text-gray-400" />
-                            <span className="truncate text-sm font-semibold text-gray-700 dark:text-zinc-300 flex-1">{usuario?.email}</span>
+                            <span className="truncate text-sm font-semibold text-gray-700 dark:text-zinc-300 flex-1">
+                                {usuario?.ehAnonimo ? "Conta de Convidado (Sem E-mail)" : usuario?.email}
+                            </span>
                             {usuario?.provedorGoogle && (
                                 <svg className="shrink-0 w-4 h-4" viewBox="0 0 48 48">
                                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -52,7 +55,7 @@ export function CardPerfil({ usuario, nome, definirNome, enviandoEmail, sucessoE
 
 
 
-            {!enviandoEmail && !sucessoEmail && (
+            {!usuario?.ehAnonimo && !enviandoEmail && !sucessoEmail && (
                 <button
                     onClick={lidarComTrocaSenha}
                     className="mt-auto h-11 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.02] text-gray-700 dark:text-zinc-300 hover:border-gray-300 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-[0.12em] transition-all shadow-sm active:scale-[0.98]"

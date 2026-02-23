@@ -48,7 +48,7 @@ export function ModalPecasDesgaste({
 
         const novasPecas = [...pecas, novaPeca];
         definirPecas(novasPecas);
-        aoSalvar(impressora.id, novasPecas); // Salva persistente no BD / Store
+        aoSalvar(impressora.id, novasPecas); // Salva persistente no BD / Armazém
 
         definirNovaPecaNome("");
         definirNovaPecaVida("");

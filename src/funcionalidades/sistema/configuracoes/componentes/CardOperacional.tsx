@@ -26,7 +26,8 @@ export function CardOperacional({
     pendente,
 }: PropsCardOperacional) {
     return (
-        <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-card-fundo p-5 md:p-6 flex flex-col gap-5">
+        <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#18181b] p-5 md:p-6 flex flex-col gap-5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/[0.03] to-zinc-500/[0.01] dark:from-zinc-500/[0.05] dark:to-zinc-500/[0.02] pointer-events-none" />
             <CabecalhoCard titulo="Operacional" descricao="Motores base de custeio" icone={Settings} corIcone="text-amber-500" pendente={pendente} />
             <div className="grid grid-cols-2 gap-4">
                 <CampoDashboard

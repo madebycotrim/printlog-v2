@@ -223,10 +223,10 @@ export function BarraLateral({
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-gray-900 dark:text-white truncate leading-tight">
-                                    {usuario?.nome?.split(" ")[0]}
+                                    {usuario?.ehAnonimo ? "Convidado" : usuario?.nome?.split(" ")[0] || "Usuário"}
                                 </p>
                                 <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
-                                    {usuario?.email}
+                                    {usuario?.ehAnonimo ? "Conta temporária" : usuario?.email}
                                 </p>
                             </div>
                             <button

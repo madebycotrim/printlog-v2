@@ -18,6 +18,7 @@ import {
   setPersistence,
   browserLocalPersistence,
   deleteUser,
+  signInAnonymously,
 } from "firebase/auth";
 import { autenticacao } from "@/compartilhado/infraestrutura/firebase";
 
@@ -27,6 +28,7 @@ interface Usuario {
   nome: string | null;
   fotoUrl: string | null;
   provedorGoogle: boolean;
+  ehAnonimo: boolean;
 }
 
 interface ContextoAutenticacaoProps {
@@ -39,6 +41,8 @@ interface ContextoAutenticacaoProps {
   loginGoogle: () => Promise<void>;
   atualizarPerfil: (dados: { nome?: string; fotoUrl?: string }) => Promise<void>;
   excluirConta: () => Promise<void>;
+  exportarDadosPessoais: () => Promise<void>;
+  loginAnonimo: () => Promise<void>;
 }
 
 const ContextoAutenticacao = createContext<ContextoAutenticacaoProps>(
@@ -52,6 +56,43 @@ export function usarAutenticacao() {
 interface ProvedorAutenticacaoProps {
   children: ReactNode;
 }
+
+const obterIpUsuario = async (): Promise<string> => {
+  try {
+    const resposta = await fetch("https://api.ipify.org?format=json");
+    const dados = await resposta.json();
+    return dados.ip;
+  } catch (erro) {
+    console.error("Erro ao obter IP:", erro);
+    return "0.0.0.0";
+  }
+};
+
+const registrarAceiteTermos = async (uid: string) => {
+  try {
+    const ip = await obterIpUsuario();
+    const payload = {
+      user_id: uid,
+      data_aceite: new Date().toISOString(),
+      versao_termos: "2026-02-24",
+      versao_politica: "2026-02-24",
+      ip: ip,
+    };
+
+    // Simulação - Integrar com Cloudflare D1 em breve
+    console.log("Registrando aceite no banco de dados (Cloudflare D1):", payload);
+
+    // Exemplo de como será a requisição real
+    // await fetch("YOUR_CLOUDFLARE_WORKER_URL/aceites", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify(payload),
+    // });
+
+  } catch (erro) {
+    console.error("Falha ao registrar aceite:", erro);
+  }
+};
 
 export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
   const [usuario, definirUsuario] = useState<Usuario | null>(null);
@@ -79,6 +120,7 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
           nome: user.displayName,
           fotoUrl: user.photoURL,
           provedorGoogle: ehGoogle,
+          ehAnonimo: user.isAnonymous,
         });
       } else {
         definirUsuario(null);
@@ -130,6 +172,9 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
         senha,
       );
       await updateProfile(credencial.user, { displayName: nome });
+
+      await registrarAceiteTermos(credencial.user.uid);
+
       // Atualiza o estado local imediatamente para refletir o nome
       definirUsuario({
         uid: credencial.user.uid,
@@ -137,6 +182,7 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
         nome: nome,
         fotoUrl: credencial.user.photoURL,
         provedorGoogle: false,
+        ehAnonimo: false,
       });
     } catch (erro: any) {
       traduzirErroFirebase(erro);
@@ -163,6 +209,14 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
     try {
       const provedor = new GoogleAuthProvider();
       await signInWithPopup(autenticacao, provedor);
+    } catch (erro: any) {
+      traduzirErroFirebase(erro);
+    }
+  };
+
+  const loginAnonimo = async () => {
+    try {
+      await signInAnonymously(autenticacao);
     } catch (erro: any) {
       traduzirErroFirebase(erro);
     }
@@ -204,6 +258,33 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
     }
   };
 
+  const exportarDadosPessoais = async () => {
+    try {
+      if (!usuario) throw new Error("Usuário não autenticado.");
+
+      const dadosExportacao = {
+        perfil: usuario,
+        dataExportacao: new Date().toISOString(),
+        metadados: {
+          versaoTermosAceitos: "2026-02-24",
+          statusConsentimento: "ATIVO"
+        }
+      };
+
+      const blob = new Blob([JSON.stringify(dadosExportacao, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `dados-pessoais-printlog-${usuario.uid}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (erro: any) {
+      traduzirErroFirebase(erro);
+    }
+  };
+
   const valor = {
     usuario,
     carregando,
@@ -214,6 +295,8 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
     loginGoogle,
     atualizarPerfil,
     excluirConta,
+    exportarDadosPessoais,
+    loginAnonimo,
   };
 
   return (

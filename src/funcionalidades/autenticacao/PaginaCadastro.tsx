@@ -68,6 +68,10 @@ export function PaginaCadastro() {
   };
 
   const entrarComGoogle = async () => {
+    if (!aceiteTermos) {
+      definirErro("Você deve aceitar os termos para continuar.");
+      return;
+    }
     try {
       await loginGoogle();
       navegar("/dashboard");
@@ -220,14 +224,14 @@ export function PaginaCadastro() {
               htmlFor="termos"
               className="text-sm text-zinc-400 cursor-pointer select-none leading-tight"
             >
-              Concordo com os{" "}
+              Li e aceito os{" "}
               <a
                 href="/termos-de-uso"
                 className="text-[#0ea5e9] hover:underline"
               >
                 Termos de Uso
               </a>{" "}
-              e{" "}
+              e a{" "}
               <a
                 href="/politica-de-privacidade"
                 className="text-[#0ea5e9] hover:underline"

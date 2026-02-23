@@ -1,14 +1,24 @@
 import { useState, useMemo } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
 import { FiltroTipoMaterial, OrdenacaoMaterial } from "@/funcionalidades/producao/materiais/componentes/FiltrosMaterial";
 import { usarArmazemMateriais } from "@/funcionalidades/producao/materiais/estado/armazemMateriais";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { Plus } from "lucide-react";
+import { auditoria } from "@/compartilhado/utilitarios/Seguranca";
 
 export function usarGerenciadorMateriais() {
-    const { materiais, atualizarMaterial, adicionarMaterial, arquivarMaterial, abaterPeso, reporEstoque } = usarArmazemMateriais();
+    // 🎯 SELETORES OTIMIZADOS
+    const materiais = usarArmazemMateriais(s => s.materiais);
+    const acoesArmazem = usarArmazemMateriais(useShallow(s => ({
+        atualizarMaterial: s.atualizarMaterial,
+        adicionarMaterial: s.adicionarMaterial,
+        arquivarMaterial: s.arquivarMaterial,
+        abaterPeso: s.abaterPeso,
+        reporEstoque: s.reporEstoque
+    })));
 
-    // Estados dos Modais e Seleções
+    // Estados dos Modais e Seleções (Local do Gancho)
     const [modalAberto, definirModalAberto] = useState(false);
     const [modalAbatimentoAberto, definirModalAbatimentoAberto] = useState(false);
     const [modalHistoricoAberto, definirModalHistoricoAberto] = useState(false);
@@ -49,8 +59,9 @@ export function usarGerenciadorMateriais() {
     };
 
     const salvarMaterial = (dadosDoFormulario: any) => {
+        const eEdicao = Boolean(materialSendoEditado);
         if (materialSendoEditado) {
-            atualizarMaterial(materialSendoEditado.id, dadosDoFormulario);
+            acoesArmazem.atualizarMaterial(materialSendoEditado.id, dadosDoFormulario);
         } else {
             const m: Material = {
                 ...dadosDoFormulario,
@@ -58,14 +69,16 @@ export function usarGerenciadorMateriais() {
                 estoque: dadosDoFormulario.estoque > 1 ? dadosDoFormulario.estoque - 1 : 0,
                 historicoUso: [],
             };
-            adicionarMaterial(m);
+            acoesArmazem.adicionarMaterial(m);
         }
+        auditoria.evento("SALVAR_MATERIAL", { id: materialSendoEditado?.id, eEdicao, nome: dadosDoFormulario.nome });
         fecharModal();
     };
 
     const confirmarArquivamento = () => {
         if (materialParaExcluir) {
-            arquivarMaterial(materialParaExcluir.id);
+            acoesArmazem.arquivarMaterial(materialParaExcluir.id);
+            auditoria.evento("ARQUIVAR_MATERIAL", { id: materialParaExcluir.id, nome: materialParaExcluir.nome });
             definirModalExclusaoAberto(false);
             definirMaterialParaExcluir(null);
         }
@@ -73,7 +86,8 @@ export function usarGerenciadorMateriais() {
 
     const confirmarAbatimentoPeso = (qtdAbatida: number, motivo: string) => {
         if (materialParaAbater) {
-            abaterPeso(materialParaAbater.id, qtdAbatida, motivo);
+            acoesArmazem.abaterPeso(materialParaAbater.id, qtdAbatida, motivo);
+            auditoria.evento("ABATE_PESO_MATERIAL", { id: materialParaAbater.id, qtdAbatida, motivo });
             definirModalAbatimentoAberto(false);
             definirMaterialParaAbater(null);
         }
@@ -81,7 +95,8 @@ export function usarGerenciadorMateriais() {
 
     const confirmarReposicaoMaterial = (quantidadeComprada: number, precoTotalNovaCompra: number) => {
         if (materialParaRepor) {
-            reporEstoque(materialParaRepor.id, quantidadeComprada, precoTotalNovaCompra);
+            acoesArmazem.reporEstoque(materialParaRepor.id, quantidadeComprada, precoTotalNovaCompra);
+            auditoria.evento("REPOSICAO_MATERIAL", { id: materialParaRepor.id, quantidadeComprada });
             definirModalReposicaoAberto(false);
             definirMaterialParaRepor(null);
         }
@@ -91,17 +106,22 @@ export function usarGerenciadorMateriais() {
     const encontrarMaterial = (id: string) => materiais.find((m) => m.id === id);
 
     // KPIs
-    const materiaisAtivos = materiais.filter(m => !m.arquivado);
-    const totalEmbalagens = materiaisAtivos.reduce(
-        (acc, mat) => acc + (mat.pesoRestante > 0 ? 1 : 0) + mat.estoque,
-        0,
-    );
-    const valorInvestido = materiaisAtivos.reduce((acc, mat) => {
-        return acc + (mat.preco * (mat.pesoRestante / mat.peso)) + (mat.preco * mat.estoque);
-    }, 0);
-    const alertasBaixoEstoque = materiaisAtivos.filter(
-        (mat) => mat.pesoRestante / mat.peso < 0.2 && mat.estoque === 0,
-    ).length;
+    const materiaisAtivos = useMemo(() => materiais.filter(m => !m.arquivado), [materiais]);
+
+    const kpis = useMemo(() => {
+        const totalEmbalagens = materiaisAtivos.reduce(
+            (acc, mat) => acc + (mat.pesoRestante > 0 ? 1 : 0) + mat.estoque,
+            0,
+        );
+        const valorInvestido = materiaisAtivos.reduce((acc, mat) => {
+            return acc + (mat.preco * (mat.pesoRestante / mat.peso)) + (mat.preco * mat.estoque);
+        }, 0);
+        const alertasBaixoEstoque = materiaisAtivos.filter(
+            (mat) => mat.pesoRestante / mat.peso < 0.2 && mat.estoque === 0,
+        ).length;
+
+        return { totalEmbalagens, valorInvestido, alertasBaixoEstoque };
+    }, [materiaisAtivos]);
 
     // Filtragem e Ordenação
     const materiaisFiltradosOrdenados = useMemo(() => {
@@ -147,7 +167,7 @@ export function usarGerenciadorMateriais() {
     }, [materiaisFiltradosOrdenados]);
 
     return {
-        state: {
+        estado: {
             materiais,
             materiaisFiltradosOrdenados,
             agrupadosPorTipoMaterial,
@@ -168,13 +188,9 @@ export function usarGerenciadorMateriais() {
             ordenacao,
             ordemInvertida,
             // KPIs
-            kpis: {
-                totalEmbalagens,
-                valorInvestido,
-                alertasBaixoEstoque
-            }
+            kpis
         },
-        actions: {
+        acoes: {
             // Abertores (A UI envia ID exceto em Editar)
             abrirEditar: (mat: Material) => { definirMaterialSendoEditado(mat); definirModalAberto(true); },
             abrirAbater: (id: string) => {

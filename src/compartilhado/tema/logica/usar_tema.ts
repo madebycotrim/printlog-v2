@@ -27,9 +27,9 @@ const MAPA_FONTES: Record<TipoFonte, string> = {
   "jetbrains-mono": "'JetBrains Mono', monospace",
 };
 
-export function usar_tema() {
+export function usarTema() {
   // Inicializa o estado lendo diretamente do localStorage ou preferência do sistema
-  const [modo_tema, definir_modo_tema] = useState<ModoTema>(() => {
+  const [modoTema, definirModoTema] = useState<ModoTema>(() => {
     if (typeof window !== "undefined") {
       const temaSalvo = localStorage.getItem("modo_tema");
       if (temaSalvo === "CLARO" || temaSalvo === "ESCURO") {
@@ -45,7 +45,7 @@ export function usar_tema() {
     return "CLARO";
   });
 
-  const [cor_primaria, definir_cor_primaria] = useState<CorPrimaria>(() => {
+  const [corPrimaria, definirCorPrimaria] = useState<CorPrimaria>(() => {
     if (typeof window !== "undefined") {
       const corSalva = localStorage.getItem("cor_primaria") as CorPrimaria | null;
       if (corSalva && corSalva in PALETA_PRIMARIA) {
@@ -55,7 +55,7 @@ export function usar_tema() {
     return "sky";
   });
 
-  const [fonte, definir_fonte] = useState<TipoFonte>(() => {
+  const [fonte, definirFonte] = useState<TipoFonte>(() => {
     if (typeof window !== "undefined") {
       const fonteSalva = localStorage.getItem("fonte_usuario") as TipoFonte | null;
       if (fonteSalva && fonteSalva in MAPA_FONTES) {
@@ -67,37 +67,37 @@ export function usar_tema() {
 
   useEffect(() => {
     // Persiste as escolhas e aplica variaveis globais de tema/cor
-    localStorage.setItem("modo_tema", modo_tema);
-    localStorage.setItem("cor_primaria", cor_primaria);
+    localStorage.setItem("modo_tema", modoTema);
+    localStorage.setItem("cor_primaria", corPrimaria);
     localStorage.setItem("fonte_usuario", fonte);
 
     const root = document.documentElement;
-    root.setAttribute("data-tema", modo_tema.toLowerCase());
-    root.style.setProperty("--cor-primaria", PALETA_PRIMARIA[cor_primaria].hex);
-    root.style.setProperty("--cor-primaria-rgb", PALETA_PRIMARIA[cor_primaria].rgb);
+    root.setAttribute("data-tema", modoTema.toLowerCase());
+    root.style.setProperty("--cor-primaria", PALETA_PRIMARIA[corPrimaria].hex);
+    root.style.setProperty("--cor-primaria-rgb", PALETA_PRIMARIA[corPrimaria].rgb);
     root.style.setProperty("--familia-fonte", MAPA_FONTES[fonte]);
 
-    if (modo_tema === "ESCURO") {
+    if (modoTema === "ESCURO") {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
     }
-  }, [modo_tema, cor_primaria, fonte]);
+  }, [modoTema, corPrimaria, fonte]);
 
-  function alternar_tema() {
-    definir_modo_tema((tema_atual) =>
-      tema_atual === "CLARO" ? "ESCURO" : "CLARO",
+  function alternarTema() {
+    definirModoTema((temaAtual) =>
+      temaAtual === "CLARO" ? "ESCURO" : "CLARO",
     );
   }
 
   return {
-    modo_tema,
-    definir_modo_tema,
-    alternar_tema,
-    cor_primaria,
-    definir_cor_primaria,
+    modoTema,
+    definirModoTema,
+    alternarTema,
+    corPrimaria,
+    definirCorPrimaria,
     fonte,
-    definir_fonte,
-    paleta_primaria: PALETA_PRIMARIA,
+    definirFonte,
+    paletaPrimaria: PALETA_PRIMARIA,
   };
 }

@@ -80,7 +80,17 @@ export function FormularioImpressora({
     useEffect(() => {
         fetch("/impressoras.json")
             .then((res) => res.json())
-            .then((dados: PerfilImpressoraCatalogo[]) => definirCatalogo(dados))
+            .then((dados: any[]) => {
+                const dadosMapeados: PerfilImpressoraCatalogo[] = dados.map((item) => ({
+                    marca: item.brand,
+                    modelo: item.model,
+                    nome: item.name,
+                    consumoKw: item.consumoKw,
+                    tipo: item.type,
+                    imagem: item.img,
+                }));
+                definirCatalogo(dadosMapeados);
+            })
             .catch(console.error);
     }, []);
 
@@ -130,35 +140,35 @@ export function FormularioImpressora({
 
     const catalogoFiltrado = useMemo(() => {
         const tiposPermitidos = tecnologiaSelecionada === "FDM" ? tiposFDM : tiposSLA;
-        return catalogo.filter((p) => tiposPermitidos.includes(p.type));
+        return catalogo.filter((p) => tiposPermitidos.includes(p.tipo));
     }, [catalogo, tecnologiaSelecionada]);
 
     const opcoesFabricante = useMemo(() => {
-        const marcas = [...new Set(catalogoFiltrado.map((p) => p.brand))].sort();
+        const marcas = [...new Set(catalogoFiltrado.map((p) => p.marca))].sort();
         return marcas.map((m) => ({ valor: m, rotulo: m }));
     }, [catalogoFiltrado]);
 
     const opcoesModelo = useMemo(() => {
         const termoMarca = (marcaSelecionada || "").toLowerCase().trim();
         const filtrados = termoMarca
-            ? catalogoFiltrado.filter((p) => p.brand.toLowerCase() === termoMarca)
+            ? catalogoFiltrado.filter((p) => p.marca.toLowerCase() === termoMarca)
             : catalogoFiltrado;
-        return filtrados.map((p) => ({ valor: p.model, rotulo: `${p.name}` }));
+        return filtrados.map((p) => ({ valor: p.modelo, rotulo: `${p.nome}` }));
     }, [catalogoFiltrado, marcaSelecionada]);
 
     /** Ao selecionar modelo, autopreenche imagem + consumo + apelido */
     const aoAlterarModelo = (modeloNome: string) => {
         setValue("modeloBase", modeloNome, { shouldValidate: true, shouldDirty: true });
-        const perfil = catalogo.find((p) => p.model === modeloNome);
+        const perfil = catalogo.find((p) => p.modelo === modeloNome);
         if (perfil) {
-            setValue("imagemUrl", perfil.img, { shouldDirty: true });
+            setValue("imagemUrl", perfil.imagem, { shouldDirty: true });
             setValue("consumoKw", perfil.consumoKw, { shouldDirty: true });
             if (!marcaSelecionada) {
-                setValue("marca", perfil.brand, { shouldValidate: true, shouldDirty: true });
+                setValue("marca", perfil.marca, { shouldValidate: true, shouldDirty: true });
             }
             const nomeAtual = watch("nome");
             if (!nomeAtual || nomeAtual.trim() === "") {
-                setValue("nome", perfil.model, { shouldDirty: true });
+                setValue("nome", perfil.modelo, { shouldDirty: true });
             }
         }
     };

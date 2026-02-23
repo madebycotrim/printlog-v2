@@ -1,22 +1,22 @@
 import { createContext, useContext, ReactNode } from "react";
-import { usar_tema } from "./logica/usar_tema";
+import { usarTema } from "./logica/usar_tema";
 import type { CorPrimaria, ModoTema, TipoFonte } from "@/compartilhado/tipos_globais/modelos";
 
 type TemaContexto = {
-  modo_tema: ModoTema;
-  definir_modo_tema: (modo: ModoTema) => void;
-  alternar_tema: () => void;
-  cor_primaria: CorPrimaria;
-  definir_cor_primaria: (cor: CorPrimaria) => void;
+  modoTema: ModoTema;
+  definirModoTema: (modo: ModoTema) => void;
+  alternarTema: () => void;
+  corPrimaria: CorPrimaria;
+  definirCorPrimaria: (cor: CorPrimaria) => void;
   fonte: TipoFonte;
-  definir_fonte: (fonte: TipoFonte) => void;
-  paleta_primaria: Record<CorPrimaria, { hex: string; rgb: string }>;
+  definirFonte: (fonte: TipoFonte) => void;
+  paletaPrimaria: Record<CorPrimaria, { hex: string; rgb: string }>;
 };
 
 const ContextoTema = createContext<TemaContexto | null>(null);
 
 export function ProvedorTema({ children }: { children: ReactNode }) {
-  const tema = usar_tema();
+  const tema = usarTema();
 
   return <ContextoTema.Provider value={tema}>{children}</ContextoTema.Provider>;
 }

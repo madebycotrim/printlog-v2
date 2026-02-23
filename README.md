@@ -1,469 +1,184 @@
-# 📘 Documentação Técnica Completa — PrintLog (MVP Solo + TypeScript)
+<div align="center">
 
-📌 **Projeto:** PrintLog — Sistema de Gestão para Estúdios de Impressão 3D
-📌 **Versão:** 2.1 (MVP Completo + Padronização TS)
-📌 **Padrão obrigatório:** 100% PT-BR (interface, variáveis, funções, pastas, logs)
+# 🖨️ PrintLog
 
----
+### Sistema de Gestão para Estúdios de Impressão 3D
 
-## 🎯 Objetivo
-
-Esta documentação define o padrão técnico oficial do PrintLog para desenvolvimento consistente, simples e escalável, pensado para:
-
-* Desenvolvedor solo
-* Nível júnior
-* MVP funcional rápido
-* Evolução progressiva sem burocracia
+**Versão 2.1 — MVP Completo**
 
 ---
 
-## ✅ Regras Obrigatórias do Projeto
+*Pare de usar planilhas. Pare de perder pedidos. Tenha controle real do seu estúdio.*
 
-### Idioma
-
-* Tudo deve estar em português
-* Nada de misturar inglês em nomes internos
-
-✅ `peso_restante`
-❌ `remainingWeight`
+</div>
 
 ---
 
-## ✅ TypeScript: Obrigatório
+## 📌 Sobre o Projeto
 
-O PrintLog deve ser desenvolvido com **TypeScript**, pois garante:
+O **PrintLog** é um sistema de gestão desenvolvido especialmente para estúdios de impressão 3D. Ele centraliza as informações mais importantes do negócio em um único lugar — filamentos, impressoras, projetos, clientes e finanças — para que o gestor tenha controle total da operação sem depender de planilhas, cadernos ou aplicativos desconexos.
 
-* menos bugs
-* autocomplete
-* refatoração segura
-* código profissional
-
-Extensões:
-
-* Frontend: `.tsx`
-* Backend/lógica: `.ts`
+A proposta é simples: um sistema funcional, rápido de aprender e fácil de usar no dia a dia, sem exigir nenhum conhecimento técnico do usuário.
 
 ---
 
-## 🗂 Estrutura Oficial por Funcionalidades (Features)
+## 👤 Para quem é o PrintLog?
 
-```
-src/
- ├── funcionalidades/
- │
- │    ├── filamentos/
- │    │    ├── componentes/
- │    │    ├── logica/
- │    │    ├── dados/
- │    │    └── pagina.tsx
- │
- │    ├── impressoras/
- │    ├── projetos/
- │    ├── clientes/
- │    └── financeiro/
- │
- ├── compartilhado/
- │    ├── componentes_ui/
- │    ├── utilitarios/
- │    ├── tipos_globais/
- │    └── banco_dados/
- │
- └── principal.ts
-```
+| Perfil | Situação típica |
+|--------|----------------|
+| **Dono de estúdio solo** | Cuida de tudo sozinho: produção, vendas e entrega |
+| **Pequeno estúdio com equipe** | Até 5 pessoas, precisa de organização compartilhada |
+| **Maker em expansão** | Começou como hobbysta e está transformando em negócio |
+| **Estúdio com múltiplas impressoras** | Precisa controlar o uso e a manutenção de cada máquina |
+
+> Se você usa planilhas para controlar estoque, WhatsApp para receber pedidos e caderno para anotar horas de impressão — o PrintLog foi feito para você.
 
 ---
 
-## 📦 Convenções de Código
+## ✅ O que o sistema resolve
 
-### Arquivos
-
-* minúsculo
-* underline
-
-✅ `calcular_preco_final.ts`
-
----
-
-### Variáveis e Funções
-
-* sempre em português
-* sempre descritivas
-
-```ts
-const custo_total = 35;
-
-function calcular_preco_final(custo_total: number, margem: number) {
-  return custo_total + custo_total * margem;
-}
-```
+- ✅ Você nunca mais fica sem filamento no meio de uma impressão importante
+- ✅ Você sabe exatamente quantas horas cada impressora trabalhou e quando precisa de manutenção
+- ✅ Você acompanha cada projeto do início ao fim, sem perder nenhum prazo
+- ✅ Você tem um histórico completo de todos os seus clientes, sem precisar procurar no WhatsApp
+- ✅ Você enxerga quanto entrou e saiu do seu caixa, de forma simples e visual
 
 ---
 
-## 📌 Tipos Globais Oficiais
+## 🧩 Módulos e Funcionalidades
 
-Arquivo: `compartilhado/tipos_globais/modelos.ts`
+### 🧵 Filamentos
 
-```ts
-export type Identificador = string;
+Controle completo do estoque de insumos.
 
-export type StatusImpressora = "LIVRE" | "IMPRIMINDO" | "MANUTENCAO";
+- Cadastre filamentos com material, marca, cor e peso do rolo
+- Visualize quanto resta em cada rolo em tempo real
+- Receba alertas automáticos quando um rolo está com menos de 200g
+- Planeje compras com antecedência antes do estoque acabar
 
-export type StatusProjeto =
-  | "A_FAZER"
-  | "EM_PRODUCAO"
-  | "ACABAMENTO"
-  | "CONCLUIDO";
-```
+> 💡 **Impacto:** Nunca mais interrompa uma impressão de 18 horas porque o filamento acabou.
 
 ---
 
-# 🧵 Módulo: Filamentos
+### 🖨️ Impressoras
 
-## Estrutura
+Horímetro digital e controle de status de cada máquina.
 
-```
-filamentos/
- ├── componentes/
- ├── logica/
- ├── dados/
- └── pagina.tsx
-```
+- Cadastre todas as impressoras com nome e situação atual
+- Registre as horas trabalhadas após cada impressão
+- Visualize o status: **Livre**, **Imprimindo** ou **Em Manutenção**
+- Consulte o histórico de uso para embasar decisões de manutenção
 
----
-
-## Tipo Oficial
-
-```ts
-export type Filamento = {
-  id: Identificador;
-  material: string;
-  marca: string;
-  cor: string;
-  peso_total: number;
-  peso_restante: number;
-};
-```
+> 💡 **Impacto:** Manutenção preventiva no momento certo, sem paradas inesperadas no meio da produção.
 
 ---
 
-## Regra de Negócio
+### 📋 Projetos — Kanban
 
-```ts
-export function filamento_precisa_repor(peso_restante: number) {
-  return peso_restante < 200;
-}
-```
+Quadro visual para acompanhar cada trabalho do pedido à entrega.
 
----
+| 📋 A Fazer | 🖨️ Em Produção | ✂️ Acabamento | ✅ Concluído |
+|-----------|---------------|--------------|------------|
+| Pedido recebido, aguardando início | Arquivo sendo impresso agora | Limpeza, suporte e finalização | Entregue e encerrado |
 
-## Componente
+- Crie projetos e associe a um cliente
+- Defina o prazo de entrega
+- Mova os projetos entre etapas conforme o trabalho avança
+- Identifique de relance quais projetos estão atrasados
 
-```tsx
-export function CartaoFilamento({ filamento }: { filamento: Filamento }) {
-  return (
-    <div>
-      <h2>{filamento.material}</h2>
-      <p>Restam {filamento.peso_restante}g</p>
-    </div>
-  );
-}
-```
+> 💡 **Impacto:** Com o Kanban, nenhum pedido é esquecido e você sabe exatamente em que ponto está cada trabalho.
 
 ---
 
-# 🖨️ Módulo: Impressoras
+### 👥 Clientes
 
-## Tipo Oficial
+Agenda inteligente integrada à operação.
 
-```ts
-export type Impressora = {
-  id: Identificador;
-  nome: string;
-  status: StatusImpressora;
-  horas_impressao: number;
-};
-```
+- Cadastre clientes com nome, telefone e endereço
+- Consulte dados de contato sem sair do sistema
+- Veja o histórico completo de projetos por cliente
+- Identifique seus clientes mais frequentes e mais valiosos
+
+> 💡 **Impacto:** Elimina a necessidade de cruzar informações entre WhatsApp, planilhas e anotações avulsas.
 
 ---
 
-## Regra: Horímetro
+### 💵 Financeiro
 
-```ts
-export function adicionar_horas(impressora: Impressora, horas: number) {
-  impressora.horas_impressao += horas;
-}
-```
+Controle de caixa direto ao ponto — sem complexidade contábil.
 
----
+- Registre recebimentos de clientes (entradas)
+- Registre compras e despesas operacionais (saídas)
+- Adicione descrições a cada lançamento para consulta posterior
+- Veja o saldo do período de forma instantânea
 
-# 📁 Módulo: Projetos
-
-## Tipo Oficial
-
-```ts
-export type Projeto = {
-  id: Identificador;
-  nome: string;
-  cliente_id: Identificador;
-  status: StatusProjeto;
-  prazo_entrega: Date;
-};
-```
+> 💡 **Impacto:** Saber se o mês fechou no positivo ou no negativo é o primeiro passo para transformar um hobby em um negócio lucrativo.
 
 ---
 
-## Workflow Kanban
+### 🌗 Modo Claro e Escuro
 
-Colunas obrigatórias:
-
-* A Fazer
-* Em Produção
-* Acabamento
-* Concluído
+- Alterne entre modo claro e escuro com um clique
+- A preferência é salva automaticamente
+- Na próxima vez que acessar o sistema, ele já abre no modo que você prefere
 
 ---
 
-# 👥 Módulo: Clientes
+## 📊 Antes e Depois
 
-```ts
-export type Cliente = {
-  id: Identificador;
-  nome: string;
-  telefone: string;
-  endereco?: string;
-};
-```
-
----
-
-# 💵 Módulo: Financeiro
-
-```ts
-export type LancamentoFinanceiro = {
-  id: Identificador;
-  tipo: "ENTRADA" | "SAIDA";
-  valor: number;
-  descricao: string;
-  data: Date;
-};
-```
+| Antes do PrintLog | Com o PrintLog |
+|-------------------|----------------|
+| Filamento acaba sem aviso e atrasa a impressão | Alerta automático quando o estoque está baixo |
+| Impressora quebra por falta de manutenção | Horímetro indica quando é hora de fazer revisão |
+| Pedidos se perdem entre mensagens e anotações | Kanban organiza todos os projetos em tempo real |
+| Dados de clientes espalhados em vários apps | Cadastro centralizado com histórico completo |
+| Não sabe se o mês foi lucrativo ou não | Visão clara de entradas, saídas e saldo |
+| Cansaço visual com telas muito claras à noite | Modo escuro com um clique, preferência salva |
 
 ---
 
-# 🔧 Evolução do Projeto
+## 🗺️ Roteiro de Evolução
 
-O MVP deve permanecer simples.
+| Fase | Status | O que inclui |
+|------|--------|-------------|
+| **Fase 1 — MVP** | ✅ Concluído | Filamentos, impressoras, projetos, clientes, financeiro e modo claro/escuro |
+| **Fase 2 — Crescimento** | 🔄 Em planejamento | Relatórios automáticos, cálculo de custo por projeto, agenda de manutenção |
+| **Fase 3 — Escala** | 🔮 Futuro | Multi-usuário, integrações com e-commerce, app mobile e dashboard gerencial |
 
-Quando crescer, poderá evoluir para camadas enterprise:
-
-* entidade.ts
-* servico.ts
-* controlador.ts
-
-Mas somente após:
-
-✅ MVP completo
-✅ usuários reais
-✅ necessidade clara
+> **Nosso compromisso:** Nenhuma funcionalidade nova será adicionada sem necessidade real identificada pelos usuários. O PrintLog não vai crescer por complexidade — vai crescer por utilidade.
 
 ---
 
-# ✅ Checklist Final
+## ❓ Perguntas Frequentes
 
-* [x] Sistema 100% PT-BR
-* [x] TypeScript obrigatório
-* [x] Estrutura simples por features
-* [x] Tipos globais definidos
-* [x] Módulos principais documentados
+**Preciso ter conhecimento técnico para usar o PrintLog?**
+Não. Se você consegue usar WhatsApp e preencher uma planilha, consegue usar o PrintLog sem treinamento.
 
----
+**Funciona no celular?**
+Sim. O PrintLog funciona tanto no computador quanto em dispositivos móveis, com a mesma qualidade de experiência.
 
-## 🌗 Tema (Modo Claro/Escuro)
+**Meus dados ficam salvos?**
+Sim. Todas as informações são salvas automaticamente. A preferência de tema também é mantida entre sessões.
 
-📌 **Função:** permitir que o usuário alterne entre modo claro e modo escuro no PrintLog.
+**O sistema calcula automaticamente o custo de cada impressão?**
+Na versão atual (MVP), os valores são registrados manualmente. O cálculo automático de custo por projeto está previsto para a Fase 2.
 
----
+**É possível usar com mais de uma pessoa ao mesmo tempo?**
+O MVP foi desenvolvido para uso individual. O suporte a múltiplos usuários está planejado para a Fase 3.
 
-## ✅ Regras Obrigatórias do Tema
-
-* Tudo em português
-* Nada de nomes internos em inglês
-
-✅ `modo_tema`
-❌ `darkMode`
+**O sistema funciona offline?**
+O PrintLog é uma aplicação web e requer conexão com a internet para funcionar.
 
 ---
 
-## 🗂 Estrutura Oficial do Tema
+## 📄 Documentação Técnica
 
-Adicionar dentro de `compartilhado/`:
-
-```
-src/
- ├── compartilhado/
- │    ├── tema/
- │    │    ├── componentes/
- │    │    │    └── botao_alternar_tema.tsx
- │    │    ├── logica/
- │    │    │    └── usar_tema.ts
- │    │    └── tema_provider.tsx
-```
+A documentação técnica completa do projeto — incluindo arquitetura, padrões de código, tipos TypeScript e estrutura de pastas — está disponível em [`DOCUMENTACAO_TECNICA.md`](./DOCUMENTACAO_TECNICA.md).
 
 ---
 
-## 📌 Tipo Global Oficial
+<div align="center">
 
-Arquivo: `compartilhado/tipos_globais/modelos.ts`
+**PrintLog v2.1** — Desenvolvido para estúdios de impressão 3D que querem crescer com organização.
 
-```ts
-export type ModoTema = "CLARO" | "ESCURO";
-```
-
----
-
-## 🧠 Lógica Oficial do Tema
-
-Arquivo: `compartilhado/tema/logica/usar_tema.ts`
-
-```ts
-import { useEffect, useState } from "react";
-import type { ModoTema } from "../../tipos_globais/modelos";
-
-export function usar_tema() {
-  const [modo_tema, definir_modo_tema] = useState<ModoTema>("CLARO");
-
-  useEffect(() => {
-    const tema_salvo = localStorage.getItem("modo_tema") as ModoTema;
-
-    if (tema_salvo) {
-      definir_modo_tema(tema_salvo);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("modo_tema", modo_tema);
-
-    document.documentElement.setAttribute(
-      "data-tema",
-      modo_tema.toLowerCase()
-    );
-  }, [modo_tema]);
-
-  function alternar_tema() {
-    definir_modo_tema((tema_atual) =>
-      tema_atual === "CLARO" ? "ESCURO" : "CLARO"
-    );
-  }
-
-  return {
-    modo_tema,
-    alternar_tema,
-  };
-}
-```
-
----
-
-## 🌍 Provider Global Oficial
-
-Arquivo: `compartilhado/tema/tema_provider.tsx`
-
-```tsx
-import { createContext, useContext } from "react";
-import { usar_tema } from "./logica/usar_tema";
-import type { ModoTema } from "../tipos_globais/modelos";
-
-type TemaContexto = {
-  modo_tema: ModoTema;
-  alternar_tema: () => void;
-};
-
-const ContextoTema = createContext<TemaContexto | null>(null);
-
-export function ProvedorTema({ children }: { children: React.ReactNode }) {
-  const tema = usar_tema();
-
-  return (
-    <ContextoTema.Provider value={tema}>
-      {children}
-    </ContextoTema.Provider>
-  );
-}
-
-export function usar_contexto_tema() {
-  const contexto = useContext(ContextoTema);
-
-  if (!contexto) {
-    throw new Error("usar_contexto_tema deve estar dentro do ProvedorTema");
-  }
-
-  return contexto;
-}
-```
-
----
-
-## 🔘 Componente: Botão de Alternância
-
-Arquivo: `compartilhado/tema/componentes/botao_alternar_tema.tsx`
-
-```tsx
-import { usar_contexto_tema } from "../tema_provider";
-
-export function BotaoAlternarTema() {
-  const { modo_tema, alternar_tema } = usar_contexto_tema();
-
-  return (
-    <button onClick={alternar_tema}>
-      Tema atual: {modo_tema}
-    </button>
-  );
-}
-```
-
----
-
-## 🏗 Aplicação Global Obrigatória
-
-Arquivo: `src/principal.ts`
-
-```tsx
-import { ProvedorTema } from "./compartilhado/tema/tema_provider";
-
-export function App() {
-  return (
-    <ProvedorTema>
-      {/* Sistema inteiro aqui */}
-    </ProvedorTema>
-  );
-}
-```
-
----
-
-## 🎨 Estilo Oficial (CSS Simples)
-
-Arquivo sugerido: `compartilhado/tema/tema.css`
-
-```css
-:root[data-tema="claro"] {
-  --cor_fundo: white;
-  --cor_texto: black;
-}
-
-:root[data-tema="escuro"] {
-  --cor_fundo: #111;
-  --cor_texto: white;
-}
-
-body {
-  background: var(--cor_fundo);
-  color: var(--cor_texto);
-}
-```
-
-##
-
----
-
-📍 Documento Técnico Oficial — PrintLog 2.1
+</div>

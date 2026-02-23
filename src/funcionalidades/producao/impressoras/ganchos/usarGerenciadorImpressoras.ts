@@ -1,11 +1,59 @@
 import { useEffect, useMemo } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { usarArmazemImpressoras } from "@/funcionalidades/producao/impressoras/estado/armazemImpressoras";
 import { servicoImpressoras } from "@/funcionalidades/producao/impressoras/servicos/ServicoImpressoras";
 import { Impressora, PecaDesgaste, RegistroManutencao } from "@/funcionalidades/producao/impressoras/tipos";
+import { auditoria } from "@/compartilhado/utilitarios/Seguranca";
 import toast from "react-hot-toast";
 
 export function usarGerenciadorImpressoras() {
-    const store = usarArmazemImpressoras();
+    // 🎯 SELETORES OTIMIZADOS
+    const estadoArmazem = usarArmazemImpressoras(useShallow(s => ({
+        impressoras: s.impressoras,
+        carregando: s.carregando,
+        filtroBusca: s.filtroBusca,
+        filtroTecnologia: s.filtroTecnologia,
+        ordenacao: s.ordenacao,
+        ordemInvertida: s.ordemInvertida,
+        modalAberto: s.modalAberto,
+        modalAposentarAberto: s.modalAposentarAberto,
+        modalDetalhesAberto: s.modalDetalhesAberto,
+        modalHistoricoAberto: s.modalHistoricoAberto,
+        modalManutencaoAberto: s.modalManutencaoAberto,
+        modalPecasAberto: s.modalPecasAberto,
+        modalProducaoAberto: s.modalProducaoAberto,
+        impressoraSendoEditada: s.impressoraSendoEditada,
+        impressoraParaAposentar: s.impressoraParaAposentar,
+        impressoraEmDetalhes: s.impressoraEmDetalhes,
+        impressoraHistorico: s.impressoraHistorico,
+        impressoraManutencao: s.impressoraManutencao,
+        impressoraPecas: s.impressoraPecas,
+        impressoraProducao: s.impressoraProducao,
+    })));
+
+    const acoesArmazem = usarArmazemImpressoras(useShallow(s => ({
+        definirImpressoras: s.definirImpressoras,
+        definirCarregando: s.definirCarregando,
+        definirErro: s.definirErro,
+        pesquisar: s.pesquisar,
+        filtrarPorTecnologia: s.filtrarPorTecnologia,
+        ordenarPor: s.ordenarPor,
+        inverterOrdem: s.inverterOrdem,
+        abrirEditar: s.abrirEditar,
+        fecharEditar: s.fecharEditar,
+        abrirAposentar: s.abrirAposentar,
+        fecharAposentar: s.fecharAposentar,
+        abrirDetalhes: s.abrirDetalhes,
+        fecharDetalhes: s.fecharDetalhes,
+        abrirHistorico: s.abrirHistorico,
+        fecharHistorico: s.fecharHistorico,
+        abrirManutencao: s.abrirManutencao,
+        fecharManutencao: s.fecharManutencao,
+        abrirPecas: s.abrirPecas,
+        fecharPecas: s.fecharPecas,
+        abrirProducao: s.abrirProducao,
+        fecharProducao: s.fecharProducao,
+    })));
 
     useEffect(() => {
         carregarImpressoras();
@@ -13,67 +61,68 @@ export function usarGerenciadorImpressoras() {
     }, []);
 
     const carregarImpressoras = async () => {
-        store.definirCarregando(true);
+        acoesArmazem.definirCarregando(true);
         try {
             const dados = await servicoImpressoras.buscarImpressoras();
-            store.definirImpressoras(dados);
+            acoesArmazem.definirImpressoras(dados);
         } catch (e) {
-            store.definirErro("Erro ao carregar impressoras.");
+            acoesArmazem.definirErro("Erro ao carregar impressoras.");
+            auditoria.erro("Erro ao carregar impressoras", e);
             toast.error("Erro ao carregar impressoras.");
-            console.error(e);
         } finally {
-            store.definirCarregando(false);
+            acoesArmazem.definirCarregando(false);
         }
     };
 
     const salvarImpressora = async (impressora: Impressora) => {
         try {
             const salva = await servicoImpressoras.salvarImpressora(impressora);
-            const existe = store.impressoras.find((i) => i.id === salva.id);
+            const existe = estadoArmazem.impressoras.find((i) => i.id === salva.id);
 
             if (existe) {
-                store.definirImpressoras(
-                    store.impressoras.map((i) => (i.id === salva.id ? salva : i))
+                acoesArmazem.definirImpressoras(
+                    estadoArmazem.impressoras.map((i) => (i.id === salva.id ? salva : i))
                 );
                 toast.success("Impressora atualizada com sucesso!");
             } else {
-                store.definirImpressoras([...store.impressoras, salva]);
+                acoesArmazem.definirImpressoras([...estadoArmazem.impressoras, salva]);
                 toast.success("Impressora cadastrada com sucesso!");
             }
-            store.fecharEditar();
+            auditoria.evento("SALVAR_IMPRESSORA", { id: salva.id, nome: salva.nome });
+            acoesArmazem.fecharEditar();
         } catch (e) {
+            auditoria.erro("Erro ao salvar impressora", e);
             toast.error("Erro ao salvar impressora.");
-            console.error(e);
         }
     };
 
     const salvarObservacoes = async (id: string, observacoes: string) => {
         try {
-            const impressoraOriginal = store.impressoras.find(i => i.id === id);
+            const impressoraOriginal = estadoArmazem.impressoras.find(i => i.id === id);
             if (!impressoraOriginal) return;
 
             const impressoraAtualizada = { ...impressoraOriginal, observacoes };
             const salva = await servicoImpressoras.salvarImpressora(impressoraAtualizada);
 
-            store.definirImpressoras(
-                store.impressoras.map((i) => (i.id === id ? salva : i))
+            acoesArmazem.definirImpressoras(
+                estadoArmazem.impressoras.map((i) => (i.id === id ? salva : i))
             );
 
-            // Se o modal de detalhes estiver focado nessa impressora, atualiza o ref também
-            if (store.impressoraEmDetalhes?.id === id) {
-                store.abrirDetalhes(salva); // Atualiza os dados no modal aberto
+            if (estadoArmazem.impressoraEmDetalhes?.id === id) {
+                acoesArmazem.abrirDetalhes(salva);
             }
 
+            auditoria.evento("SALVAR_OBSERVACOES_IMPRESSORA", { id });
             toast.success("Observações atualizadas com sucesso!");
         } catch (e) {
+            auditoria.erro("Erro ao salvar observações", e);
             toast.error("Erro ao atualizar observações.");
-            console.error(e);
         }
     }
 
     const registrarManutencao = async (id: string, registro: Omit<RegistroManutencao, "id" | "data">) => {
         try {
-            const impressoraOriginal = store.impressoras.find(i => i.id === id);
+            const impressoraOriginal = estadoArmazem.impressoras.find(i => i.id === id);
             if (!impressoraOriginal) return;
 
             const novoRegistro: RegistroManutencao = {
@@ -83,8 +132,6 @@ export function usarGerenciadorImpressoras() {
             };
 
             const historicoManutencao = [...(impressoraOriginal.historicoManutencao || []), novoRegistro];
-
-            // Opcional: Atualizar horímetro se vier no registro
             let horimetroAtualizado = impressoraOriginal.horimetroTotal;
             if (registro.horasMaquinaNoMomento !== undefined && registro.horasMaquinaNoMomento > (horimetroAtualizado || 0)) {
                 horimetroAtualizado = registro.horasMaquinaNoMomento;
@@ -98,72 +145,73 @@ export function usarGerenciadorImpressoras() {
 
             const salva = await servicoImpressoras.salvarImpressora(impressoraAtualizada);
 
-            store.definirImpressoras(
-                store.impressoras.map((i) => (i.id === id ? salva : i))
+            acoesArmazem.definirImpressoras(
+                estadoArmazem.impressoras.map((i) => (i.id === id ? salva : i))
             );
 
+            auditoria.evento("REGISTRAR_MANUTENCAO", { id, tipo: registro.tipo });
             toast.success("Manutenção registrada com sucesso!");
-            store.fecharManutencao();
+            acoesArmazem.fecharManutencao();
         } catch (e) {
+            auditoria.erro("Erro ao registrar manutenção", e);
             toast.error("Erro ao registrar manutenção.");
-            console.error(e);
         }
     };
 
     const salvarPecasDesgaste = async (id: string, pecas: PecaDesgaste[]) => {
         try {
-            const impressoraOriginal = store.impressoras.find(i => i.id === id);
+            const impressoraOriginal = estadoArmazem.impressoras.find(i => i.id === id);
             if (!impressoraOriginal) return;
 
             const impressoraAtualizada = { ...impressoraOriginal, pecasDesgaste: pecas };
             const salva = await servicoImpressoras.salvarImpressora(impressoraAtualizada);
 
-            store.definirImpressoras(
-                store.impressoras.map((i) => (i.id === id ? salva : i))
+            acoesArmazem.definirImpressoras(
+                estadoArmazem.impressoras.map((i) => (i.id === id ? salva : i))
             );
+            auditoria.evento("SALVAR_PECAS_DESGASTE", { id });
         } catch (e) {
+            auditoria.erro("Erro ao salvar peças de desgaste", e);
             toast.error("Erro ao atualizar rastreamento de peças.");
-            console.error(e);
         }
     };
 
     const confirmarAposentadoria = async () => {
-        if (!store.impressoraParaAposentar?.id) return;
+        if (!estadoArmazem.impressoraParaAposentar?.id) return;
 
         try {
-            const id = store.impressoraParaAposentar.id;
+            const id = estadoArmazem.impressoraParaAposentar.id;
             const impressoraAtualizada: Impressora = {
-                ...store.impressoraParaAposentar,
+                ...estadoArmazem.impressoraParaAposentar,
                 status: "Aposentada",
                 dataAposentadoria: new Date().toISOString()
             };
 
             const salva = await servicoImpressoras.salvarImpressora(impressoraAtualizada);
 
-            store.definirImpressoras(
-                store.impressoras.map((i) => (i.id === id ? salva : i))
+            acoesArmazem.definirImpressoras(
+                estadoArmazem.impressoras.map((i) => (i.id === id ? salva : i))
             );
+            auditoria.evento("APOSENTAR_IMPRESSORA", { id });
             toast.success("Impressora arquivada com sucesso.");
-            store.fecharAposentar();
+            acoesArmazem.fecharAposentar();
         } catch (e) {
+            auditoria.erro("Erro ao aposentar impressora", e);
             toast.error("Erro ao arquivar impressora.");
-            console.error(e);
         }
     };
 
     const impressorasFiltradas = useMemo(() => {
-        let filtradas = store.impressoras.filter((i) => {
-            // Ignorar as aposentadas na listagem padrão (a não ser que implementemos um filtro "Exibir Aposentadas")
+        let filtradas = estadoArmazem.impressoras.filter((i) => {
             if (i.status === "Aposentada") return false;
-
-            const matchTexto = i.nome.toLowerCase().includes(store.filtroBusca.toLowerCase());
-            const matchTecnologia = store.filtroTecnologia === "Todas" || i.tecnologia === store.filtroTecnologia;
+            const matchTexto = i.nome.toLowerCase().includes(estadoArmazem.filtroBusca.toLowerCase());
+            const matchTecnologia = estadoArmazem.filtroTecnologia === "Todas" || i.tecnologia === estadoArmazem.filtroTecnologia;
             return matchTexto && matchTecnologia;
         });
 
         filtradas.sort((a, b) => {
             let comparacao = 0;
-            switch (store.ordenacao) {
+            switch (estadoArmazem.ordenacao) {
                 case "NOME":
                     comparacao = a.nome.localeCompare(b.nome);
                     break;
@@ -180,84 +228,46 @@ export function usarGerenciadorImpressoras() {
                     comparacao = new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime();
                     break;
             }
-            return store.ordemInvertida ? -comparacao : comparacao;
+            return estadoArmazem.ordemInvertida ? -comparacao : comparacao;
         });
 
         return filtradas;
-    }, [store.impressoras, store.filtroBusca, store.filtroTecnologia, store.ordenacao, store.ordemInvertida]);
+    }, [estadoArmazem.impressoras, estadoArmazem.filtroBusca, estadoArmazem.filtroTecnologia, estadoArmazem.ordenacao, estadoArmazem.ordemInvertida]);
 
     const agrupadasPorTecnologia = useMemo(() => {
         const mapa = new Map<string, Impressora[]>();
         impressorasFiltradas.forEach(i => {
             const grupo = i.tecnologia || "Outras";
-            if (!mapa.has(grupo)) {
-                mapa.set(grupo, []);
-            }
+            if (!mapa.has(grupo)) mapa.set(grupo, []);
             mapa.get(grupo)!.push(i);
         });
         return Array.from(mapa.entries()).sort((a, b) => a[0].localeCompare(b[0]));
     }, [impressorasFiltradas]);
 
     const totais = useMemo(() => {
-        const total = store.impressoras.length;
-        const manutencao = store.impressoras.filter((i) => i.status === "Em Manutenção").length;
-        const valorInvestido = store.impressoras.reduce((acc, i) => acc + (i.valorCompra || 0), 0);
-        const horasImpressao = store.impressoras.reduce((acc, i) => acc + (i.horimetroTotal || 0), 0);
+        const total = estadoArmazem.impressoras.length;
+        const manutencao = estadoArmazem.impressoras.filter((i) => i.status === "Em Manutenção").length;
+        const valorInvestido = estadoArmazem.impressoras.reduce((acc, i) => acc + (i.valorCompra || 0), 0);
+        const horasImpressao = estadoArmazem.impressoras.reduce((acc, i) => acc + (i.horimetroTotal || 0), 0);
 
         return { total, manutencao, valorInvestido, horasImpressao };
-    }, [store.impressoras]);
+    }, [estadoArmazem.impressoras]);
 
     return {
-        state: {
-            impressoras: store.impressoras,
+        estado: {
+            ...estadoArmazem,
             impressorasFiltradas,
             agrupadasPorTecnologia,
-            carregando: store.carregando,
-            filtroBusca: store.filtroBusca,
-            filtroTecnologia: store.filtroTecnologia,
-            ordenacao: store.ordenacao,
-            ordemInvertida: store.ordemInvertida,
-            modalAberto: store.modalAberto,
-            modalAposentarAberto: store.modalAposentarAberto,
-            modalDetalhesAberto: store.modalDetalhesAberto,
-            modalHistoricoAberto: store.modalHistoricoAberto,
-            modalManutencaoAberto: store.modalManutencaoAberto,
-            modalPecasAberto: store.modalPecasAberto,
-            modalProducaoAberto: store.modalProducaoAberto,
-            impressoraSendoEditada: store.impressoraSendoEditada,
-            impressoraParaAposentar: store.impressoraParaAposentar,
-            impressoraEmDetalhes: store.impressoraEmDetalhes,
-            impressoraHistorico: store.impressoraHistorico,
-            impressoraManutencao: store.impressoraManutencao,
-            impressoraPecas: store.impressoraPecas,
-            impressoraProducao: store.impressoraProducao,
             totais
         },
-        actions: {
+        acoes: {
+            ...acoesArmazem,
             carregarImpressoras,
             salvarImpressora,
             salvarObservacoes,
             registrarManutencao,
             salvarPecasDesgaste,
             confirmarAposentadoria,
-            pesquisar: store.pesquisar,
-            filtrarPorTecnologia: store.filtrarPorTecnologia,
-            ordenarPor: store.ordenarPor,
-            inverterOrdem: store.inverterOrdem,
-            abrirEditar: store.abrirEditar,
-            fecharEditar: store.fecharEditar,
-            abrirAposentar: store.abrirAposentar,
-            fecharAposentar: store.fecharAposentar,
-            abrirDetalhes: store.abrirDetalhes,
-            fecharDetalhes: store.fecharDetalhes,
-            abrirHistorico: store.abrirHistorico,
-            fecharHistorico: store.fecharHistorico,
-            abrirManutencao: store.abrirManutencao,
-            fecharManutencao: store.fecharManutencao,
-            abrirPecas: store.abrirPecas,
-            fecharPecas: store.fecharPecas,
-            abrirProducao: store.abrirProducao,
-            fecharProducao: store.fecharProducao
         }
     };
 }

@@ -18,17 +18,17 @@ const PaginaLanding = lazy(() =>
   })),
 );
 const SegurancaPrivacidade = lazy(() =>
-  import("@/funcionalidades/landing_page/SegurancaPrivacidade").then((m) => ({
+  import("@/funcionalidades/landing_page/seguranca-e-privacidade").then((m) => ({
     default: m.SegurancaPrivacidade,
   })),
 );
 const PoliticaPrivacidade = lazy(() =>
-  import("@/funcionalidades/landing_page/PoliticaPrivacidade").then((m) => ({
+  import("@/funcionalidades/landing_page/politica-de-privacidade").then((m) => ({
     default: m.PoliticaPrivacidade,
   })),
 );
 const TermosUso = lazy(() =>
-  import("@/funcionalidades/landing_page/TermosUso").then((m) => ({
+  import("@/funcionalidades/landing_page/termos-de-uso").then((m) => ({
     default: m.TermosUso,
   })),
 );
@@ -52,7 +52,7 @@ const PaginaRecuperacaoSenha = lazy(() =>
 
 // 1. Geral
 const PaginaInicial = lazy(() =>
-  import("@/funcionalidades/geral/painel/PaginaInicial").then((m) => ({
+  import("@/funcionalidades/geral/painel/pagina").then((m) => ({
     default: m.PaginaInicial,
   })),
 );

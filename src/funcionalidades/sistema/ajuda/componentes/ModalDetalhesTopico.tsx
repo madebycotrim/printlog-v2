@@ -70,7 +70,7 @@ export function ModalDetalhesTopico({ topico, aoFechar }: Propriedades) {
 
                 <div className="relative z-10 space-y-8">
                     <div className="flex items-center gap-4">
-                        <div className={`w-2 h-8 rounded-full bg-gradient-to-b ${topico.cor?.replace('text', 'from') || 'from-sky-500'} ${topico.cor?.replace('text', 'to').replace('-500', '-600') || 'to-sky-600'} shadow-lg opacity-80`} />
+                        <div className={`w-2 h-8 rounded-full bg-gradient-to-b ${topico.cor?.replace('text', 'bg') || 'bg-sky-500'} ${topico.cor?.replace('text', 'bg').replace('-500', '-600') || 'bg-sky-600'} shadow-lg opacity-80`} />
                         <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 dark:text-zinc-500">Parâmetros Operacionais</h4>
                     </div>
                     <p className="text-lg md:text-xl leading-relaxed text-gray-700 dark:text-zinc-300 font-medium tracking-tight">
