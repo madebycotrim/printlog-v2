@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { PackagePlus, Save, AlertCircle } from "lucide-react";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
-import { Material } from "../tipos";
+import { Material } from "@/funcionalidades/producao/materiais/tipos";
 
 interface ModalReposicaoEstoqueProps {
     aberto: boolean;
@@ -155,7 +155,8 @@ export function ModalReposicaoEstoque({
                     <button
                         type="submit"
                         disabled={!!erro || !quantidade || !precoUnidade}
-                        className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95"
+                        style={{ backgroundColor: "var(--cor-primaria)" }}
+                        className="px-6 py-2.5 hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95"
                     >
                         <Save size={18} strokeWidth={2.5} />
                         Confirmar Reposição

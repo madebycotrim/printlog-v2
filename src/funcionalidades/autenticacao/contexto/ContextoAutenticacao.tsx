@@ -35,6 +35,7 @@ interface ContextoAutenticacaoProps {
   sair: () => Promise<void>;
   recuperarSenha: (email: string) => Promise<void>;
   loginGoogle: () => Promise<void>;
+  atualizarPerfil: (dados: { nome?: string; fotoUrl?: string }) => Promise<void>;
 }
 
 const ContextoAutenticacao = createContext<ContextoAutenticacaoProps>(
@@ -159,6 +160,33 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
     }
   };
 
+  const atualizarPerfil = async (dados: {
+    nome?: string;
+    fotoUrl?: string;
+  }) => {
+    try {
+      if (!autenticacao.currentUser) throw new Error("Usuário não autenticado.");
+
+      await updateProfile(autenticacao.currentUser, {
+        displayName: dados.nome || autenticacao.currentUser.displayName,
+        photoURL: dados.fotoUrl || autenticacao.currentUser.photoURL,
+      });
+
+      // Atualiza estado local
+      definirUsuario((prev) =>
+        prev
+          ? {
+            ...prev,
+            nome: dados.nome || prev.nome,
+            fotoUrl: dados.fotoUrl || prev.fotoUrl,
+          }
+          : null,
+      );
+    } catch (erro: any) {
+      traduzirErroFirebase(erro);
+    }
+  };
+
   const valor = {
     usuario,
     carregando,
@@ -167,6 +195,7 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
     sair,
     recuperarSenha,
     loginGoogle,
+    atualizarPerfil,
   };
 
   return (

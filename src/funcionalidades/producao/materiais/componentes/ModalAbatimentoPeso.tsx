@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Save, AlertCircle, Droplets, ArrowRight, Tag } from "lucide-react";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
 import { Combobox } from "@/compartilhado/componentes_ui/Combobox";
-import { Material } from "../tipos";
+import { Material } from "@/funcionalidades/producao/materiais/tipos";
 
 const MOTIVOS_ABATIMENTO = [
   { valor: "Falha de Impressão", rotulo: "Falha de Impressão" },
@@ -86,16 +86,16 @@ export function ModalAbatimentoPeso({
       >
         <div className="p-6 md:p-8 space-y-6 relative z-10">
           {/* Cabeçalho do Material */}
-          <div className="flex items-center gap-4 bg-gray-50 dark:bg-zinc-900/50 p-4 rounded-xl border border-gray-200 dark:border-white/5">
+          <div className="flex items-center gap-4 bg-white dark:bg-zinc-900/50 p-4 rounded-xl border border-gray-200 shadow-sm dark:shadow-none dark:border-white/5 relative z-10 w-full mb-6">
             <div
-              className="w-10 h-10 rounded-full border-2 shadow-sm flex-shrink-0"
+              className="w-10 h-10 rounded-full border-2 shadow-inner flex-shrink-0"
               style={{
                 backgroundColor: material.cor,
                 borderColor: "rgba(0,0,0,0.1)",
               }}
             />
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-gray-900 dark:text-white truncate">
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-sm font-black text-gray-900 dark:text-white truncate tracking-tight">
                 {material.nome}
               </span>
               <span className="text-xs text-gray-500 dark:text-zinc-400 font-medium truncate">
@@ -206,7 +206,8 @@ export function ModalAbatimentoPeso({
           <button
             type="submit"
             disabled={!!erro || !quantidade}
-            className="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95"
+            style={{ backgroundColor: "var(--cor-primaria)" }}
+            className="px-6 py-2.5 hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95"
           >
             <Save size={18} strokeWidth={2.5} />
             Confirmar Baixa

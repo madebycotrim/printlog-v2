@@ -11,6 +11,7 @@ import { LayoutAutenticacao } from "./componentes/LayoutAutenticacao";
 import { PainelBranding } from "./componentes/PainelBranding";
 import { InputAuth } from "./componentes/InputAuth";
 import { usarAutenticacao } from "./contexto/ContextoAutenticacao";
+import { ComponenteTurnstile } from "./componentes/ComponenteTurnstile";
 
 export function PaginaAcesso() {
   const navegar = useNavigate();
@@ -19,6 +20,7 @@ export function PaginaAcesso() {
   const [senha, definirSenha] = useState("");
   const [erro, definirErro] = useState("");
   const [carregandoLogin, definirCarregandoLogin] = useState(false);
+  const [tokenCaptcha, definirTokenCaptcha] = useState<string | null>(null);
 
   useEffect(() => {
     if (!carregando && usuario) {
@@ -32,6 +34,11 @@ export function PaginaAcesso() {
 
     if (!email || !senha) {
       definirErro("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    if (!tokenCaptcha) {
+      definirErro("Por favor, resolva o desafio de segurança.");
       return;
     }
 
@@ -60,7 +67,7 @@ export function PaginaAcesso() {
   }
 
   return (
-    <LayoutAutenticacao>
+    <LayoutAutenticacao variante="sky">
       {/* ESQUERDA - BRANDING (Componente Padronizado) */}
       <PainelBranding
         titulo={
@@ -160,10 +167,15 @@ export function PaginaAcesso() {
             }
           />
 
+          <ComponenteTurnstile
+            aoValidar={definirTokenCaptcha}
+            aoExpirar={() => definirTokenCaptcha(null)}
+          />
+
           <button
             type="submit"
-            disabled={carregandoLogin}
-            className="w-full bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(14,165,233,0.4)] hover:shadow-[0_6px_25px_-5px_rgba(14,165,233,0.6)] active:transform active:scale-[0.98] flex items-center justify-center gap-2 mt-2 border border-blue-400/20 disabled:opacity-70 disabled:cursor-not-allowed"
+            disabled={carregandoLogin || !tokenCaptcha}
+            className="w-full bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(14,165,233,0.4)] hover:shadow-[0_6px_25px_-5px_rgba(14,165,233,0.6)] active:transform active:scale-[0.98] flex items-center justify-center gap-2 mt-2 border border-blue-400/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {carregandoLogin ? (
               <span className="animate-pulse">Entrando...</span>

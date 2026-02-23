@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { usarAutenticacao } from "./contexto/ContextoAutenticacao";
+import { ComponenteTurnstile } from "./componentes/ComponenteTurnstile";
 import { useNavigate } from "react-router-dom";
 import {
   Mail,
@@ -23,6 +24,7 @@ export function PaginaCadastro() {
   const [aceiteTermos, definirAceiteTermos] = useState(false);
   const [erro, definirErro] = useState("");
   const [carregandoCadastro, definirCarregandoCadastro] = useState(false);
+  const [tokenCaptcha, definirTokenCaptcha] = useState<string | null>(null);
 
   useEffect(() => {
     if (!carregando && usuario) {
@@ -41,6 +43,11 @@ export function PaginaCadastro() {
 
     if (!aceiteTermos) {
       definirErro("Você deve aceitar os termos para continuar.");
+      return;
+    }
+
+    if (!tokenCaptcha) {
+      definirErro("Por favor, resolva o desafio de segurança.");
       return;
     }
 
@@ -74,7 +81,7 @@ export function PaginaCadastro() {
   }
 
   return (
-    <LayoutAutenticacao>
+    <LayoutAutenticacao variante="emerald">
       {/* ESQUERDA - BRANDING (Componente Padronizado) */}
       <PainelBranding
         fundoEfeito="emerald"
@@ -231,9 +238,14 @@ export function PaginaCadastro() {
             </label>
           </div>
 
+          <ComponenteTurnstile
+            aoValidar={definirTokenCaptcha}
+            aoExpirar={() => definirTokenCaptcha(null)}
+          />
+
           <button
             type="submit"
-            disabled={carregandoCadastro}
+            disabled={carregandoCadastro || !tokenCaptcha}
             className="w-full bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(14,165,233,0.4)] hover:shadow-[0_6px_25px_-5px_rgba(14,165,233,0.6)] active:transform active:scale-[0.98] flex items-center justify-center gap-2 mt-2 border border-blue-400/20 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {carregandoCadastro ? (

@@ -7,7 +7,7 @@
 } from "lucide-react";
 import { useState } from "react";
 import { GraficoConsumoMateriais } from "./GraficoConsumoMateriais";
-import { Material } from "../tipos";
+import { Material } from "@/funcionalidades/producao/materiais/tipos";
 
 interface ResumoEstoqueProps {
   materiais: Material[];
@@ -102,17 +102,17 @@ export function ResumoEstoque({
         role="button"
         tabIndex={0}
       >
-        <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-all duration-300">
+        <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-all duration-300 relative z-10">
           <Activity size={24} strokeWidth={2} />
         </div>
-        <div>
+        <div className="relative z-10">
           <h4 className="text-sm font-medium text-gray-500 dark:text-zinc-500 mb-1">
             Padrão de Consumo
           </h4>
-          <span className="text-base font-bold text-indigo-600 dark:text-indigo-400 tracking-tight flex items-center gap-1.5">
-            Ver Gráfico{" "}
+          <span className="text-base font-black text-indigo-600 dark:text-indigo-400 tracking-tight flex items-center gap-1.5 transition-colors group-hover:text-indigo-700 dark:group-hover:text-indigo-300">
+            Ver Gráfico
             <span className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
-              â†’
+              →
             </span>
           </span>
         </div>
@@ -133,7 +133,7 @@ export function ResumoEstoque({
           <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-50 dark:bg-[#18181b] rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 p-6 animate-in zoom-in-95 duration-200">
             <button
               onClick={() => definirModalGraficoAberto(false)}
-              className="absolute top-6 right-6 p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-zinc-300 dark:hover:bg-white/5 transition-colors z-10"
+              className="absolute top-6 right-6 p-2 rounded-xl text-gray-400 hover:text-gray-900 hover:bg-white dark:hover:text-white dark:hover:bg-white/10 transition-colors z-10 border border-transparent hover:border-gray-200 dark:hover:border-white/10 shadow-sm"
             >
               <X size={20} strokeWidth={2.5} />
             </button>

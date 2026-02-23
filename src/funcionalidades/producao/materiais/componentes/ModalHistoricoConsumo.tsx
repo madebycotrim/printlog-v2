@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { History, Package, Clock, Box, DollarSign } from "lucide-react";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
-import { Material, RegistroUso } from "../tipos";
+import { Material, RegistroUso } from "@/funcionalidades/producao/materiais/tipos";
 
 interface ModalHistoricoConsumoProps {
   aberto: boolean;

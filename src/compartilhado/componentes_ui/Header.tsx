@@ -25,7 +25,10 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
             <h1 className="text-xl md:text-[28px] font-black tracking-tight text-gray-900 dark:text-white truncate">
               {dados.titulo}
             </h1>
-            <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-sky-500 mb-2 shrink-0"></div>
+            <div
+              className="hidden md:block w-1.5 h-1.5 rounded-full mb-2 shrink-0"
+              style={{ backgroundColor: "var(--cor-primaria)" }}
+            ></div>
           </div>
           {dados.subtitulo && (
             <p className="text-sm font-medium text-gray-500 dark:text-zinc-500 hidden md:block truncate mt-0.5">
@@ -37,25 +40,32 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
 
       {/* Direita: Busca + AÃ§Ãµes */}
       <div className="flex items-center gap-4 md:gap-8 justify-end flex-wrap sm:flex-nowrap">
-        {/* Input de Busca - Linha Sempre VisÃ­vel & AdaptÃ¡vel */}
-        <div className="relative group w-auto md:w-64 max-w-[280px]">
-          <Search
-            className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 transition-colors pointer-events-none"
-            size={18}
-            strokeWidth={2}
-          />
-          <input
-            type="text"
-            placeholder={dados.placeholderBusca || "Pesquisar..."}
-            className="w-full h-10 pl-8 pr-2 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-sky-500 dark:focus:border-sky-500 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 outline-none transition-all"
-          />
-        </div>
+        {/* Input de Busca - Linha Adaptável, oculto quando a página solicita */}
+        {!dados.ocultarBusca && (
+          <div className="relative group w-auto md:w-64 max-w-[280px]">
+            <Search
+              className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 transition-colors pointer-events-none"
+              size={18}
+              strokeWidth={2}
+            />
+            <input
+              type="text"
+              placeholder={dados.placeholderBusca || "Pesquisar..."}
+              onChange={(e) => dados.aoBuscar && dados.aoBuscar(e.target.value)}
+              className="w-full h-10 pl-8 pr-2 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-sky-500 dark:focus:border-sky-500 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 outline-none transition-all"
+            />
+          </div>
+        )}
 
         {/* AÃ§Ã£o Padronizada - Minimalista e Tamanho AdaptÃ¡vel */}
         {dados.acao && (
           <button
             onClick={dados.acao.aoClicar}
-            className="flex items-center justify-center gap-2 px-4 md:px-5 py-2 md:py-2.5 bg-gray-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg font-bold text-xs md:text-sm hover:bg-black dark:hover:bg-gray-100 active:scale-95 transition-all duration-200 shadow-sm shrink-0"
+            disabled={dados.acao.desabilitado}
+            className={`flex items-center justify-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-bold text-xs md:text-sm active:scale-95 transition-all duration-200 shadow-sm shrink-0 ${dados.acao.desabilitado
+                ? "bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-zinc-600 cursor-not-allowed opacity-70"
+                : "bg-gray-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-black dark:hover:bg-gray-100"
+              }`}
           >
             {dados.acao.icone && (
               <dados.acao.icone

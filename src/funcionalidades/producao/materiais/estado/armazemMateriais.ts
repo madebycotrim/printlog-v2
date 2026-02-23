@@ -1,0 +1,139 @@
+import { create } from "zustand";
+import { Material, RegistroUso } from "@/funcionalidades/producao/materiais/tipos";
+
+interface EstadoMateriais {
+    materiais: Material[];
+    carregando: boolean; // Simular requisições futuras
+
+    // Ações CRUD
+    definirMateriais: (materiais: Material[]) => void;
+    adicionarMaterial: (novo: Material) => void;
+    atualizarMaterial: (id: string, dados: Partial<Material>) => void;
+    arquivarMaterial: (id: string) => void;
+
+    // Ações Específicas de Domínio
+    abaterPeso: (id: string, qtdAbatida: number, motivo: string) => void;
+    reporEstoque: (id: string, quantidadeComprada: number, precoTotalNovaCompra: number) => void;
+}
+
+// Simulando dados iniciais vazios. No futuro será preenchido por React Query / useEffect fetch.
+export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
+    materiais: [],
+    carregando: false,
+
+    definirMateriais: (materiais) => set({ materiais }),
+
+    adicionarMaterial: (novo) => set((state) => ({ materiais: [novo, ...state.materiais] })),
+
+    atualizarMaterial: (id, dados) =>
+        set((state) => ({
+            materiais: state.materiais.map((m) => (m.id === id ? { ...m, ...dados } : m)),
+        })),
+
+    arquivarMaterial: (id) =>
+        set((state) => ({
+            materiais: state.materiais.map((m) =>
+                m.id === id ? { ...m, arquivado: true } : m
+            ),
+        })),
+
+    abaterPeso: (id, qtdAbatida, motivo) =>
+        set((state) => ({
+            materiais: state.materiais.map((m) => {
+                if (m.id !== id) return m;
+
+                let qtdFaltando = qtdAbatida;
+                let novoPesoRestante = m.pesoRestante;
+                let novoEstoque = m.estoque;
+
+                // Abate do rolo atual
+                if (qtdFaltando <= novoPesoRestante) {
+                    novoPesoRestante -= qtdFaltando;
+                } else {
+                    // Esgotou o rolo atual. Desconta o restante dos próximos rolos lacrados do estoque
+                    qtdFaltando -= novoPesoRestante;
+                    novoPesoRestante = 0;
+
+                    while (qtdFaltando > 0 && novoEstoque > 0) {
+                        novoEstoque--; // Abre um rolo novo
+                        if (qtdFaltando <= m.peso) {
+                            novoPesoRestante = m.peso - qtdFaltando;
+                            qtdFaltando = 0;
+                        } else {
+                            qtdFaltando -= m.peso;
+                        }
+                    }
+                }
+
+                const hoje = new Date();
+                const dataFormatada = new Intl.DateTimeFormat("pt-BR", {
+                    day: "2-digit",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                })
+                    .format(hoje)
+                    .replace(" de ", " ")
+                    .replace(".,", ",");
+
+                const novoRegistro: RegistroUso = {
+                    id: Date.now().toString(),
+                    data: dataFormatada,
+                    nomePeca: motivo || "Abatimento Manual",
+                    quantidadeGasta: qtdAbatida,
+                    status: "MANUAL",
+                };
+
+                return {
+                    ...m,
+                    pesoRestante: Number(novoPesoRestante.toFixed(2)),
+                    estoque: novoEstoque,
+                    historicoUso: [novoRegistro, ...(m.historicoUso || [])],
+                };
+            }),
+        })),
+
+    reporEstoque: (id, quantidadeComprada, precoTotalNovaCompra) =>
+        set((state) => ({
+            materiais: state.materiais.map((m) => {
+                if (m.id !== id) return m;
+
+                const estoqueEmUsoFracao = m.pesoRestante / m.peso;
+                const estoqueTotalAtualFract = m.estoque + estoqueEmUsoFracao;
+                const valorTotalAtual = estoqueTotalAtualFract * m.preco;
+
+                const novoEstoqueTotalFract = estoqueTotalAtualFract + quantidadeComprada;
+                const novoValorTotal = valorTotalAtual + precoTotalNovaCompra;
+                const novoPrecoMedioUnitario =
+                    novoEstoqueTotalFract > 0
+                        ? novoValorTotal / novoEstoqueTotalFract
+                        : m.preco;
+
+                const hoje = new Date();
+                const dataFormatada = new Intl.DateTimeFormat("pt-BR", {
+                    day: "2-digit",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                })
+                    .format(hoje)
+                    .replace(" de ", " ")
+                    .replace(".,", ",");
+
+                const novoRegistro: RegistroUso = {
+                    id: Date.now().toString(),
+                    data: dataFormatada,
+                    nomePeca: `Reposição de Estoque (+${quantidadeComprada})`,
+                    quantidadeGasta: 0,
+                    status: "MANUAL",
+                };
+
+                return {
+                    ...m,
+                    estoque: m.estoque + quantidadeComprada,
+                    preco: Number(novoPrecoMedioUnitario.toFixed(2)),
+                    historicoUso: [novoRegistro, ...(m.historicoUso || [])],
+                };
+            }),
+        })),
+}));

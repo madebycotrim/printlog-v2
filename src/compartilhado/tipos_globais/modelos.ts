@@ -1,6 +1,17 @@
 export type Identificador = string;
 
 export type ModoTema = "CLARO" | "ESCURO";
+export type CorPrimaria =
+  | "sky"
+  | "emerald"
+  | "violet"
+  | "amber"
+  | "rose"
+  | "cyan"
+  | "indigo"
+  | "teal"
+  | "orange"
+  | "fuchsia";
 
 export type StatusImpressora =
   | "LIVRE"

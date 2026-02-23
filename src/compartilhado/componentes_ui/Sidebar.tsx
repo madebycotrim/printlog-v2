@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import {
-    LayoutDashboard,
+import { LayoutDashboard,
     Printer,
     Package,
     FolderKanban,
@@ -163,17 +162,28 @@ export function BarraLateral({
                                                 key={item.caminho}
                                                 to={item.caminho}
                                                 onClick={() => aoFechar?.()}
+                                                style={
+                                                    ativo
+                                                        ? {
+                                                            backgroundColor: "rgb(var(--cor-primaria-rgb) / 0.12)",
+                                                            color: "var(--cor-primaria)",
+                                                        }
+                                                        : undefined
+                                                }
                                                 className={`
                                                     group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 relative overflow-hidden
                                                     ${ativo
-                                                        ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400"
+                                                        ? ""
                                                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.04] hover:text-gray-900 dark:hover:text-gray-200"
                                                     }
                                                 `}
                                             >
-                                                {/* Indicador Lateral Ativo (Barra Indigo igual botões principais) */}
+                                                {/* Indicador Lateral Ativo (Barra sky igual botões principais) */}
                                                 {ativo && (
-                                                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-indigo-600 dark:bg-indigo-500" />
+                                                    <div
+                                                        className="absolute left-0 top-0 bottom-0 w-[3px]"
+                                                        style={{ backgroundColor: "var(--cor-primaria)" }}
+                                                    />
                                                 )}
 
                                                 {/* O padding extra no icone qdo ativo afasta ele da barra */}
@@ -183,7 +193,8 @@ export function BarraLateral({
                                                     <item.icone
                                                         size={18}
                                                         strokeWidth={ativo ? 2.5 : 2}
-                                                        className={`transition-colors ${ativo ? "text-indigo-600 dark:text-indigo-400" : "text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300"}`}
+                                                        style={ativo ? { color: "var(--cor-primaria)" } : undefined}
+                                                        className={`transition-colors ${ativo ? "" : "text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300"}`}
                                                     />
                                                 </div>
                                                 <span

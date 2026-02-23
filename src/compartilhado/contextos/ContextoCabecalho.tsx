@@ -12,12 +12,14 @@ type AcaoCabecalho = {
   texto: string;
   aoClicar: () => void;
   icone?: React.ElementType;
+  desabilitado?: boolean;
 };
 
 type DadosCabecalho = {
   titulo: string;
   subtitulo: string;
   placeholderBusca?: string;
+  ocultarBusca?: boolean;
   acao?: AcaoCabecalho;
   elementoAcao?: ReactNode; // Mantido para compatibilidade ou casos customizados
   aoBuscar?: (termo: string) => void;
@@ -103,9 +105,9 @@ export function usarDefinirCabecalho(dadosInput: DadosCabecalho) {
       ...dadosInput,
       acao: dadosInput.acao
         ? {
-            ...dadosInput.acao,
-            aoClicar: aoClicarEstavel,
-          }
+          ...dadosInput.acao,
+          aoClicar: aoClicarEstavel,
+        }
         : undefined,
       aoBuscar: dadosInput.aoBuscar ? aoBuscarEstavel : undefined,
     };
@@ -120,9 +122,11 @@ export function usarDefinirCabecalho(dadosInput: DadosCabecalho) {
     dadosInput.titulo,
     dadosInput.subtitulo,
     dadosInput.placeholderBusca,
+    dadosInput.ocultarBusca,
     // Propriedades específicas da ação para disparar atualização visual
     dadosInput.acao?.texto,
     dadosInput.acao?.icone,
+    dadosInput.acao?.desabilitado,
     !!dadosInput.acao,
     !!dadosInput.aoBuscar,
   ]);

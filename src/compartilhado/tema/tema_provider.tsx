@@ -1,10 +1,13 @@
 import { createContext, useContext, ReactNode } from "react";
 import { usar_tema } from "./logica/usar_tema";
-import type { ModoTema } from "@/compartilhado/tipos_globais/modelos";
+import type { CorPrimaria, ModoTema } from "@/compartilhado/tipos_globais/modelos";
 
 type TemaContexto = {
   modo_tema: ModoTema;
   alternar_tema: () => void;
+  cor_primaria: CorPrimaria;
+  definir_cor_primaria: (cor: CorPrimaria) => void;
+  paleta_primaria: Record<CorPrimaria, { hex: string; rgb: string }>;
 };
 
 const ContextoTema = createContext<TemaContexto | null>(null);

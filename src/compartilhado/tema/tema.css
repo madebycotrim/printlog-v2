@@ -5,6 +5,8 @@
   /* Zinc 900 */
   --cor-borda: #e4e4e7;
   /* Zinc 200 */
+  --cor-primaria: #0ea5e9;
+  --cor-primaria-rgb: 14 165 233;
 }
 
 :root[data-tema="escuro"] {
@@ -14,6 +16,8 @@
   /* Zinc 100 */
   --cor-borda: #27272a;
   /* Zinc 800 */
+  --cor-primaria: #0ea5e9;
+  --cor-primaria-rgb: 14 165 233;
 }
 
 /* Aplicação das variáveis para garantir consistência se não usar classes Tailwind */

@@ -8,6 +8,7 @@ interface PropriedadesDialogo {
   titulo?: string;
   children: ReactNode;
   larguraMax?: string;
+  esconderCabecalho?: boolean;
 }
 
 export function Dialogo({
@@ -16,6 +17,7 @@ export function Dialogo({
   titulo,
   children,
   larguraMax = "max-w-2xl",
+  esconderCabecalho = false,
 }: PropriedadesDialogo) {
   // Fecha com ESC
   useEffect(() => {
@@ -49,19 +51,21 @@ export function Dialogo({
               className={`w-full ${larguraMax} bg-white dark:bg-[#0e0e11] border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col max-h-[90vh]`}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* CabeÃ§alho */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/5 bg-gray-50/80 dark:bg-[#18181b]">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
-                  {titulo}
-                </h3>
-                <button
-                  onClick={aoFechar}
-                  className="p-1 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-200/50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
-                  aria-label="Fechar"
-                >
-                  <X size={20} />
-                </button>
-              </div>
+              {/* Cabeçalho */}
+              {!esconderCabecalho && (
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/5 bg-gray-50/80 dark:bg-[#18181b]">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
+                    {titulo}
+                  </h3>
+                  <button
+                    onClick={aoFechar}
+                    className="p-1 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-200/50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+                    aria-label="Fechar"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              )}
 
               {/* ConteÃºdo com Scroll */}
               <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50 hover:scrollbar-thumb-zinc-600">
