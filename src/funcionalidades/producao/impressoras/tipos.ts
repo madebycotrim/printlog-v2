@@ -3,12 +3,6 @@ export { StatusImpressora };
 
 export type TecnologiaImpressora = "FDM" | "SLA" | "DLP" | "LCD";
 
-export interface VolumeImpressao {
-    largura: number;
-    profundidade: number;
-    altura: number;
-}
-
 /** Perfil de impressora proveniente do catálogo público `impressoras.json` (Mapeado) */
 export interface PerfilImpressoraCatalogo {
     marca: string;
@@ -52,7 +46,6 @@ export interface Impressora {
     id: string;
     nome: string;
     tecnologia: TecnologiaImpressora;
-    volumeImpressao: VolumeImpressao;
     /** Aplicável apenas para tecnologia FDM */
     diametroBicoAtualMm?: number;
     /** Aplicável apenas para tecnologias de Resina (SLA/DLP/LCD) */

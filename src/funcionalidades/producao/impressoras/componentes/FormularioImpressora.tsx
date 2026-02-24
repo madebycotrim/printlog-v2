@@ -179,7 +179,6 @@ export function FormularioImpressora({
             ...(impressoraEditando || {}),
             nome: dados.nome,
             tecnologia: dados.tecnologia,
-            volumeImpressao: impressoraEditando?.volumeImpressao || { largura: 0, profundidade: 0, altura: 0 },
             status: impressoraEditando?.status || StatusImpressora.LIVRE,
             marca: dados.marca,
             modeloBase: dados.modeloBase,

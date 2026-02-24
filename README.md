@@ -94,7 +94,7 @@ Quadro visual para acompanhar cada trabalho do pedido à entrega.
 
 Agenda inteligente integrada à operação.
 
-- Cadastre clientes com nome, telefone e endereço
+- Cadastre clientes com nome, telefone e e-mail
 - Consulte dados de contato sem sair do sistema
 - Veja o histórico completo de projetos por cliente
 - Identifique seus clientes mais frequentes e mais valiosos
