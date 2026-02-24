@@ -10,9 +10,9 @@ interface KPICardProps {
 
 export function KPICard({ titulo, valor, subteste, icone: Icone, cor }: KPICardProps) {
     return (
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 ${cor}`}>
+                <div className={`p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 ${cor}`}>
                     <Icone size={24} />
                 </div>
             </div>

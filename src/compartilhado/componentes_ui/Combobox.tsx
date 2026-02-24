@@ -97,10 +97,10 @@ export function Combobox({
       <div
         className={`
                     flex items-center justify-between w-full h-11 px-3 
-                    bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 
-                    border border-gray-200 dark:border-white/5 rounded-lg text-sm text-gray-900 dark:text-white 
+                    bg-transparent border-b-2 border-gray-200 dark:border-white/10 
+                    text-sm text-gray-900 dark:text-white 
                     transition-all cursor-text gap-2
-                    ${aberto ? "bg-white dark:bg-[#18181b] border-gray-900 ring-1 ring-gray-900 dark:border-white dark:ring-white" : ""}
+                    ${aberto ? "border-[var(--cor-primaria)]" : "hover:border-gray-300 dark:hover:border-white/20"}
                 `}
         onClick={() => {
           if (!aberto) {
@@ -154,7 +154,7 @@ export function Combobox({
               animate={{ opacity: 1, y: 8, scale: 1 }}
               exit={{ opacity: 0, y: 0, scale: 0.98 }}
               transition={{ duration: 0.15 }}
-              className="z-[9999] bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300 dark:scrollbar-thumb-zinc-700"
+              className="z-[9999] bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300 dark:scrollbar-thumb-zinc-700"
             >
               {opcoesFiltradas.length > 0 ? (
                 opcoesFiltradas.map((opcao) => (

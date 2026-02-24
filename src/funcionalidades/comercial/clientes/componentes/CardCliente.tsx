@@ -107,7 +107,7 @@ export function CardCliente({ cliente, aoEditar, aoRemover, aoVerHistorico }: Ca
                                         <button
                                             key={idx}
                                             onClick={(e) => { e.stopPropagation(); item.acao(); definirMenuAberto(false); }}
-                                            className={`w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 ${item.bgHover} ${item.cor} rounded-lg transition-colors group/item uppercase tracking-widest`}
+                                            className={`w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 ${item.bgHover} ${item.cor} rounded-xl transition-colors group/item uppercase tracking-widest`}
                                         >
                                             <item.icone size={14} className={`text-gray-400 ${item.iconeCor} transition-colors`} />
                                             {item.texto}
@@ -118,7 +118,7 @@ export function CardCliente({ cliente, aoEditar, aoRemover, aoVerHistorico }: Ca
 
                                     <button
                                         onClick={(e) => { e.stopPropagation(); aoEditar(cliente); definirMenuAberto(false); }}
-                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors group/item uppercase tracking-widest"
+                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white rounded-xl transition-colors group/item uppercase tracking-widest"
                                     >
                                         <Pencil size={14} className="text-gray-400 group-hover/item:text-gray-900 dark:group-hover/item:text-white transition-colors" />
                                         EDITAR
@@ -126,7 +126,7 @@ export function CardCliente({ cliente, aoEditar, aoRemover, aoVerHistorico }: Ca
 
                                     <button
                                         onClick={(e) => { e.stopPropagation(); aoRemover(cliente); definirMenuAberto(false); }}
-                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-rose-600 hover:bg-rose-500/10 rounded-lg transition-colors group/item uppercase tracking-widest"
+                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-rose-600 hover:bg-rose-500/10 rounded-xl transition-colors group/item uppercase tracking-widest"
                                     >
                                         <Trash2 size={14} className="text-rose-400 group-hover/item:text-rose-600 transition-colors" />
                                         REMOVER

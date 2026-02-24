@@ -361,7 +361,7 @@ export function FormularioMaterial({
                           ? `Padrão: ${tipoMaterialSelecionado} ${fabricanteSelecionado} ${corSelecionada}`
                           : "Deixe em branco para auto-gerar o nome"
                       }
-                      className="w-full h-11 pl-10 pr-4 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:bg-white dark:focus:bg-[#0c0c0e] focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium"
+                      className="w-full h-11 pl-10 pr-4 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium"
                     />
                   </div>
                 </div>
@@ -433,7 +433,7 @@ export function FormularioMaterial({
                       step="0.01"
                       {...register("preco", { valueAsNumber: true })}
                       placeholder="Ex: 89,90"
-                      className={`w-full h-11 pl-10 pr-3 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border ${errors.preco ? "border-red-500" : "border-gray-200 dark:border-white/5 focus:border-gray-900 focus:ring-gray-900 dark:focus:border-white dark:focus:ring-white"} focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-1 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner`}
+                      className={`w-full h-11 pl-10 pr-3 bg-transparent border-b-2 ${errors.preco ? "border-red-500" : "border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)]"} text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner`}
                     />
                   </div>
                   {errors.preco && (
@@ -475,7 +475,7 @@ export function FormularioMaterial({
                       placeholder={
                         tipoSelecionado === "SLA" && !usarGramasSelecionado ? "1000" : "1000"
                       }
-                      className={`w-full h-11 pl-10 pr-12 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border ${errors.peso ? "border-red-500" : "border-gray-200 dark:border-white/5 focus:border-gray-900 focus:ring-gray-900 dark:focus:border-white dark:focus:ring-white"} focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-1 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner`}
+                      className={`w-full h-11 pl-10 pr-12 bg-transparent border-b-2 ${errors.peso ? "border-red-500" : "border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)]"} text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner`}
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none">
                       {tipoSelecionado === "SLA" && !usarGramasSelecionado ? "ML" : "G"}
@@ -502,7 +502,7 @@ export function FormularioMaterial({
                       type="number"
                       {...register("estoqueInicial", { valueAsNumber: true })}
                       placeholder="Ex: 1"
-                      className={`w-full h-11 pl-10 pr-3 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border ${errors.estoqueInicial ? "border-red-500" : "border-gray-200 dark:border-white/5 focus:border-gray-900 focus:ring-gray-900 dark:focus:border-white dark:focus:ring-white"} focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-1 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner`}
+                      className={`w-full h-11 pl-10 pr-3 bg-transparent border-b-2 ${errors.estoqueInicial ? "border-red-500" : "border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)]"} text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner`}
                     />
                   </div>
                   {errors.estoqueInicial && (
@@ -528,7 +528,7 @@ export function FormularioMaterial({
                 <button
                   type="submit"
                   style={{ backgroundColor: "var(--cor-primaria)" }}
-                  className="px-6 py-2.5 flex-1 md:flex-none justify-center hover:brightness-95 text-white text-sm font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95"
+                  className="px-6 py-2.5 flex-1 md:flex-none justify-center hover:brightness-95 text-white text-sm font-bold rounded-xl shadow-sm flex items-center gap-2 transition-all active:scale-95"
                 >
                   <Save size={18} strokeWidth={2.5} />
                   {isEditando ? "Salvar Alterações" : "Cadastrar Material"}

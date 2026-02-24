@@ -130,7 +130,7 @@ export function ItemInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcl
                     {/* Ações Primárias — Sempre visíveis */}
                     <button
                         onClick={() => aoBaixar(insumo)}
-                        className="p-2 flex items-center gap-1.5 text-[11px] font-bold text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-lg transition-colors"
+                        className="p-2 flex items-center gap-1.5 text-[11px] font-bold text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl transition-colors"
                     >
                         <ArrowDownCircle size={16} strokeWidth={2.5} />
                         <span className="hidden sm:block">Baixar</span>
@@ -138,7 +138,7 @@ export function ItemInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcl
 
                     <button
                         onClick={() => aoRepor(insumo)}
-                        className="p-2 flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+                        className="p-2 flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-colors"
                     >
                         <ArrowUpCircle size={16} strokeWidth={2.5} />
                         <span className="hidden sm:block">Repor</span>
@@ -158,7 +158,7 @@ export function ItemInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcl
                             <Dica texto="Ver Histórico">
                                 <button
                                     onClick={() => aoVerHistorico(insumo)}
-                                    className="p-2 flex items-center justify-center text-gray-400 hover:text-violet-600 dark:text-zinc-500 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 rounded-lg transition-colors"
+                                    className="p-2 flex items-center justify-center text-gray-400 hover:text-violet-600 dark:text-zinc-500 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 rounded-xl transition-colors"
                                 >
                                     <History size={16} strokeWidth={2.5} />
                                 </button>
@@ -171,7 +171,7 @@ export function ItemInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcl
                                     href={insumo.linkCompra}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-2 flex items-center justify-center text-gray-400 hover:text-sky-600 dark:text-zinc-500 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg transition-colors"
+                                    className="p-2 flex items-center justify-center text-gray-400 hover:text-sky-600 dark:text-zinc-500 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-xl transition-colors"
                                 >
                                     <ShoppingCart size={16} strokeWidth={2.5} />
                                 </a>
@@ -181,7 +181,7 @@ export function ItemInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcl
                         <Dica texto="Editar">
                             <button
                                 onClick={() => aoEditar(insumo)}
-                                className="p-2 flex items-center justify-center text-gray-400 hover:text-indigo-600 dark:text-zinc-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
+                                className="p-2 flex items-center justify-center text-gray-400 hover:text-indigo-600 dark:text-zinc-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-xl transition-colors"
                             >
                                 <Edit2 size={16} strokeWidth={2.5} />
                             </button>
@@ -190,7 +190,7 @@ export function ItemInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcl
                         <Dica texto="Remover">
                             <button
                                 onClick={() => aoExcluir(insumo)}
-                                className="p-2 flex items-center justify-center text-gray-400 hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                className="p-2 flex items-center justify-center text-gray-400 hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
                             >
                                 <Trash2 size={16} strokeWidth={2.5} />
                             </button>

@@ -21,8 +21,8 @@ export enum TipoLancamentoFinanceiro {
 }
 
 export enum TemaInterface {
-  CLARO = "CLARO",
-  ESCURO = "ESCURO",
+  CLARO = "claro",
+  ESCURO = "escuro",
 }
 
 export type ModoTema = TemaInterface;

@@ -48,12 +48,12 @@ export function Dialogo({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-              className={`w-full ${larguraMax} bg-white dark:bg-[#0e0e11] border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col max-h-[90vh]`}
+              className={`w-full ${larguraMax} bg-white dark:bg-[#0e0e11] border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col max-h-[90vh]`}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Cabeçalho */}
               {!esconderCabecalho && (
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/5 bg-gray-50/80 dark:bg-[#18181b]">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/5 bg-gray-50/80 dark:bg-[#18181b] rounded-t-2xl">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
                     {titulo}
                   </h3>

@@ -70,7 +70,7 @@ export function CardMaterial({
   const unidade = material.tipo === "FDM" ? "g" : "ml";
 
   return (
-    <div ref={cardRef} className="group relative flex flex-col h-full rounded-[20px] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-default bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/5">
+    <div ref={cardRef} className="group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-default bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/5">
       {/* Badge Superior Esquerdo (Tipo de Material) */}
       <div className="absolute top-4 left-4 z-20">
         <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 dark:text-[#a1a1aa] bg-gray-50/50 dark:bg-transparent border border-gray-200 dark:border-white/5 flex items-center justify-center shadow-sm dark:shadow-none">
@@ -130,15 +130,15 @@ export function CardMaterial({
               <div className="p-1.5 space-y-0.5">
                 <button
                   onClick={(e) => { e.stopPropagation(); aoAbater(material.id); definirMenuAberto(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400 rounded-lg transition-colors group/item uppercase tracking-widest"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-[var(--cor-primaria-opaca,rgba(0,0,0,0.05))] hover:text-gray-900 dark:hover:text-white rounded-xl transition-colors group/item uppercase tracking-widest"
                 >
-                  <Scissors size={14} className="text-gray-400 group-hover/item:text-sky-500 transition-colors" />
+                  <Scissors size={14} className="text-gray-400 group-hover/item:text-[var(--cor-primaria)] transition-colors" />
                   REGISTRAR USO
                 </button>
 
                 <button
                   onClick={(e) => { e.stopPropagation(); aoRepor(material.id); definirMenuAberto(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg transition-colors group/item uppercase tracking-widest"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-xl transition-colors group/item uppercase tracking-widest"
                 >
                   <PackagePlus size={14} className="text-gray-400 group-hover/item:text-emerald-500 transition-colors" />
                   REPOR ESTOQUE
@@ -146,7 +146,7 @@ export function CardMaterial({
 
                 <button
                   onClick={(e) => { e.stopPropagation(); aoHistorico(material.id); definirMenuAberto(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors group/item uppercase tracking-widest"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-colors group/item uppercase tracking-widest"
                 >
                   <History size={14} className="text-gray-400 group-hover/item:text-indigo-500 transition-colors" />
                   VER HISTÓRICO
@@ -156,7 +156,7 @@ export function CardMaterial({
 
                 <button
                   onClick={(e) => { e.stopPropagation(); aoEditar(material); definirMenuAberto(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors group/item uppercase tracking-widest"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white rounded-xl transition-colors group/item uppercase tracking-widest"
                 >
                   <Pencil size={14} className="text-gray-400 group-hover/item:text-gray-900 dark:group-hover/item:text-white transition-colors" />
                   EDITAR
@@ -164,7 +164,7 @@ export function CardMaterial({
 
                 <button
                   onClick={(e) => { e.stopPropagation(); aoExcluir(material.id); definirMenuAberto(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-rose-600 hover:bg-rose-500/10 rounded-lg transition-colors group/item uppercase tracking-widest"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-rose-600 hover:bg-rose-500/10 rounded-xl transition-colors group/item uppercase tracking-widest"
                 >
                   <Trash2 size={14} className="text-rose-400 group-hover/item:text-rose-600 transition-colors" />
                   REMOVER

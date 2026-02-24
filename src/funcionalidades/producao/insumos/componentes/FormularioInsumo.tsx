@@ -432,7 +432,7 @@ export function FormularioInsumo({
                                     <button
                                         type="button"
                                         onClick={fecharModalRealmente}
-                                        className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-[11px] font-black uppercase tracking-wider rounded-lg transition-all shadow-sm shadow-red-500/20"
+                                        className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl transition-all shadow-sm shadow-red-500/20"
                                     >
                                         Descartar
                                     </button>

@@ -45,7 +45,7 @@ export function CardImpressora({ impressora, aoEditar, aoAposentar, aoDetalhes, 
     return (
         <div
             onClick={() => aoDetalhes?.(impressora)}
-            className="group relative flex flex-col h-full rounded-[20px] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-pointer bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/5"
+            className="group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-pointer bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/5"
         >
             {/* Badge Superior Esquerdo (Tecnologia) */}
             <div className="absolute top-4 left-4 z-20 flex items-center gap-3">
@@ -60,7 +60,7 @@ export function CardImpressora({ impressora, aoEditar, aoAposentar, aoDetalhes, 
             <div className="absolute top-4 right-3 z-30" ref={menuRef}>
                 <button
                     onClick={(e) => { e.stopPropagation(); definirMenuAberto(!menuAberto); }}
-                    className={`p-1.5 rounded-lg transition-all ${menuAberto ? 'bg-zinc-100 dark:bg-white/10 text-zinc-900 dark:text-white' : 'opacity-0 group-hover:opacity-100 focus:opacity-100 text-gray-400 dark:text-white/20 hover:text-gray-900 dark:hover:text-white'}`}
+                    className={`p-1.5 rounded-xl transition-all ${menuAberto ? 'bg-zinc-100 dark:bg-white/10 text-zinc-900 dark:text-white' : 'opacity-0 group-hover:opacity-100 focus:opacity-100 text-gray-400 dark:text-white/20 hover:text-gray-900 dark:hover:text-white'}`}
                     aria-label="Opções da impressora"
                 >
                     <MoreVertical size={16} />
@@ -78,7 +78,7 @@ export function CardImpressora({ impressora, aoEditar, aoAposentar, aoDetalhes, 
                             <div className="p-1.5 space-y-0.5">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); if (aoHistorico) aoHistorico(impressora); fecharMenu(); }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors group/item uppercase tracking-widest"
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-colors group/item uppercase tracking-widest"
                                     role="menuitem"
                                 >
                                     <History size={14} className="text-gray-400 group-hover/item:text-indigo-500 transition-colors" />
@@ -87,7 +87,7 @@ export function CardImpressora({ impressora, aoEditar, aoAposentar, aoDetalhes, 
 
                                 <button
                                     onClick={(e) => { e.stopPropagation(); if (aoManutencoes) aoManutencoes(impressora); fecharMenu(); }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400 rounded-lg transition-colors group/item uppercase tracking-widest"
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400 rounded-xl transition-colors group/item uppercase tracking-widest"
                                     role="menuitem"
                                 >
                                     <Wrench size={14} className="text-gray-400 group-hover/item:text-amber-500 transition-colors" />
@@ -96,7 +96,7 @@ export function CardImpressora({ impressora, aoEditar, aoAposentar, aoDetalhes, 
 
                                 <button
                                     onClick={(e) => { e.stopPropagation(); if (aoPecas) aoPecas(impressora); fecharMenu(); }}
-                                    className="w-full flex items-center justify-between gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg transition-colors group/item uppercase tracking-widest text-left"
+                                    className="w-full flex items-center justify-between gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-xl transition-colors group/item uppercase tracking-widest text-left"
                                     role="menuitem"
                                 >
                                     <div className="flex items-center gap-2.5">
@@ -114,16 +114,16 @@ export function CardImpressora({ impressora, aoEditar, aoAposentar, aoDetalhes, 
 
                                 <button
                                     onClick={(e) => { e.stopPropagation(); aoEditar(impressora); fecharMenu(); }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors group/item uppercase tracking-widest"
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white rounded-xl transition-colors group/item uppercase tracking-widest"
                                     role="menuitem"
                                 >
                                     <Edit2 size={14} className="text-gray-400 group-hover/item:text-gray-900 dark:group-hover/item:text-white transition-colors" />
-                                    Editar 
+                                    Editar
                                 </button>
 
                                 <button
                                     onClick={(e) => { e.stopPropagation(); aoAposentar(impressora); fecharMenu(); }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-rose-600 hover:bg-rose-500/10 rounded-lg transition-colors group/item uppercase tracking-widest"
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-rose-600 hover:bg-rose-500/10 rounded-xl transition-colors group/item uppercase tracking-widest"
                                     role="menuitem"
                                 >
                                     <Archive size={14} className="text-rose-400 group-hover/item:text-rose-600 transition-colors" />

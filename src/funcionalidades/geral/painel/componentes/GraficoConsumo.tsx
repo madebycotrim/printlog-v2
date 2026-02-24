@@ -20,7 +20,7 @@ const DADOS_GRAFICO = [
 
 export function GraficoConsumo() {
     return (
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h3 className="text-xl font-black tracking-tight dark:text-white">Consumo de Filamento</h3>
@@ -37,8 +37,8 @@ export function GraficoConsumo() {
                     <AreaChart data={DADOS_GRAFICO}>
                         <defs>
                             <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                <stop offset="5%" stopColor="var(--cor-primaria)" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="var(--cor-primaria)" stopOpacity={0} />
                             </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" className="dark:stroke-zinc-800" />
@@ -58,12 +58,12 @@ export function GraficoConsumo() {
                                 color: '#fff'
                             }}
                             itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
-                            cursor={{ stroke: '#8b5cf6', strokeWidth: 2 }}
+                            cursor={{ stroke: "var(--cor-primaria)", strokeWidth: 2 }}
                         />
                         <Area
                             type="monotone"
                             dataKey="valor"
-                            stroke="#8b5cf6"
+                            stroke="var(--cor-primaria)"
                             strokeWidth={4}
                             fillOpacity={1}
                             fill="url(#colorValor)"
