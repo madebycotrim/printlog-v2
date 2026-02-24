@@ -35,16 +35,16 @@ export function GridWiki({ categorias, aoSelecionarTopico }: Propriedades) {
                 {categorias.map((categoria) => (
                     <div
                         key={categoria.id}
-                        className="group relative bg-white dark:bg-card-fundo rounded-[40px] border border-gray-100 dark:border-white/[0.04] p-1.5 shadow-sm hover:shadow-2xl transition-all duration-700 overflow-hidden"
+                        className="group relative bg-white dark:bg-card-fundo rounded-2xl border border-gray-100 dark:border-white/[0.04] p-1.5 shadow-sm hover:shadow-2xl transition-all duration-700 overflow-hidden"
                     >
                         {/* Brilho de Fundo Dinâmico */}
                         <div className={`absolute top-0 right-0 w-64 h-64 ${categoria.cor.replace('text', 'bg').replace('-500', '-505')}/5 blur-[100px] -mr-32 -mt-32 opacity-0 group-hover:opacity-100 transition-opacity duration-1000`} />
 
                         <div className="flex flex-col md:flex-row h-full relative z-10">
                             {/* LADO A: IDENTIDADE DA CATEGORIA */}
-                            <div className={`w-full md:w-56 p-6 flex flex-col justify-between relative overflow-hidden ${categoria.fundo} rounded-[36px] m-1`}>
+                            <div className={`w-full md:w-56 p-6 flex flex-col justify-between relative overflow-hidden ${categoria.fundo} rounded-xl m-1`}>
                                 <div className="relative z-10">
-                                    <div className={`w-16 h-16 rounded-[22px] bg-white dark:bg-card-fundo shadow-xl flex items-center justify-center ${categoria.cor} mb-8 transform group-hover:scale-110 transition-transform duration-500`}>
+                                    <div className={`w-16 h-16 rounded-xl bg-white dark:bg-card-fundo shadow-xl flex items-center justify-center ${categoria.cor} mb-8 transform group-hover:scale-110 transition-transform duration-500`}>
                                         <categoria.icone size={32} strokeWidth={2.5} />
                                     </div>
                                     <div className="flex items-center gap-2 mb-2">
@@ -71,7 +71,7 @@ export function GridWiki({ categorias, aoSelecionarTopico }: Propriedades) {
                                             key={topico.id}
                                             aria-label={`Ver detalhes de ${topico.titulo}`}
                                             onClick={() => aoSelecionarTopico({ ...topico, categoria: categoria.titulo, cor: categoria.cor })}
-                                            className="w-full flex items-center justify-between p-5 rounded-[24px] bg-gray-50/50 dark:bg-white/[0.01] hover:bg-white dark:hover:bg-white/[0.04] border border-transparent hover:border-gray-100 dark:hover:border-white/5 transition-all group/item shadow-sm hover:shadow-lg transform hover:-translate-y-0.5"
+                                            className="w-full flex items-center justify-between p-5 rounded-xl bg-gray-50/50 dark:bg-white/[0.01] hover:bg-white dark:hover:bg-white/[0.04] border border-transparent hover:border-gray-100 dark:hover:border-white/5 transition-all group/item shadow-sm hover:shadow-lg transform hover:-translate-y-0.5"
                                         >
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-1.5 h-8 rounded-full ${categoria.cor.replace('text', 'bg')} opacity-10 group-hover/item:opacity-100 transition-all duration-500`} />

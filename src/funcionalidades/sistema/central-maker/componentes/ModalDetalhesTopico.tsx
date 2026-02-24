@@ -63,7 +63,7 @@ export function ModalDetalhesTopico({ topico, aoFechar }: Propriedades) {
                         </div>
                     </div>
 
-                    <div className={`px-5 py-2.5 rounded-2xl ${topico.cor || 'text-sky-500'} bg-current/10 border border-current/20 shadow-lg shadow-current/5 backdrop-blur-sm self-start md:self-center`}>
+                    <div className={`px-5 py-2.5 rounded-xl ${topico.cor || 'text-[var(--cor-primaria)]'} bg-current/10 border border-current/20 shadow-lg shadow-current/5 backdrop-blur-sm self-start md:self-center`}>
                         <span className="text-[11px] font-black uppercase tracking-[0.2em]">Nível: {topico.level || topico.nivel}</span>
                     </div>
                 </div>
@@ -81,7 +81,7 @@ export function ModalDetalhesTopico({ topico, aoFechar }: Propriedades) {
                 {topico.gcode && (
                     <div className="relative z-10 space-y-5">
                         <div className="flex items-center justify-between">
-                            <div className={`flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] ${topico.cor || 'text-sky-500'}`}>
+                            <div className={`flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] ${topico.cor || 'text-[var(--cor-primaria)]'}`}>
                                 <Terminal size={18} strokeWidth={2.5} /> Snippet G-Code Sugerido
                             </div>
                             <button
@@ -95,8 +95,8 @@ export function ModalDetalhesTopico({ topico, aoFechar }: Propriedades) {
                                 {copiado ? "Processado!" : "Copiar Comando"}
                             </button>
                         </div>
-                        <div className="p-8 rounded-[40px] bg-[#08080a] border border-white/[0.06] relative shadow-2xl overflow-hidden group">
-                            <div className={`absolute top-0 left-0 w-1.5 h-full ${topico.cor?.replace('text', 'bg') || 'bg-sky-500'} opacity-50`} />
+                        <div className="p-8 rounded-2xl bg-[#08080a] border border-white/[0.06] relative shadow-2xl overflow-hidden group">
+                            <div className={`absolute top-0 left-0 w-1.5 h-full ${topico.cor?.replace('text', 'bg') || 'bg-[var(--cor-primaria)]'} opacity-50`} />
                             <div className="absolute top-4 right-8 flex gap-2 opacity-20">
                                 <div className="w-2 h-2 rounded-full bg-zinc-700" />
                                 <div className="w-2 h-2 rounded-full bg-zinc-700" />

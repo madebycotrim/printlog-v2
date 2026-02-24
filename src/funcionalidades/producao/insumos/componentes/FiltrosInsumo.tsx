@@ -62,10 +62,11 @@ export function FiltrosInsumo({
                     <button
                         key={tab.valor}
                         onClick={() => aoFiltrar(tab.valor)}
-                        className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${filtroAtual === tab.valor
-                                ? "bg-gray-100 dark:bg-[#27272a] text-gray-900 dark:text-white shadow-sm"
-                                : "text-gray-500 hover:text-gray-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+                        className={`px-3 py-1.5 text-sm font-semibold rounded-xl transition-all whitespace-nowrap ${filtroAtual === tab.valor
+                            ? "text-white shadow-sm"
+                            : "text-gray-500 hover:text-gray-700 dark:text-zinc-500 dark:hover:text-zinc-300"
                             }`}
+                        style={filtroAtual === tab.valor ? { backgroundColor: "var(--cor-primaria)" } : {}}
                     >
                         {tab.rotulo}
                     </button>
@@ -78,9 +79,9 @@ export function FiltrosInsumo({
                     onClick={aoInverterOrdem}
                     data-ativo={ordemInvertida}
                     title={ordemInvertida ? "Ordem Descendente" : "Ordem Ascendente"}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-sky-500 ${ordemInvertida
-                            ? "bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 text-sky-600 dark:text-sky-400"
-                            : "bg-transparent border border-gray-200 dark:border-white/10 text-gray-400 dark:text-zinc-500 hover:border-gray-300 dark:hover:border-white/20"
+                    className={`w-10 h-10 flex items-center justify-center transition-all focus:outline-none border-b-2 ${ordemInvertida
+                        ? "border-[var(--cor-primaria)] text-[var(--cor-primaria)] bg-[var(--cor-primaria)]/5"
+                        : "border-gray-200 dark:border-white/10 text-gray-400 dark:text-zinc-500 hover:border-gray-300 dark:hover:border-white/20 bg-transparent"
                         }`}
                 >
                     <ArrowUpDown size={16} className={`transition-transform duration-300 ${ordemInvertida ? "rotate-180" : ""}`} />
@@ -89,15 +90,15 @@ export function FiltrosInsumo({
                 <div className="relative" ref={selectRef}>
                     <button
                         onClick={() => definirSelectAberto(!selectAberto)}
-                        className={`h-10 px-4 text-sm font-medium bg-transparent border rounded-xl flex items-center justify-between gap-3 min-w-[220px] shadow-sm transition-all outline-none ${selectAberto
-                                ? "border-sky-500 dark:border-sky-500 ring-1 ring-sky-500 dark:ring-sky-500 text-gray-900 dark:text-white"
-                                : "border-gray-200 dark:border-white/10 text-gray-700 dark:text-zinc-300 hover:border-gray-300 dark:hover:border-white/20"
+                        className={`h-10 px-4 text-sm font-medium bg-transparent border-b-2 flex items-center justify-between gap-3 min-w-[220px] transition-all outline-none ${selectAberto
+                            ? "border-[var(--cor-primaria)] text-gray-900 dark:text-white"
+                            : "border-gray-200 dark:border-white/10 text-gray-700 dark:text-zinc-300 hover:border-gray-300 dark:hover:border-white/20"
                             }`}
                     >
                         {opcaoSelecionada.rotulo}
                         <ChevronDown
                             size={16}
-                            className={`text-gray-400 transition-transform duration-200 ${selectAberto ? "rotate-180 text-sky-500" : ""}`}
+                            className={`text-gray-400 transition-transform duration-200 ${selectAberto ? "rotate-180 text-[var(--cor-primaria)]" : ""}`}
                         />
                     </button>
 
@@ -111,9 +112,10 @@ export function FiltrosInsumo({
                                         definirSelectAberto(false);
                                     }}
                                     className={`w-full text-left px-4 py-2 text-sm transition-colors ${ordenacaoAtual === opcao.valor
-                                            ? "bg-blue-600 text-white font-medium"
-                                            : "text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-white/5"
+                                        ? "text-white font-medium"
+                                        : "text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-white/5"
                                         }`}
+                                    style={ordenacaoAtual === opcao.valor ? { backgroundColor: "var(--cor-primaria)" } : {}}
                                 >
                                     {opcao.rotulo}
                                 </button>

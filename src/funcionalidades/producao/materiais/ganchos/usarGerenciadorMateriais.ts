@@ -65,9 +65,11 @@ export function usarGerenciadorMateriais() {
         } else {
             const m: Material = {
                 ...dadosDoFormulario,
-                pesoRestante: dadosDoFormulario.peso,
+                pesoRestanteGramas: dadosDoFormulario.pesoGramas,
                 estoque: dadosDoFormulario.estoque > 1 ? dadosDoFormulario.estoque - 1 : 0,
-                historicoUso: [],
+                arquivado: false,
+                dataCriacao: new Date(),
+                dataAtualizacao: new Date(),
             };
             acoesArmazem.adicionarMaterial(m);
         }
@@ -110,14 +112,14 @@ export function usarGerenciadorMateriais() {
 
     const kpis = useMemo(() => {
         const totalEmbalagens = materiaisAtivos.reduce(
-            (acc, mat) => acc + (mat.pesoRestante > 0 ? 1 : 0) + mat.estoque,
+            (acc, mat) => acc + (mat.pesoRestanteGramas > 0 ? 1 : 0) + mat.estoque,
             0,
         );
         const valorInvestido = materiaisAtivos.reduce((acc, mat) => {
-            return acc + (mat.preco * (mat.pesoRestante / mat.peso)) + (mat.preco * mat.estoque);
+            return acc + (mat.precoCentavos * (mat.pesoRestanteGramas / mat.pesoGramas)) + (mat.precoCentavos * mat.estoque);
         }, 0);
         const alertasBaixoEstoque = materiaisAtivos.filter(
-            (mat) => mat.pesoRestante / mat.peso < 0.2 && mat.estoque === 0,
+            (mat) => mat.pesoRestanteGramas / mat.pesoGramas < 0.2 && mat.estoque === 0,
         ).length;
 
         return { totalEmbalagens, valorInvestido, alertasBaixoEstoque };
@@ -142,12 +144,12 @@ export function usarGerenciadorMateriais() {
         filtrados.sort((a, b) => {
             if (ordenacao === "NOME") return a.nome.localeCompare(b.nome);
             if (ordenacao === "MAIOR_PRECO") {
-                const valA = ((a.pesoRestante / a.peso) + a.estoque) * a.preco;
-                const valB = ((b.pesoRestante / b.peso) + b.estoque) * b.preco;
+                const valA = ((a.pesoRestanteGramas / a.pesoGramas) + a.estoque) * a.precoCentavos;
+                const valB = ((b.pesoRestanteGramas / b.pesoGramas) + b.estoque) * b.precoCentavos;
                 return valB - valA;
             }
             if (ordenacao === "MENOR_ESTOQUE") {
-                return (a.pesoRestante / a.peso + a.estoque) - (b.pesoRestante / b.peso + b.estoque);
+                return (a.pesoRestanteGramas / a.pesoGramas + a.estoque) - (b.pesoRestanteGramas / b.pesoGramas + b.estoque);
             }
             return 0;
         });

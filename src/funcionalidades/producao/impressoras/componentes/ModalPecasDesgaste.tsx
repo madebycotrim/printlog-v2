@@ -32,7 +32,7 @@ export function ModalPecasDesgaste({
 
     if (!impressora) return null;
 
-    const horimetroAtual = impressora.horimetroTotal || 0;
+    const horimetroAtualMinutos = impressora.horimetroTotalMinutos || 0;
 
     const lidarComAdicionarPeca = (e: React.FormEvent) => {
         e.preventDefault();
@@ -41,14 +41,14 @@ export function ModalPecasDesgaste({
         const novaPeca: PecaDesgaste = {
             id: crypto.randomUUID(),
             nome: novaPecaNome,
-            vidaUtilEstimada: Number(novaPecaVida),
-            horasTrocado: horimetroAtual, // Acabou de colocar a peça, registra as horas atuais
+            vidaUtilEstimadaMinutos: Math.round(Number(novaPecaVida) * 60),
+            minutosTrocado: horimetroAtualMinutos, // Registra os minutos atuais no momento da troca
             dataInclusao: new Date().toISOString(),
         };
 
         const novasPecas = [...pecas, novaPeca];
         definirPecas(novasPecas);
-        aoSalvar(impressora.id, novasPecas); // Salva persistente no BD / Armazém
+        aoSalvar(impressora.id, novasPecas);
 
         definirNovaPecaNome("");
         definirNovaPecaVida("");
@@ -60,8 +60,8 @@ export function ModalPecasDesgaste({
             if (p.id === idPeca) {
                 return {
                     ...p,
-                    horasTrocado: horimetroAtual,
-                    dataInclusao: new Date().toISOString(), // Opcional, atualizar data real de troca
+                    minutosTrocado: horimetroAtualMinutos,
+                    dataInclusao: new Date().toISOString(),
                 };
             }
             return p;
@@ -101,7 +101,7 @@ export function ModalPecasDesgaste({
                             <p className="text-xs font-medium text-gray-500 dark:text-zinc-400 truncate mt-0.5">
                                 Horímetro Atual:{" "}
                                 <strong className="text-sky-500">
-                                    {horimetroAtual}h
+                                    {(horimetroAtualMinutos / 60).toFixed(1)}h
                                 </strong>
                             </p>
                         </div>
@@ -167,8 +167,8 @@ export function ModalPecasDesgaste({
                     ) : (
                         <div className="space-y-3">
                             {pecas.map((peca) => {
-                                const horasTrabalhadasNaPeca = Math.max(0, horimetroAtual - peca.horasTrocado);
-                                const porcentagemDesgaste = Math.min(100, (horasTrabalhadasNaPeca / peca.vidaUtilEstimada) * 100);
+                                const minutosTrabalhadasNaPeca = Math.max(0, horimetroAtualMinutos - peca.minutosTrocado);
+                                const porcentagemDesgaste = Math.min(100, (minutosTrabalhadasNaPeca / peca.vidaUtilEstimadaMinutos) * 100);
                                 const estourouVida = porcentagemDesgaste >= 100;
 
                                 const corBarra = estourouVida
@@ -211,7 +211,7 @@ export function ModalPecasDesgaste({
                                         <div>
                                             <div className="flex items-end justify-between mb-1.5">
                                                 <span className="text-xs font-bold text-gray-500 dark:text-zinc-400">
-                                                    {horasTrabalhadasNaPeca}h / {peca.vidaUtilEstimada}h
+                                                    {(minutosTrabalhadasNaPeca / 60).toFixed(1)}h / {(peca.vidaUtilEstimadaMinutos / 60).toFixed(0)}h
                                                 </span>
                                                 <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500">
                                                     {Math.round(porcentagemDesgaste)}% Desgastado

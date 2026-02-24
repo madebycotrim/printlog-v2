@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { RoteadorPrincipal } from "@/roteador";
+import { RoteadorPrincipal } from "@/compartilhado/infraestrutura/roteamento/roteador";
 import { ProvedorTema } from "@/compartilhado/tema/tema_provider";
 
 import "@/index.css";

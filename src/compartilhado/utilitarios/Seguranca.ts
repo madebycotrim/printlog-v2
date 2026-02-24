@@ -41,28 +41,23 @@ export function higienizarPII(dados: any): any {
     return dados;
 }
 
+import { registrar } from "./registrador";
+
 /**
  * Sistema de Auditoria Interna.
  * Garante que logs de desenvolvimento não vazem dados sensíveis.
  */
 export const auditoria = {
-    log: (mensagem: string, contexto?: any) => {
-        const contextoLimpo = contexto ? higienizarPII(contexto) : "";
-        // No futuro, isso pode enviar para um serviço como Sentry ou LogRocket
-        if (import.meta.env.DEV) {
-            console.log(`[AUDITORIA] ${mensagem}`, contextoLimpo);
-        }
+    log: (mensagem: string, contexto: any) => {
+        const contextoLimpo = contexto ? higienizarPII(contexto) : {};
+        registrar.info({ rastreioId: 'auditoria-interna', ...contextoLimpo }, mensagem);
     },
     erro: (mensagem: string, erro: any) => {
         const erroLimpo = higienizarPII(erro);
-        if (import.meta.env.DEV) {
-            console.error(`[AUDITORIA_ERRO] ${mensagem}`, erroLimpo);
-        }
+        registrar.error({ rastreioId: 'auditoria-erro', ...erroLimpo }, mensagem, erro);
     },
     evento: (nomeEvento: string, metadados: any) => {
         const metaLimpo = higienizarPII(metadados);
-        if (import.meta.env.DEV) {
-            console.log(`[AUDITORIA_EVENTO] ${nomeEvento}`, metaLimpo);
-        }
+        registrar.info({ rastreioId: 'auditoria-evento', ...metaLimpo }, `Evento: ${nomeEvento}`);
     }
 };

@@ -43,7 +43,7 @@ export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
                 if (m.id !== id) return m;
 
                 let qtdFaltando = qtdAbatida;
-                let novoPesoRestante = m.pesoRestante;
+                let novoPesoRestante = m.pesoRestanteGramas;
                 let novoEstoque = m.estoque;
 
                 // Abate do rolo atual
@@ -56,11 +56,11 @@ export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
 
                     while (qtdFaltando > 0 && novoEstoque > 0) {
                         novoEstoque--; // Abre um rolo novo
-                        if (qtdFaltando <= m.peso) {
-                            novoPesoRestante = m.peso - qtdFaltando;
+                        if (qtdFaltando <= m.pesoGramas) {
+                            novoPesoRestante = m.pesoGramas - qtdFaltando;
                             qtdFaltando = 0;
                         } else {
-                            qtdFaltando -= m.peso;
+                            qtdFaltando -= m.pesoGramas;
                         }
                     }
                 }
@@ -80,13 +80,13 @@ export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
                     id: Date.now().toString(),
                     data: dataFormatada,
                     nomePeca: motivo || "Abatimento Manual",
-                    quantidadeGasta: qtdAbatida,
+                    quantidadeGastaGramas: qtdAbatida,
                     status: "MANUAL",
                 };
 
                 return {
                     ...m,
-                    pesoRestante: Number(novoPesoRestante.toFixed(2)),
+                    pesoRestanteGramas: Number(novoPesoRestante.toFixed(2)),
                     estoque: novoEstoque,
                     historicoUso: [novoRegistro, ...(m.historicoUso || [])],
                 };
@@ -98,16 +98,16 @@ export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
             materiais: state.materiais.map((m) => {
                 if (m.id !== id) return m;
 
-                const estoqueEmUsoFracao = m.pesoRestante / m.peso;
+                const estoqueEmUsoFracao = m.pesoRestanteGramas / m.pesoGramas;
                 const estoqueTotalAtualFract = m.estoque + estoqueEmUsoFracao;
-                const valorTotalAtual = estoqueTotalAtualFract * m.preco;
+                const valorTotalAtual = estoqueTotalAtualFract * m.precoCentavos;
 
                 const novoEstoqueTotalFract = estoqueTotalAtualFract + quantidadeComprada;
                 const novoValorTotal = valorTotalAtual + precoTotalNovaCompra;
                 const novoPrecoMedioUnitario =
                     novoEstoqueTotalFract > 0
                         ? novoValorTotal / novoEstoqueTotalFract
-                        : m.preco;
+                        : m.precoCentavos;
 
                 const hoje = new Date();
                 const dataFormatada = new Intl.DateTimeFormat("pt-BR", {
@@ -124,14 +124,14 @@ export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
                     id: Date.now().toString(),
                     data: dataFormatada,
                     nomePeca: `Reposição de Estoque (+${quantidadeComprada})`,
-                    quantidadeGasta: 0,
+                    quantidadeGastaGramas: 0,
                     status: "MANUAL",
                 };
 
                 return {
                     ...m,
                     estoque: m.estoque + quantidadeComprada,
-                    preco: Number(novoPrecoMedioUnitario.toFixed(2)),
+                    precoCentavos: Number(novoPrecoMedioUnitario.toFixed(2)),
                     historicoUso: [novoRegistro, ...(m.historicoUso || [])],
                 };
             }),

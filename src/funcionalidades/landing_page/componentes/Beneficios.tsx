@@ -20,7 +20,7 @@ const beneficios: Beneficio[] = [
     Icone: Zap,
     titulo: "Energia Ignorada",
     descricao:
-      "A conta de luz é 30% do custo. Ignorar isso é fatal para o seu negócio.",
+      "A conta de luz pode representar uma parcela significativa do custo. Ignorar isso é fatal para o seu negócio.",
     atraso: "100ms",
   },
   {

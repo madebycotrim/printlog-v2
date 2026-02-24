@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, Check, Loader2, X } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
 
@@ -14,6 +15,25 @@ import { usarContextoTema } from "@/compartilhado/tema/tema_provider";
 export function PaginaConfiguracoes() {
   const { usuario, atualizarPerfil, recuperarSenha } = usarAutenticacao();
   const contextoTema = usarContextoTema();
+  const { search } = useLocation();
+
+  const [destaqueLgpd, definirDestaqueLgpd] = useState(false);
+
+  // Redirecionamento de seção via URL
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const secao = params.get("secao");
+
+    if (secao === "privacidade") {
+      const elemento = document.getElementById("secao-privacidade");
+      if (elemento) {
+        elemento.scrollIntoView({ behavior: "smooth", block: "start" });
+        definirDestaqueLgpd(true);
+        // O card pisca por 5 ciclos de 1.2s = 6s
+        setTimeout(() => definirDestaqueLgpd(false), 6000);
+      }
+    }
+  }, [search]);
 
   const [nome, definirNome] = useState(usuario?.nome || "");
   const [salvando, definirSalvando] = useState(false);
@@ -160,7 +180,9 @@ export function PaginaConfiguracoes() {
           <CardAparencia pendente={aparenciaPendente} />
           <CardMetricas />
         </div>
-        <CardPrivacidade />
+        <div id="secao-privacidade">
+          <CardPrivacidade destaque={destaqueLgpd} />
+        </div>
 
         <div className="pt-4 pb-8 border-t border-gray-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
           <p></p>

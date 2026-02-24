@@ -23,8 +23,8 @@ export function ModalReposicaoEstoque({
     useEffect(() => {
         if (aberto && material) {
             definirQuantidade("1");
-            // Pre-preenche com o preço atual unitário
-            definirPrecoUnidade(material.preco.toString());
+            // Pre-preenche com o preço atual unitário (centavos -> reais)
+            definirPrecoUnidade((material.precoCentavos / 100).toString());
             definirErro(null);
         }
     }, [aberto, material]);
@@ -37,12 +37,12 @@ export function ModalReposicaoEstoque({
 
     // Simulando Preço Médio
     const unidadeStr = material.tipo === "SLA" ? "ml" : "g";
-    const estoqueEmUsoFracao = material.pesoRestante / material.peso;
+    const estoqueEmUsoFracao = material.pesoRestanteGramas / material.pesoGramas;
     const estoqueTotalAtualFract = material.estoque + estoqueEmUsoFracao;
-    const valorTotalAtual = estoqueTotalAtualFract * material.preco;
+    const valorTotalAtual = estoqueTotalAtualFract * material.precoCentavos;
 
     const novoEstoqueTotalFract = estoqueTotalAtualFract + (numQtd || 0);
-    const novoValorTotal = valorTotalAtual + (precoTotalNovo || 0);
+    const novoValorTotal = valorTotalAtual + (Math.round(precoTotalNovo * 100) || 0);
     const novoPrecoMedioUnitario = novoValorTotal / (novoEstoqueTotalFract || 1);
 
 
@@ -59,7 +59,7 @@ export function ModalReposicaoEstoque({
             return;
         }
 
-        aoConfirmar(numQtd, precoTotalNovo);
+        aoConfirmar(numQtd, Math.round(precoTotalNovo * 100));
     };
 
     return (
@@ -129,14 +129,14 @@ export function ModalReposicaoEstoque({
                             <h5 className="text-[10px] uppercase font-black tracking-widest text-gray-500 dark:text-zinc-500">Recálculo de Custos</h5>
 
                             <div className="flex justify-between items-center text-sm font-semibold">
-                                <span className="text-gray-600 dark:text-zinc-400">Preço Atual / {material.peso}{unidadeStr}</span>
-                                <span className="text-gray-900 dark:text-white">R$ {material.preco.toFixed(2)}</span>
+                                <span className="text-gray-600 dark:text-zinc-400">Preço Atual / {material.pesoGramas}{unidadeStr}</span>
+                                <span className="text-gray-900 dark:text-white">R$ {(material.precoCentavos / 100).toFixed(2)}</span>
                             </div>
 
                             <div className="flex justify-between items-center text-sm font-semibold">
                                 <span className="text-gray-600 dark:text-zinc-400">Novo Preço Médio (Custo Real)</span>
-                                <span className={`${novoPrecoMedioUnitario > material.preco ? 'text-rose-500' : novoPrecoMedioUnitario < material.preco ? 'text-emerald-500' : 'text-gray-900 dark:text-white'} font-black`}>
-                                    R$ {novoPrecoMedioUnitario.toFixed(2)}
+                                <span className={`${(novoPrecoMedioUnitario / 100) > (material.precoCentavos / 100) ? 'text-rose-500' : (novoPrecoMedioUnitario / 100) < (material.precoCentavos / 100) ? 'text-emerald-500' : 'text-gray-900 dark:text-white'} font-black`}>
+                                    R$ {(novoPrecoMedioUnitario / 100).toFixed(2)}
                                 </span>
                             </div>
                         </div>

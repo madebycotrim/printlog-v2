@@ -107,7 +107,7 @@ export function PaginaInsumos() {
                         <div className="flex-1 h-px bg-gray-200 dark:bg-white/5" />
                       </div>
 
-                      <div className="flex flex-col bg-white dark:bg-[#18181b] rounded-xl border border-gray-200 dark:border-white/5 overflow-hidden">
+                      <div className="flex flex-col bg-white dark:bg-[#18181b] rounded-xl border border-gray-200 dark:border-white/5">
                         {lista.map((ins, index) => (
                           <ItemInsumo
                             key={ins.id}

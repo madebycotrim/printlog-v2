@@ -24,7 +24,10 @@ export function ModalSuporte({ aberto, aoFechar }: Propriedades) {
 
                     {/* INFO PRINCIPAL */}
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center border border-sky-500/20">
+                        <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center border"
+                            style={{ backgroundColor: "var(--cor-primaria-opaca, rgba(0,0,0,0.05))", color: "var(--cor-primaria)", borderColor: "var(--cor-primaria-opaca, rgba(0,0,0,0.1))" }}
+                        >
                             <Headphones size={20} />
                         </div>
                         <div>
@@ -37,7 +40,8 @@ export function ModalSuporte({ aberto, aoFechar }: Propriedades) {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => window.open('https://forms.gle/uUYofbGWXusVZSyG6', '_blank')}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-zinc-400 hover:text-sky-500 transition-all text-[11px] font-bold"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-zinc-400 hover:brightness-90 transition-all text-[11px] font-bold"
+                            style={{ borderLeft: "2px solid var(--cor-primaria)" }}
                         >
                             <span>Abrir em Nova Aba</span>
                             <ExternalLink size={14} />
@@ -58,7 +62,7 @@ export function ModalSuporte({ aberto, aoFechar }: Propriedades) {
                 <div className="flex-1 relative bg-white dark:bg-black/10">
                     {!carregado && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-white dark:bg-card-fundo z-10 gap-4">
-                            <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
+                            <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--cor-primaria)" }} />
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-zinc-500">
                                 Carregando Central...
                             </p>

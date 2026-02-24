@@ -102,7 +102,7 @@ export function FormularioInsumo({
                     categoria: "Geral",
                     unidadeMedida: "un",
                     quantidadeAtual: 0,
-                    custoMedioUnidade: undefined, // empty for visual
+                    custoMedioUnidade: undefined,
                     quantidadeMinima: 5,
                     linkCompra: "",
                     itemFracionavel: false,
@@ -162,12 +162,12 @@ export function FormularioInsumo({
                                     Nome do Material / Insumo
                                 </label>
                                 <div className="relative group">
-                                    <Box size={16} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.nome ? 'text-red-400' : 'text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500'} transition-colors pointer-events-none`} />
+                                    <Box size={16} className={`absolute left-0 top-1/2 -translate-y-1/2 ${errors.nome ? 'text-red-400' : 'text-gray-400 dark:text-zinc-500 group-focus-within:text-[var(--cor-primaria)]'} transition-colors pointer-events-none`} />
                                     <input
                                         type="text"
                                         placeholder="Ex: Parafuso M3 x 10mm"
                                         {...register("nome", { required: "Obrigatório" })}
-                                        className={`w-full h-11 pl-10 pr-4 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border ${errors.nome ? 'border-red-500' : 'border-gray-200 dark:border-white/5'} focus:bg-white dark:focus:bg-[#0c0c0e] focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium`}
+                                        className={`w-full h-11 pl-8 pr-4 bg-transparent border-b-2 ${errors.nome ? 'border-red-500' : 'border-gray-200 dark:border-white/10'} focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium`}
                                     />
                                 </div>
                                 {errors.nome && <span className="text-[10px] text-red-500 mt-1 block">{errors.nome.message}</span>}
@@ -179,12 +179,12 @@ export function FormularioInsumo({
                                     Fabricante / Marca
                                 </label>
                                 <div className="relative group">
-                                    <Building2 size={16} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.marca ? 'text-red-400' : 'text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500'} transition-colors pointer-events-none`} />
+                                    <Building2 size={16} className={`absolute left-0 top-1/2 -translate-y-1/2 ${errors.marca ? 'text-red-400' : 'text-gray-400 dark:text-zinc-500 group-focus-within:text-[var(--cor-primaria)]'} transition-colors pointer-events-none`} />
                                     <input
                                         type="text"
                                         placeholder="Ex: 3M, Vonder..."
                                         {...register("marca")}
-                                        className="w-full h-11 pl-10 pr-4 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:bg-white dark:focus:bg-[#0c0c0e] focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium"
+                                        className="w-full h-11 pl-8 pr-4 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium"
                                     />
                                 </div>
                             </div>
@@ -202,11 +202,12 @@ export function FormularioInsumo({
                                                 key={cat.id}
                                                 type="button"
                                                 onClick={() => setValue("categoria", cat.id as any, { shouldDirty: true })}
-                                                className={`h-11 px-5 rounded-lg flex items-center justify-center gap-2.5 text-xs font-bold transition-all whitespace-nowrap border
+                                                className={`h-11 px-5 rounded-xl flex items-center justify-center gap-2.5 text-xs font-bold transition-all whitespace-nowrap border
                                                     ${isSelected
-                                                        ? 'bg-gray-900 dark:bg-zinc-800 text-white border-transparent dark:border-white/10 shadow-sm ring-1 ring-black/5 dark:ring-white/5'
-                                                        : 'bg-transparent text-gray-500 dark:text-zinc-500 border-gray-200 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-zinc-800/50 hover:text-gray-700 dark:hover:text-zinc-300'
+                                                        ? 'text-white border-transparent shadow-sm'
+                                                        : 'bg-transparent text-gray-500 dark:text-zinc-500 border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 hover:text-gray-700 dark:hover:text-zinc-300'
                                                     }`}
+                                                style={isSelected ? { backgroundColor: "var(--cor-primaria)" } : {}}
                                             >
                                                 <cat.icone size={14} strokeWidth={2.5} />
                                                 {cat.rotulo}
@@ -231,16 +232,16 @@ export function FormularioInsumo({
                                     Valor Unitário
                                 </label>
                                 <div className="relative group">
-                                    <DollarSign size={16} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.custoMedioUnidade ? 'text-red-400' : 'text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500'} transition-colors pointer-events-none`} />
+                                    <DollarSign size={16} className={`absolute left-0 top-1/2 -translate-y-1/2 ${errors.custoMedioUnidade ? 'text-red-400' : 'text-gray-400 dark:text-zinc-500 group-focus-within:text-[var(--cor-primaria)]'} transition-colors pointer-events-none`} />
                                     <input
                                         type="number"
                                         step="0.01"
                                         placeholder="0.00"
                                         readOnly={isEditando}
                                         {...register("custoMedioUnidade", { required: "Obrigatório" })}
-                                        className={`w-full h-11 pl-10 pr-12 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border ${errors.custoMedioUnidade ? 'border-red-500' : 'border-gray-200 dark:border-white/5'} ${isEditando ? 'opacity-70 cursor-not-allowed' : ''} focus:bg-white dark:focus:bg-[#0c0c0e] focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all font-black no-spinner`}
+                                        className={`w-full h-11 pl-8 pr-12 bg-transparent border-b-2 ${errors.custoMedioUnidade ? 'border-red-500' : 'border-gray-200 dark:border-white/10'} ${isEditando ? 'opacity-70 cursor-not-allowed' : ''} focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all font-black no-spinner`}
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none tracking-widest uppercase">
+                                    <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none tracking-widest uppercase">
                                         BRL
                                     </span>
                                 </div>
@@ -253,14 +254,14 @@ export function FormularioInsumo({
                                     Estoque / Qtde Util
                                 </label>
                                 <div className="relative group">
-                                    <Package size={16} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.quantidadeAtual ? 'text-red-400' : 'text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500'} transition-colors pointer-events-none`} />
+                                    <Package size={16} className={`absolute left-0 top-1/2 -translate-y-1/2 ${errors.quantidadeAtual ? 'text-red-400' : 'text-gray-400 dark:text-zinc-500 group-focus-within:text-[var(--cor-primaria)]'} transition-colors pointer-events-none`} />
                                     <input
                                         type="number"
                                         step={itemFracionavel ? "0.01" : "1"}
                                         placeholder="Ex: 1000"
                                         readOnly={isEditando}
                                         {...register("quantidadeAtual", { required: "Obrigatório" })}
-                                        className={`w-full h-11 pl-10 pr-12 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border ${errors.quantidadeAtual ? 'border-red-500' : 'border-gray-200 dark:border-white/5'} ${isEditando ? 'opacity-70 cursor-not-allowed' : ''} focus:bg-white dark:focus:bg-[#0c0c0e] focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all font-black no-spinner`}
+                                        className={`w-full h-11 pl-8 pr-4 bg-transparent border-b-2 ${errors.quantidadeAtual ? 'border-red-500' : 'border-gray-200 dark:border-white/10'} ${isEditando ? 'opacity-70 cursor-not-allowed' : ''} focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all font-black no-spinner`}
                                     />
                                 </div>
                                 {errors.quantidadeAtual && <span className="text-[10px] text-red-500 mt-1 block">{errors.quantidadeAtual.message}</span>}
@@ -274,11 +275,11 @@ export function FormularioInsumo({
                                 <div className="relative w-full">
                                     <select
                                         {...register("unidadeMedida")}
-                                        className="w-full h-11 pl-4 pr-10 appearance-none bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:bg-white dark:focus:bg-[#0c0c0e] focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg text-sm text-gray-900 dark:text-white font-bold outline-none transition-all uppercase tracking-wider"
+                                        className="w-full h-11 pl-0 pr-10 appearance-none bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white font-bold outline-none transition-all uppercase tracking-wider"
                                     >
-                                        {UNIDADES.map(u => <option key={u.valor} value={u.valor}>{u.rotulo}</option>)}
+                                        {UNIDADES.map(u => <option key={u.valor} value={u.valor} className="bg-white dark:bg-[#18181b]">{u.rotulo}</option>)}
                                     </select>
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-zinc-500">
+                                    <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-zinc-500">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
                                     </div>
                                 </div>
@@ -292,12 +293,12 @@ export function FormularioInsumo({
                                     Estoque Mínimo (Alerta)
                                 </label>
                                 <div className="relative group">
-                                    <AlertCircle size={16} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.quantidadeMinima ? 'text-red-400' : 'text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500'} transition-colors pointer-events-none`} />
+                                    <AlertCircle size={16} className={`absolute left-0 top-1/2 -translate-y-1/2 ${errors.quantidadeMinima ? 'text-red-400' : 'text-gray-400 dark:text-zinc-500 group-focus-within:text-[var(--cor-primaria)]'} transition-colors pointer-events-none`} />
                                     <input
                                         type="number"
                                         placeholder="Ex: 5"
                                         {...register("quantidadeMinima", { required: "Obrigatório" })}
-                                        className={`w-full h-11 pl-10 pr-4 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border ${errors.quantidadeMinima ? 'border-red-500' : 'border-gray-200 dark:border-white/5'} focus:bg-white dark:focus:bg-[#0c0c0e] focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all font-black no-spinner`}
+                                        className={`w-full h-11 pl-8 pr-4 bg-transparent border-b-2 ${errors.quantidadeMinima ? 'border-red-500' : 'border-gray-200 dark:border-white/10'} focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all font-black no-spinner`}
                                     />
                                 </div>
                             </div>
@@ -308,12 +309,12 @@ export function FormularioInsumo({
                                     Link p/ Reposição (Compra)
                                 </label>
                                 <div className="relative group">
-                                    <LinkIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500 transition-colors pointer-events-none" />
+                                    <LinkIcon size={16} className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-[var(--cor-primaria)] transition-colors pointer-events-none" />
                                     <input
                                         type="url"
                                         placeholder="https://suprimentos..."
                                         {...register("linkCompra")}
-                                        className="w-full h-11 pl-10 pr-4 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:bg-white dark:focus:bg-[#0c0c0e] focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium"
+                                        className="w-full h-11 pl-8 pr-4 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium"
                                     />
                                 </div>
                             </div>
@@ -330,8 +331,8 @@ export function FormularioInsumo({
                                     />
                                     <div className={`w-5 h-5 rounded border transition-colors flex items-center justify-center
                                         ${itemFracionavel
-                                            ? 'bg-indigo-600 border-indigo-600 text-white'
-                                            : 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-white/10 peer-focus:border-indigo-500'}`}
+                                            ? 'bg-[var(--cor-primaria)] border-[var(--cor-primaria)] text-white'
+                                            : 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-white/10 peer-focus:border-[var(--cor-primaria)]'}`}
                                     >
                                         <svg className={`w-3.5 h-3.5 transition-transform ${itemFracionavel ? 'scale-100' : 'scale-0'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                             <polyline points="20 6 9 17 4 12"></polyline>
@@ -356,9 +357,9 @@ export function FormularioInsumo({
                                                 type="number"
                                                 step="any"
                                                 {...register("rendimentoTotal", { required: itemFracionavel ? "Obrigatório" : false })}
-                                                className={`w-full h-11 bg-white hover:bg-gray-50 dark:bg-zinc-900/80 dark:hover:bg-zinc-800/80 border ${errors.rendimentoTotal ? 'border-red-500/50' : 'border-gray-200 dark:border-white/5'} focus:bg-white dark:focus:bg-[#0c0c0e] focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg text-sm text-gray-900 dark:text-white pl-4 pr-10 outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium no-spinner`}
+                                                className={`w-full h-11 bg-transparent border-b-2 ${errors.rendimentoTotal ? 'border-red-500/50' : 'border-gray-200 dark:border-white/10'} focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white pl-0 pr-10 outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium no-spinner`}
                                             />
-                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none tracking-widest uppercase">
+                                            <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none tracking-widest uppercase">
                                                 {unidadeCons || "UND"}
                                             </span>
                                         </div>
@@ -391,7 +392,6 @@ export function FormularioInsumo({
                                 </div>
                             )}
                         </div>
-
                     </div>
                 </div>
 
@@ -409,7 +409,7 @@ export function FormularioInsumo({
                             <button
                                 type="submit"
                                 style={{ backgroundColor: "var(--cor-primaria)" }}
-                                className="px-6 py-2.5 flex-1 md:flex-none justify-center hover:brightness-95 text-white text-sm font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95"
+                                className="px-6 py-2.5 flex-1 md:flex-none justify-center hover:brightness-110 text-white text-sm font-bold rounded-xl shadow-lg shadow-sky-500/10 flex items-center gap-2 transition-all active:scale-95"
                             >
                                 <Save size={18} strokeWidth={2.5} />
                                 {isEditando ? "Salvar Alterações" : "Cadastrar Insumo"}
@@ -418,26 +418,25 @@ export function FormularioInsumo({
                     ) : (
                         <div className="flex flex-col items-end gap-3 w-full animate-in slide-in-from-right-4 fade-in duration-300">
                             <div className="flex items-center gap-3 w-full justify-between md:justify-end">
-                                <button
-                                    type="button"
-                                    onClick={fecharModalRealmente}
-                                    className="px-4 py-2.5 flex-1 md:flex-none text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-500/20"
-                                >
-                                    Descartar
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => definirConfirmarDescarte(false)}
-                                    className="px-6 py-2.5 flex-1 md:flex-none justify-center bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95"
-                                >
-                                    Continuar Editando
-                                </button>
-                            </div>
-                            <div className="flex items-center gap-2 text-red-600 dark:text-red-400/80 md:w-auto w-full justify-end">
-                                <AlertCircle size={14} strokeWidth={2.5} />
-                                <span className="text-[10px] uppercase font-bold tracking-widest">
-                                    Tem certeza que deseja descartar alterações?
-                                </span>
+                                <p className="text-xs font-medium text-red-500 dark:text-red-400">
+                                    Alterações não salvas serão perdidas. Confirmar?
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => definirConfirmarDescarte(false)}
+                                        className="px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors"
+                                    >
+                                        Voltar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={fecharModalRealmente}
+                                        className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-[11px] font-black uppercase tracking-wider rounded-lg transition-all shadow-sm shadow-red-500/20"
+                                    >
+                                        Descartar
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

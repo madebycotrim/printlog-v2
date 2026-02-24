@@ -34,7 +34,12 @@ export function ModalRegistrarManutencao({
             definirCusto("");
             definirResponsavel("");
             definirTempoParadaHoras("");
-            definirHorasMaquinaNoMomento(impressora.horimetroTotal ? impressora.horimetroTotal.toString() : "");
+            // Mostra o horímetro atual convertido em horas para o usuário
+            definirHorasMaquinaNoMomento(
+                impressora.horimetroTotalMinutos
+                    ? (impressora.horimetroTotalMinutos / 60).toFixed(1)
+                    : ""
+            );
             definirErro(null);
         }
     }, [aberto, impressora]);
@@ -64,10 +69,10 @@ export function ModalRegistrarManutencao({
             tipo,
             descricao,
             responsavel,
-            custo: numCusto || 0,
+            custoCentavos: Math.round(numCusto * 100) || 0,
             pecasTrocadas: pecasTrocadas || undefined,
-            tempoParadaHoras: tempoParadaHoras ? Number(tempoParadaHoras) : undefined,
-            horasMaquinaNoMomento: horasMaquinaNoMomento ? Number(horasMaquinaNoMomento) : undefined,
+            tempoParadaMinutos: tempoParadaHoras ? Math.round(Number(tempoParadaHoras) * 60) : 0,
+            horasMaquinaNoMomentoMinutos: horasMaquinaNoMomento ? Math.round(Number(horasMaquinaNoMomento) * 60) : 0,
         };
 
         aoConfirmar(impressora.id, registro);
@@ -98,7 +103,7 @@ export function ModalRegistrarManutencao({
                             <span className="text-xs text-gray-500 dark:text-zinc-400 font-medium truncate">
                                 Horímetro Atual:{" "}
                                 <strong className="text-sky-500">
-                                    {impressora.horimetroTotal || 0}h
+                                    {impressora.horimetroTotalMinutos ? (impressora.horimetroTotalMinutos / 60).toFixed(1) : 0}h
                                 </strong>
                             </span>
                         </div>

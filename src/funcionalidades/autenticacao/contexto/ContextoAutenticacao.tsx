@@ -68,6 +68,8 @@ const obterIpUsuario = async (): Promise<string> => {
   }
 };
 
+import { registrar } from "@/compartilhado/utilitarios/registrador";
+
 const registrarAceiteTermos = async (uid: string) => {
   try {
     const ip = await obterIpUsuario();
@@ -80,17 +82,10 @@ const registrarAceiteTermos = async (uid: string) => {
     };
 
     // Simulação - Integrar com Cloudflare D1 em breve
-    console.log("Registrando aceite no banco de dados (Cloudflare D1):", payload);
-
-    // Exemplo de como será a requisição real
-    // await fetch("YOUR_CLOUDFLARE_WORKER_URL/aceites", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(payload),
-    // });
+    registrar.info({ rastreioId: `aceite-${uid}`, payload }, "Registrando aceite no banco de dados (Cloudflare D1)");
 
   } catch (erro) {
-    console.error("Falha ao registrar aceite:", erro);
+    registrar.error({ rastreioId: `aceite-${uid}` }, "Falha ao registrar aceite", erro);
   }
 };
 
@@ -262,12 +257,28 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
     try {
       if (!usuario) throw new Error("Usuário não autenticado.");
 
+      const metadadosFirebase = autenticacao.currentUser?.metadata;
+
       const dadosExportacao = {
-        perfil: usuario,
-        dataExportacao: new Date().toISOString(),
-        metadados: {
+        titular: {
+          uid: usuario.uid,
+          nome: usuario.nome || "Não informado",
+          email: usuario.email || "Não informado",
+          provedorMetodo: usuario.provedorGoogle ? "Google" : "Email/Senha",
+          ehAnonimo: usuario.ehAnonimo,
+          dataCriacaoConta: metadadosFirebase?.creationTime || "Não disponível",
+          ultimoLogin: metadadosFirebase?.lastSignInTime || "Não disponível",
+        },
+        conformidadeLegis: {
           versaoTermosAceitos: "2026-02-24",
-          statusConsentimento: "ATIVO"
+          versaoPoliticaPrivacidade: "2026-02-24",
+          dataExportacao: new Date().toISOString(),
+          baseLegal: "Art. 18, V (Portabilidade) - LGPD",
+          finalidade: "Exercício do direito de portabilidade de dados pessoais",
+          canalDPO: "privacidade@printlog.com.br"
+        },
+        aviso: {
+          conteudo: "Este arquivo contém seus dados cadastrais básicos. O histórico de projetos, fatiamentos e pedidos pode ser consultado diretamente na plataforma ou solicitado via suporte técnico caso necessite de um formato específico para migração."
         }
       };
 
@@ -275,7 +286,7 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `dados-pessoais-printlog-${usuario.uid}.json`;
+      link.download = `portabilidade-printlog-${usuario.uid}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

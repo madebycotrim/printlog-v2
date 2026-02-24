@@ -27,9 +27,9 @@ export function ModalHistoricoConsumo({
   if (!material) return null;
 
   const unidade = material.tipo === "SLA" ? "ml" : "g";
-  const custoPorUnidade = material.preco / material.peso;
+  const custoPorUnidade = (material.precoCentavos / 100) / material.pesoGramas;
   const totalGastoHistorico = registros.reduce(
-    (acc, curr) => acc + curr.quantidadeGasta,
+    (acc, curr) => acc + curr.quantidadeGastaGramas,
     0,
   );
   const custoTotalHistorico = totalGastoHistorico * custoPorUnidade;
@@ -110,7 +110,7 @@ export function ModalHistoricoConsumo({
           </h4>
 
           {registros.map((registro) => {
-            const custoDaPeca = registro.quantidadeGasta * custoPorUnidade;
+            const custoDaPeca = registro.quantidadeGastaGramas * custoPorUnidade;
             return (
               <div
                 key={registro.id}
@@ -145,13 +145,13 @@ export function ModalHistoricoConsumo({
                       <div className="flex items-center gap-4 pt-1">
                         <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-zinc-400">
                           <Box size={14} className="text-gray-400" />
-                          {registro.quantidadeGasta}
+                          {registro.quantidadeGastaGramas}
                           {unidade}
                         </div>
-                        {registro.tempoImpressao && (
+                        {registro.tempoImpressaoMinutos && (
                           <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-zinc-400">
                             <Clock size={14} className="text-gray-400" />
-                            {registro.tempoImpressao}
+                            {registro.tempoImpressaoMinutos} min
                           </div>
                         )}
                       </div>

@@ -132,15 +132,15 @@ export function usarGerenciadorImpressoras() {
             };
 
             const historicoManutencao = [...(impressoraOriginal.historicoManutencao || []), novoRegistro];
-            let horimetroAtualizado = impressoraOriginal.horimetroTotal;
-            if (registro.horasMaquinaNoMomento !== undefined && registro.horasMaquinaNoMomento > (horimetroAtualizado || 0)) {
-                horimetroAtualizado = registro.horasMaquinaNoMomento;
+            let horimetroAtualizado = impressoraOriginal.horimetroTotalMinutos;
+            if (registro.horasMaquinaNoMomentoMinutos !== undefined && registro.horasMaquinaNoMomentoMinutos > (horimetroAtualizado || 0)) {
+                horimetroAtualizado = registro.horasMaquinaNoMomentoMinutos;
             }
 
             const impressoraAtualizada = {
                 ...impressoraOriginal,
                 historicoManutencao,
-                horimetroTotal: horimetroAtualizado
+                horimetroTotalMinutos: horimetroAtualizado
             };
 
             const salva = await servicoImpressoras.salvarImpressora(impressoraAtualizada);
@@ -183,7 +183,6 @@ export function usarGerenciadorImpressoras() {
             const id = estadoArmazem.impressoraParaAposentar.id;
             const impressoraAtualizada: Impressora = {
                 ...estadoArmazem.impressoraParaAposentar,
-                status: "Aposentada",
                 dataAposentadoria: new Date().toISOString()
             };
 
@@ -203,7 +202,7 @@ export function usarGerenciadorImpressoras() {
 
     const impressorasFiltradas = useMemo(() => {
         let filtradas = estadoArmazem.impressoras.filter((i) => {
-            if (i.status === "Aposentada") return false;
+            if (i.dataAposentadoria) return false;
             const matchTexto = i.nome.toLowerCase().includes(estadoArmazem.filtroBusca.toLowerCase());
             const matchTecnologia = estadoArmazem.filtroTecnologia === "Todas" || i.tecnologia === estadoArmazem.filtroTecnologia;
             return matchTexto && matchTecnologia;
@@ -216,13 +215,13 @@ export function usarGerenciadorImpressoras() {
                     comparacao = a.nome.localeCompare(b.nome);
                     break;
                 case "MAIOR_HORIMETRO":
-                    comparacao = (b.horimetroTotal || 0) - (a.horimetroTotal || 0);
+                    comparacao = (b.horimetroTotalMinutos || 0) - (a.horimetroTotalMinutos || 0);
                     break;
                 case "MENOR_HORIMETRO":
-                    comparacao = (a.horimetroTotal || 0) - (b.horimetroTotal || 0);
+                    comparacao = (a.horimetroTotalMinutos || 0) - (b.horimetroTotalMinutos || 0);
                     break;
                 case "MAIOR_VALOR":
-                    comparacao = (b.valorCompra || 0) - (a.valorCompra || 0);
+                    comparacao = (b.valorCompraCentavos || 0) - (a.valorCompraCentavos || 0);
                     break;
                 case "RECENTES":
                     comparacao = new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime();
@@ -246,9 +245,9 @@ export function usarGerenciadorImpressoras() {
 
     const totais = useMemo(() => {
         const total = estadoArmazem.impressoras.length;
-        const manutencao = estadoArmazem.impressoras.filter((i) => i.status === "Em Manutenção").length;
-        const valorInvestido = estadoArmazem.impressoras.reduce((acc, i) => acc + (i.valorCompra || 0), 0);
-        const horasImpressao = estadoArmazem.impressoras.reduce((acc, i) => acc + (i.horimetroTotal || 0), 0);
+        const manutencao = estadoArmazem.impressoras.filter((i) => i.status === "manutencao").length;
+        const valorInvestido = estadoArmazem.impressoras.reduce((acc, i) => acc + (i.valorCompraCentavos || 0), 0);
+        const horasImpressao = estadoArmazem.impressoras.reduce((acc, i) => acc + (i.horimetroTotalMinutos || 0) / 60, 0);
 
         return { total, manutencao, valorInvestido, horasImpressao };
     }, [estadoArmazem.impressoras]);

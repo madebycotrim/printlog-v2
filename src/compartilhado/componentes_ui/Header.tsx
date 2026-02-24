@@ -44,7 +44,7 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
         {!dados.ocultarBusca && (
           <div className="relative group w-auto md:w-64 max-w-[280px]">
             <Search
-              className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 transition-colors pointer-events-none"
+              className="absolute z-10 left-0 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 transition-colors pointer-events-none"
               size={18}
               strokeWidth={2}
             />
@@ -52,7 +52,7 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
               type="text"
               placeholder={dados.placeholderBusca || "Pesquisar..."}
               onChange={(e) => dados.aoBuscar && dados.aoBuscar(e.target.value)}
-              className="w-full h-10 pl-8 pr-2 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-sky-500 dark:focus:border-sky-500 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 outline-none transition-all"
+              className="w-full h-10 pl-8 pr-2 bg-transparent border-b-2 border-gray-200 dark:border-white/10 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 outline-none transition-all focus:border-[var(--cor-primaria)]"
             />
           </div>
         )}
@@ -63,7 +63,7 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
             <button
               onClick={dados.segundaAcao.aoClicar}
               disabled={dados.segundaAcao.desabilitado}
-              className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-lg font-bold text-xs md:text-sm active:scale-95 transition-all duration-200 shrink-0 ${dados.segundaAcao.desabilitado
+              className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-xl font-bold text-xs md:text-sm active:scale-95 transition-all duration-200 shrink-0 ${dados.segundaAcao.desabilitado
                 ? "text-gray-300 dark:text-zinc-700 cursor-not-allowed opacity-50"
                 : "text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5"
                 }`}
@@ -86,10 +86,11 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
             <button
               onClick={dados.acao.aoClicar}
               disabled={dados.acao.desabilitado}
-              className={`flex items-center justify-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-bold text-xs md:text-sm active:scale-95 transition-all duration-200 shadow-sm shrink-0 ${dados.acao.desabilitado
+              className={`flex items-center justify-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-xl font-bold text-xs md:text-sm active:scale-95 transition-all duration-200 shadow-sm shrink-0 ${dados.acao.desabilitado
                 ? "bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-zinc-600 cursor-not-allowed opacity-70"
-                : "bg-gray-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-black dark:hover:bg-gray-100"
+                : "text-white hover:brightness-110 shadow-lg"
                 }`}
+              style={!dados.acao.desabilitado ? { backgroundColor: "var(--cor-primaria)", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" } : {}}
             >
               {dados.acao.icone && (
                 <dados.acao.icone

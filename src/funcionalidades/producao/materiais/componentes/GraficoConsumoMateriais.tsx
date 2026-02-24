@@ -27,15 +27,18 @@ export function GraficoConsumoMateriais({
 
     // 1. Extrair e Normalizar Registros (Apenas dos últimos 30 dias)
     const registrosRecentes = materiais.flatMap((m) => {
-      return (m.historicoUso || []).map(registro => {
+      const historico = Array.isArray(m.historicoUso) ? m.historicoUso : [];
+      return historico.map(registro => {
         // Conversão de "02 fev, 14:30" para Date requer adaptação simples
         // Como o JS puro não entende "fev" facilmente, faremos uma estimativa pelo ID (Date.now())
         // O id dos registros é gerado através de Date.now().toString()
-        const dataReal = new Date(Number(registro.id));
+        const timestamp = Number(registro.id);
+        const dataReal = isNaN(timestamp) ? new Date() : new Date(timestamp);
+
         return {
           ...registro,
           dataReal,
-          gastoGramas: registro.quantidadeGasta // Usaremos a unidade nativa G ou ML intercamhiavelmente como unidade generica "U"
+          gastoGramas: registro.quantidadeGastaGramas
         };
       });
     }).filter(r => r.dataReal >= trintaDiasAtras && r.dataReal <= hoje);
@@ -44,7 +47,7 @@ export function GraficoConsumoMateriais({
     const totalGasto30d = registrosRecentes.reduce((acc, curr) => acc + curr.gastoGramas, 0);
 
     // 3. Previsão de Fim
-    const estoqueTotalRestante = materiais.reduce((acc, m) => acc + m.pesoRestante + (m.estoque * m.peso), 0);
+    const estoqueTotalRestante = materiais.reduce((acc, m) => acc + m.pesoRestanteGramas + (m.estoque * m.pesoGramas), 0);
     const mediaDiaria30d = totalGasto30d / DIAS_ANALISE;
 
     // Se o consumo diário é zero, estoque dura infinito

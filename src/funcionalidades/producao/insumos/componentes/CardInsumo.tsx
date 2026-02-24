@@ -1,5 +1,7 @@
 import { Edit2, ArrowDownCircle, ArrowUpCircle, AlertTriangle, Trash2, ShoppingCart, History, Scissors } from "lucide-react";
 import { Insumo, CategoriaInsumo } from "@/funcionalidades/producao/insumos/tipos";
+import { Dica } from "@/compartilhado/componentes_ui/Dica";
+import { pluralizar } from "@/compartilhado/utilitarios/formatadores";
 
 /** Mapa de cores por categoria para a barra lateral do card */
 const CORES_CATEGORIA: Record<CategoriaInsumo, string> = {
@@ -27,7 +29,7 @@ export function ItemInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcl
     const corCategoria = CORES_CATEGORIA[insumo.categoria] || "bg-gray-400 dark:bg-zinc-500";
 
     return (
-        <div className={`py-2 px-4 flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/40 relative group ${!ultimo ? 'border-b border-gray-100 dark:border-white/5' : ''}`}>
+        <div className={`py-4 px-4 flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/40 relative group ${!ultimo ? 'border-b border-gray-100 dark:border-white/5' : ''}`}>
 
             {/* SEÇÃO 1: Identificação */}
             <div className="flex-1 min-w-[200px] flex items-center gap-3">
@@ -106,7 +108,7 @@ export function ItemInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcl
                             {insumo.quantidadeAtual}
                         </span>
                         <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 uppercase">
-                            {insumo.unidadeMedida}
+                            {pluralizar(insumo.quantidadeAtual, insumo.unidadeMedida.toLowerCase(), insumo.unidadeMedida.toLowerCase() + "s").split(" ")[1]}
                         </span>
                     </div>
                     {estoqueBaixo ? (
@@ -128,59 +130,71 @@ export function ItemInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcl
                     {/* Ações Primárias — Sempre visíveis */}
                     <button
                         onClick={() => aoBaixar(insumo)}
-                        title={`Registrar Consumo de ${insumo.nome}`}
-                        className="p-1 sm:px-3 sm:py-1.5 flex items-center gap-1.5 text-[11px] font-bold text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-lg transition-colors"
+                        className="p-2 flex items-center gap-1.5 text-[11px] font-bold text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-lg transition-colors"
                     >
-                        <ArrowDownCircle size={14} strokeWidth={2.5} />
+                        <ArrowDownCircle size={16} strokeWidth={2.5} />
                         <span className="hidden sm:block">Baixar</span>
                     </button>
 
                     <button
                         onClick={() => aoRepor(insumo)}
-                        title={`Adicionar Estoque de ${insumo.nome}`}
-                        className="p-1 sm:px-3 sm:py-1.5 flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+                        className="p-2 flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
                     >
-                        <ArrowUpCircle size={14} strokeWidth={2.5} />
+                        <ArrowUpCircle size={16} strokeWidth={2.5} />
                         <span className="hidden sm:block">Repor</span>
                     </button>
 
-                    {/* Ações Secundárias — Visíveis só no hover (desktop) */}
-                    <div className="flex items-center gap-0.5 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
-                        <button
-                            onClick={() => aoVerHistorico(insumo)}
-                            title={`Histórico de ${insumo.nome}`}
-                            className="p-1.5 sm:px-2 flex items-center justify-center text-gray-400 hover:text-violet-600 dark:text-zinc-500 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 rounded-lg transition-colors"
-                        >
-                            <History size={13} strokeWidth={2.5} />
-                        </button>
-
-                        {insumo.linkCompra && (
-                            <a
-                                href={insumo.linkCompra}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title={`Comprar ${insumo.nome}`}
-                                className="p-1.5 sm:px-2 flex items-center justify-center text-gray-400 hover:text-sky-600 dark:text-zinc-500 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg transition-colors"
+                    {/* Ações Secundárias — Sempre visíveis */}
+                    <div className="flex items-center gap-0.5 transition-opacity duration-200">
+                        {/* Se tiver link de compra, são 4 botões. O usuário quer apenas os 3 ÚLTIMOS. Logo, histórico fica sem tooltip nesse caso. */}
+                        {insumo.linkCompra ? (
+                            <button
+                                onClick={() => aoVerHistorico(insumo)}
+                                className="p-2 flex items-center justify-center text-gray-400 hover:text-violet-600 dark:text-zinc-500 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 rounded-lg transition-colors"
                             >
-                                <ShoppingCart size={13} strokeWidth={2.5} />
-                            </a>
+                                <History size={16} strokeWidth={2.5} />
+                            </button>
+                        ) : (
+                            <Dica texto="Ver Histórico">
+                                <button
+                                    onClick={() => aoVerHistorico(insumo)}
+                                    className="p-2 flex items-center justify-center text-gray-400 hover:text-violet-600 dark:text-zinc-500 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 rounded-lg transition-colors"
+                                >
+                                    <History size={16} strokeWidth={2.5} />
+                                </button>
+                            </Dica>
                         )}
 
-                        <button
-                            onClick={() => aoEditar(insumo)}
-                            title={`Editar ${insumo.nome}`}
-                            className="p-1.5 sm:px-2 flex items-center justify-center text-gray-400 hover:text-indigo-600 dark:text-zinc-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
-                        >
-                            <Edit2 size={13} strokeWidth={2.5} />
-                        </button>
+                        {insumo.linkCompra && (
+                            <Dica texto="Comprar Online">
+                                <a
+                                    href={insumo.linkCompra}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 flex items-center justify-center text-gray-400 hover:text-sky-600 dark:text-zinc-500 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg transition-colors"
+                                >
+                                    <ShoppingCart size={16} strokeWidth={2.5} />
+                                </a>
+                            </Dica>
+                        )}
 
-                        <button
-                            onClick={() => aoExcluir(insumo)}
-                            title={`Remover ${insumo.nome}`}
-                            className="p-1.5 sm:px-2 flex items-center justify-center text-gray-400 hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                        >
-                            <Trash2 size={13} strokeWidth={2.5} />
-                        </button>
+                        <Dica texto="Editar">
+                            <button
+                                onClick={() => aoEditar(insumo)}
+                                className="p-2 flex items-center justify-center text-gray-400 hover:text-indigo-600 dark:text-zinc-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
+                            >
+                                <Edit2 size={16} strokeWidth={2.5} />
+                            </button>
+                        </Dica>
+
+                        <Dica texto="Remover">
+                            <button
+                                onClick={() => aoExcluir(insumo)}
+                                className="p-2 flex items-center justify-center text-gray-400 hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                            >
+                                <Trash2 size={16} strokeWidth={2.5} />
+                            </button>
+                        </Dica>
                     </div>
                 </div>
 

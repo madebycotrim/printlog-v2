@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { TemaInterface } from "@/compartilhado/tipos_globais/modelos";
 import type { CorPrimaria, ModoTema, TipoFonte } from "@/compartilhado/tipos_globais/modelos";
 
 const PALETA_PRIMARIA: Record<CorPrimaria, { hex: string; rgb: string }> = {
@@ -31,18 +32,18 @@ export function usarTema() {
   // Inicializa o estado lendo diretamente do localStorage ou preferência do sistema
   const [modoTema, definirModoTema] = useState<ModoTema>(() => {
     if (typeof window !== "undefined") {
-      const temaSalvo = localStorage.getItem("modo_tema");
-      if (temaSalvo === "CLARO" || temaSalvo === "ESCURO") {
+      const temaSalvo = localStorage.getItem("modo_tema") as ModoTema;
+      if (temaSalvo === TemaInterface.CLARO || temaSalvo === TemaInterface.ESCURO) {
         return temaSalvo;
       }
       if (
         window.matchMedia &&
         window.matchMedia("(prefers-color-scheme: dark)").matches
       ) {
-        return "ESCURO";
+        return TemaInterface.ESCURO;
       }
     }
-    return "CLARO";
+    return TemaInterface.CLARO;
   });
 
   const [corPrimaria, definirCorPrimaria] = useState<CorPrimaria>(() => {
@@ -77,7 +78,7 @@ export function usarTema() {
     root.style.setProperty("--cor-primaria-rgb", PALETA_PRIMARIA[corPrimaria].rgb);
     root.style.setProperty("--familia-fonte", MAPA_FONTES[fonte]);
 
-    if (modoTema === "ESCURO") {
+    if (modoTema === TemaInterface.ESCURO) {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
@@ -85,8 +86,8 @@ export function usarTema() {
   }, [modoTema, corPrimaria, fonte]);
 
   function alternarTema() {
-    definirModoTema((temaAtual) =>
-      temaAtual === "CLARO" ? "ESCURO" : "CLARO",
+    definirModoTema((temaAtual: ModoTema) =>
+      temaAtual === TemaInterface.CLARO ? TemaInterface.ESCURO : TemaInterface.CLARO,
     );
   }
 

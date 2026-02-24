@@ -368,9 +368,9 @@ export function PaginaAjuda() {
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-gray-100 dark:border-white/[0.04] pb-6">
               <div className="flex items-center gap-3">
-                <Search size={18} className="text-sky-500" />
+                <Search size={18} style={{ color: "var(--cor-primaria)" }} />
                 <h2 className="text-xl font-black uppercase tracking-tighter text-gray-900 dark:text-white">
-                  Resultados para: <span className="text-sky-500">"{busca}"</span>
+                  Resultados para: <span style={{ color: "var(--cor-primaria)" }}>"{busca}"</span>
                 </h2>
               </div>
               <button
@@ -387,7 +387,8 @@ export function PaginaAjuda() {
                   <button
                     key={topico.id}
                     onClick={() => definirTopicoSelecionado(topico)}
-                    className="flex items-center justify-between p-6 rounded-3xl bg-white dark:bg-card-fundo border border-gray-100 dark:border-white/[0.04] hover:border-sky-500/30 transition-all group text-left shadow-sm hover:shadow-xl"
+                    className="flex items-center justify-between p-6 rounded-2xl bg-white dark:bg-card-fundo border border-gray-100 dark:border-white/[0.04] hover:bg-[var(--cor-primaria)]/5 transition-all group text-left shadow-sm hover:shadow-xl"
+                    style={{ borderLeft: "4px solid var(--cor-primaria)" }}
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -398,7 +399,7 @@ export function PaginaAjuda() {
                       <h4 className="text-sm font-black text-gray-800 dark:text-zinc-200 uppercase tracking-tight">{topico.titulo}</h4>
                       <p className="text-[11px] text-gray-500 dark:text-zinc-500 font-medium line-clamp-1">{topico.conteudo}</p>
                     </div>
-                    <ChevronRight size={18} className="text-gray-300 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
+                    <ChevronRight size={18} className="text-gray-300 group-hover:translate-x-1 transition-all" style={{ color: "var(--cor-primaria)" }} />
                   </button>
                 ))}
               </div>

@@ -34,7 +34,7 @@ export function CardAparencia({ pendente }: CardAparenciaProps) {
     const { modoTema, alternarTema, corPrimaria, definirCorPrimaria, fonte, definirFonte } = usarContextoTema();
 
     return (
-        <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#18181b] p-4 md:p-5 flex flex-col gap-4 relative overflow-hidden group">
+        <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#18181b] p-4 md:p-5 flex flex-col gap-4 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/[0.03] to-zinc-500/[0.01] dark:from-zinc-500/[0.05] dark:to-zinc-500/[0.02] pointer-events-none" />
             <CabecalhoCard titulo="Aparência Visual" descricao="Tema, cores e tipografia" icone={Palette} corIcone="text-violet-500" pendente={pendente} />
 
@@ -48,9 +48,10 @@ export function CardAparencia({ pendente }: CardAparenciaProps) {
                         key={modo.id}
                         onClick={modoTema !== modo.id ? alternarTema : undefined}
                         className={`rounded-xl border p-2.5 flex items-center gap-2 transition-all outline-none ${modoTema === modo.id
-                            ? "border-sky-400 dark:border-sky-500/50 bg-sky-50/50 dark:bg-sky-500/10"
+                            ? "border-[var(--cor-primaria)] bg-[var(--cor-primaria)]/5"
                             : "border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20"
                             }`}
+                        style={modoTema === modo.id ? { borderColor: "var(--cor-primaria)" } : {}}
                     >
                         <modo.icone size={14} className={modo.corIcone} />
                         <span className="text-xs font-black uppercase tracking-tight text-gray-900 dark:text-white flex-1 text-left">{modo.label}</span>
@@ -85,10 +86,11 @@ export function CardAparencia({ pendente }: CardAparenciaProps) {
                         <button
                             key={f.id}
                             onClick={() => definirFonte(f.id as any)}
-                            className={`flex-1 h-7 rounded-lg border text-[10px] font-black uppercase transition-all ${fonte === f.id
-                                ? "border-sky-400 dark:border-sky-500/50 bg-sky-50 dark:bg-sky-500/10 text-gray-900 dark:text-white"
+                            className={`flex-1 h-7 rounded-xl border text-[10px] font-black uppercase transition-all ${fonte === f.id
+                                ? "text-white shadow-sm"
                                 : "border-gray-200 dark:border-white/10 text-gray-500 dark:text-zinc-500 hover:border-gray-300"
                                 }`}
+                            style={fonte === f.id ? { backgroundColor: "var(--cor-primaria)", borderColor: "var(--cor-primaria)" } : {}}
                         >
                             {f.label}
                         </button>

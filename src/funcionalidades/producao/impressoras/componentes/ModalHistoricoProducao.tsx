@@ -12,20 +12,19 @@ interface ModalHistoricoProducaoProps {
 // --------------------------------------------------------------------------------------
 // 🔄 MOCK DE DADOS AUTO GERADO (Para Simular Pedidos Concluídos / Falhados)
 // --------------------------------------------------------------------------------------
-function gerarMockHistorico(horimetroTotal: number): RegistroProducao[] {
-    const qtdeProjetos = Math.max(1, Math.floor(horimetroTotal / 12)); // Simula que cada projeto durou em média 12h
+function gerarMockHistorico(horimetroTotalMinutos: number): RegistroProducao[] {
+    const qtdeProjetos = Math.max(1, Math.floor(horimetroTotalMinutos / 720)); // Simula projeto médio de 12h (720 min)
     const mock: RegistroProducao[] = [];
 
-    // Tentar ter no máximo uns 20 no mock para não quebrar a tela
     const qtdeVisual = Math.min(25, qtdeProjetos);
 
     let dataAtual = new Date();
-    dataAtual.setDate(dataAtual.getDate() - 1); // Começa "ontem"
+    dataAtual.setDate(dataAtual.getDate() - 1);
 
     for (let i = 0; i < qtdeVisual; i++) {
-        const duracao = Math.floor(Math.random() * 20) + 1; // 1 a 20h
-        const sucesso = Math.random() > 0.15; // 85% de sucesso
-        const valorGerado = sucesso ? duracao * (15 + Math.random() * 10) : 0; // Se falhou, zero retorno financeiro
+        const duracaoMinutos = (Math.floor(Math.random() * 20) + 1) * 60;
+        const sucesso = Math.random() > 0.15;
+        const valorGeradoCentavos = sucesso ? Math.round((duracaoMinutos / 60) * (15 + Math.random() * 10) * 100) : 0;
 
         mock.push({
             idProtocolo: `PRJ-${Math.floor(Math.random() * 90000) + 10000}`,
@@ -34,8 +33,8 @@ function gerarMockHistorico(horimetroTotal: number): RegistroProducao[] {
                 "Protótipo Arduino", "Vaso Geométrico", "Busto Homem Aranha", "Peça de Reposição Drone",
                 "Caixa Organizadora", "Molde para silicone", "Miniatura D&D", "Keycap Personalizada"
             ][Math.floor(Math.random() * 12)],
-            horasImpressao: duracao,
-            valorGerado: parseFloat(valorGerado.toFixed(2)),
+            minutosImpressao: duracaoMinutos,
+            valorGeradoCentavos: valorGeradoCentavos,
             sucesso: sucesso,
             dataConclusao: new Date(dataAtual.getTime() - i * 86400000 * (Math.random() * 3)).toISOString(),
         });
@@ -50,23 +49,20 @@ export function ModalHistoricoProducao({
     impressora,
 }: ModalHistoricoProducaoProps) {
 
-    // Gerar ou carregar mock baseado na impressora atual
     const registros = useMemo(() => {
         if (!impressora) return [];
-        // Se já vier do banco (no futuro), usa ele. Se não, gera mock
         if (impressora.historicoProducao && impressora.historicoProducao.length > 0) {
             return impressora.historicoProducao;
         }
-        return gerarMockHistorico(impressora.horimetroTotal || 150); // Mínimo de 150h mock se zerada
+        return gerarMockHistorico(impressora.horimetroTotalMinutos || 9000); // 150h mock min
     }, [impressora]);
 
     if (!impressora) return null;
 
-    // Estatísticas In-Memory
     const totalPecas = registros.length;
     const pecasComSucesso = registros.filter(r => r.sucesso).length;
     const taxaSucesso = totalPecas > 0 ? (pecasComSucesso / totalPecas) * 100 : 0;
-    const totalFaturadoDado = registros.reduce((acc, curr) => acc + curr.valorGerado, 0);
+    const totalFaturadoCentavos = registros.reduce((acc, curr) => acc + curr.valorGeradoCentavos, 0);
 
     return (
         <Dialogo
@@ -94,7 +90,6 @@ export function ModalHistoricoProducao({
                                 Desempenho em Pedidos e Projetos Avulsos
                             </p>
                         </div>
-                        {/* Selo OEE Simulacro */}
                         <div className="hidden sm:flex flex-col items-end">
                             <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-widest block mb-1">
                                 OEE Estimado
@@ -109,8 +104,8 @@ export function ModalHistoricoProducao({
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                         <EstatCard icone={Box} titulo="Projetos" valor={totalPecas.toString()} cor="text-zinc-900 dark:text-white" />
                         <EstatCard icone={Target} titulo="Taxa de Sucesso" valor={`${Math.round(taxaSucesso)}%`} cor={taxaSucesso >= 80 ? "text-emerald-500" : taxaSucesso >= 50 ? "text-amber-500" : "text-red-500"} />
-                        <EstatCard icone={Clock} titulo="Horas Trabalhadas" valor={`${impressora.horimetroTotal || 150}h`} cor="text-sky-500" />
-                        <EstatCard icone={TrendingUp} titulo="Faturamento Histórico" valor={`R$ ${totalFaturadoDado.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`} cor="text-emerald-500" bg="bg-emerald-50 dark:bg-emerald-500/5 border-emerald-100 dark:border-emerald-500/20" />
+                        <EstatCard icone={Clock} titulo="Horas Trabalhadas" valor={`${Math.round((impressora.horimetroTotalMinutos || 9000) / 60)}h`} cor="text-sky-500" />
+                        <EstatCard icone={TrendingUp} titulo="Faturamento Histórico" valor={`R$ ${(totalFaturadoCentavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`} cor="text-emerald-500" bg="bg-emerald-50 dark:bg-emerald-500/5 border-emerald-100 dark:border-emerald-500/20" />
                     </div>
                 </div>
 
@@ -165,17 +160,17 @@ export function ModalHistoricoProducao({
                                             <td className="px-5 py-3.5 whitespace-nowrap">
                                                 <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 dark:text-zinc-300">
                                                     <Clock size={14} className="text-gray-400 dark:text-zinc-500" />
-                                                    {reg.horasImpressao}h
+                                                    {Math.round(reg.minutosImpressao / 60)}h
                                                 </div>
                                             </td>
                                             <td className="px-5 py-3.5 whitespace-nowrap text-right">
                                                 {reg.sucesso ? (
                                                     <span className="text-sm font-black text-gray-900 dark:text-white">
-                                                        R$ {reg.valorGerado.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        R$ {(reg.valorGeradoCentavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </span>
                                                 ) : (
                                                     <span className="text-sm font-bold text-gray-400 dark:text-zinc-600 line-through">
-                                                        R$ {reg.valorGerado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                                        R$ {(reg.valorGeradoCentavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                                     </span>
                                                 )}
                                             </td>

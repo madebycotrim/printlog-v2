@@ -26,13 +26,13 @@ export function ModalHistoricoManutencao({
 
     if (!impressora) return null;
 
-    const horasUsadas = impressora.horimetroTotal || 0;
-    const intervalo = impressora.intervaloRevisao || 300;
-    const porcentagemRevisao = Math.min(100, (horasUsadas % intervalo) / intervalo * 100);
-    const horasRestantes = Math.max(0, intervalo - (horasUsadas % intervalo));
+    const horasUsadas = impressora.horimetroTotalMinutos ? (impressora.horimetroTotalMinutos / 60) : 0;
+    const intervaloHoras = (impressora.intervaloRevisaoMinutos || 18000) / 60;
+    const porcentagemRevisao = Math.min(100, (horasUsadas % intervaloHoras) / intervaloHoras * 100);
+    const horasRestantes = Math.max(0, intervaloHoras - (horasUsadas % intervaloHoras));
 
-    const totalGastoManutencao = registros.reduce(
-        (acc, curr) => acc + (curr.custo || 0),
+    const totalGastoManutencaoReais = registros.reduce(
+        (acc, curr) => acc + (curr.custoCentavos / 100 || 0),
         0
     );
 
@@ -76,7 +76,7 @@ export function ModalHistoricoManutencao({
                                 Próxima Revisão
                             </span>
                             <span className="text-sm font-black text-sky-600 dark:text-sky-400">
-                                Em {horasRestantes}h
+                                Em {horasRestantes.toFixed(0)}h
                             </span>
                         </div>
                     </div>
@@ -93,7 +93,7 @@ export function ModalHistoricoManutencao({
                                         Horímetro Total
                                     </span>
                                     <span className="text-base font-black text-gray-900 dark:text-white leading-none">
-                                        {horasUsadas}h
+                                        {horasUsadas.toFixed(1)}h
                                     </span>
                                 </div>
                             </div>
@@ -114,7 +114,7 @@ export function ModalHistoricoManutencao({
                                     Custo de Manutenção
                                 </span>
                                 <span className="text-lg font-black text-gray-900 dark:text-white">
-                                    R$ {totalGastoManutencao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                    R$ {totalGastoManutencaoReais.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                 </span>
                             </div>
                         </div>
@@ -163,7 +163,7 @@ export function ModalHistoricoManutencao({
                                                 </span>
                                                 <div className="flex flex-col gap-1.5 pt-2">
                                                     <div className="text-xs font-semibold text-gray-600 dark:text-zinc-400">
-                                                        <span className="text-gray-400 dark:text-zinc-600 font-medium">Marcador:</span> {registro.horasMaquinaNoMomento ? `${registro.horasMaquinaNoMomento}h` : "N/A"}
+                                                        <span className="text-gray-400 dark:text-zinc-600 font-medium">Marcador:</span> {registro.horasMaquinaNoMomentoMinutos ? `${(registro.horasMaquinaNoMomentoMinutos / 60).toFixed(1)}h` : "N/A"}
                                                     </div>
                                                     {registro.pecasTrocadas && (
                                                         <div className="text-xs font-semibold text-gray-600 dark:text-zinc-400">
@@ -183,14 +183,14 @@ export function ModalHistoricoManutencao({
                                                     Custo da Intervenção
                                                 </span>
                                                 <span className="text-sm font-black text-gray-900 dark:text-white mt-0.5">
-                                                    R$ {registro.custo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                                    R$ {(registro.custoCentavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             );
-                        }).reverse() // Mostra o mais recente no topo se for list array. Push adiciona no fim.
+                        }).reverse()
                     )}
                 </div>
 

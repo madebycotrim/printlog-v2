@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Mail,
   Lock,
@@ -16,6 +16,7 @@ import { ComponenteTurnstile } from "./componentes/ComponenteTurnstile";
 
 export function PaginaAcesso() {
   const navegar = useNavigate();
+  const localizacao = useLocation();
   const { login, loginGoogle, loginAnonimo, usuario, carregando } = usarAutenticacao();
   const [email, definirEmail] = useState("");
   const [senha, definirSenha] = useState("");
@@ -23,11 +24,16 @@ export function PaginaAcesso() {
   const [carregandoLogin, definirCarregandoLogin] = useState(false);
   const [tokenCaptcha, definirTokenCaptcha] = useState<string | null>(null);
 
+  // Se viermos da Home ("/") ou não houver estado, o padrão é sempre o Dashboard.
+  // Isso evita que o login redirecione para a Landing Page indesejadamente.
+  const deOndeVimOriginal = (localizacao.state as any)?.from || "/dashboard";
+  const deOndeVim = deOndeVimOriginal === "/" ? "/dashboard" : deOndeVimOriginal;
+
   useEffect(() => {
     if (!carregando && usuario) {
-      navegar("/dashboard");
+      navegar(deOndeVim, { replace: true });
     }
-  }, [usuario, carregando, navegar]);
+  }, [usuario, carregando, navegar, deOndeVim]);
 
   const realizarAcesso = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +52,7 @@ export function PaginaAcesso() {
     try {
       definirCarregandoLogin(true);
       await login(email, senha);
-      navegar("/dashboard");
+      // O useEffect acima cuidará do redirecionamento assim que o usuário for detectado
     } catch (err: any) {
       definirErro(err.message);
     } finally {
@@ -57,7 +63,7 @@ export function PaginaAcesso() {
   const entrarComGoogle = async () => {
     try {
       await loginGoogle();
-      navegar("/dashboard");
+      // O useEffect acima cuidará do redirecionamento
     } catch (err: any) {
       definirErro(err.message);
     }
@@ -67,7 +73,7 @@ export function PaginaAcesso() {
     try {
       definirCarregandoLogin(true);
       await loginAnonimo();
-      navegar("/dashboard");
+      // O useEffect acima cuidará do redirecionamento
     } catch (err: any) {
       definirErro(err.message);
     } finally {

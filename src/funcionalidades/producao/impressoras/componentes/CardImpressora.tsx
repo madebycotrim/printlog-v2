@@ -1,6 +1,7 @@
 import { MoreVertical, Edit2, Archive, History, Wrench, Settings } from "lucide-react";
 import { Impressora } from "@/funcionalidades/producao/impressoras/tipos";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CardImpressoraProps {
     impressora: Impressora;
@@ -32,15 +33,14 @@ export function CardImpressora({ impressora, aoEditar, aoAposentar, aoDetalhes, 
         };
     }, [menuAberto, fecharMenu]);
 
-    const isOperacional = impressora.status === "Operacional";
-    const isManutencao = impressora.status === "Em Manutenção";
+    const isOperacional = (impressora.status as unknown as string) === "livre";
+    const isManutencao = (impressora.status as unknown as string) === "manutencao";
 
     const barraCor = isOperacional ? "#10b981" : isManutencao ? "#f59e0b" : "#3f3f46";
 
-    const subtitulo = [impressora.marca, impressora.modeloBase]
-        .filter(Boolean).join(" | ") || impressora.tecnologia;
+    const subtitulo = [impressora.marca].filter(Boolean).join(" | ") || impressora.tecnologia;
 
-    const horasUsadas = impressora.horimetroTotal || 0;
+    const horasUsadas = Math.floor((impressora.horimetroTotalMinutos || 0) / 60);
 
     return (
         <div
@@ -60,60 +60,79 @@ export function CardImpressora({ impressora, aoEditar, aoAposentar, aoDetalhes, 
             <div className="absolute top-4 right-3 z-30" ref={menuRef}>
                 <button
                     onClick={(e) => { e.stopPropagation(); definirMenuAberto(!menuAberto); }}
-                    className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 outline-none text-gray-400 dark:text-white/20 hover:text-gray-900 dark:hover:text-white"
+                    className={`p-1.5 rounded-lg transition-all ${menuAberto ? 'bg-zinc-100 dark:bg-white/10 text-zinc-900 dark:text-white' : 'opacity-0 group-hover:opacity-100 focus:opacity-100 text-gray-400 dark:text-white/20 hover:text-gray-900 dark:hover:text-white'}`}
                     aria-label="Opções da impressora"
                 >
                     <MoreVertical size={16} />
                 </button>
-                {menuAberto && (
-                    <div
-                        className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden z-30 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right"
-                        role="menu"
-                    >
-                        <button
-                            onClick={(e) => { e.stopPropagation(); aoEditar(impressora); fecharMenu(); }}
-                            className="w-full text-left px-4 py-3 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2.5 transition-colors outline-none"
-                            role="menuitem"
+
+                <AnimatePresence>
+                    {menuAberto && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                            className="absolute right-0 mt-1 w-52 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl z-30 overflow-hidden origin-top-right"
+                            role="menu"
                         >
-                            <Edit2 size={14} /> Editar
-                        </button>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); if (aoHistorico) aoHistorico(impressora); fecharMenu(); }}
-                            className="w-full text-left px-4 py-3 text-sm font-bold text-indigo-400 hover:bg-indigo-500/10 flex items-center gap-2.5 transition-colors border-t border-white/5 outline-none"
-                            role="menuitem"
-                        >
-                            <History size={14} /> Histórico
-                        </button>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); if (aoManutencoes) aoManutencoes(impressora); fecharMenu(); }}
-                            className="w-full text-left px-4 py-3 text-sm font-bold text-amber-400 hover:bg-amber-500/10 flex items-center gap-2.5 transition-colors border-t border-white/5 outline-none"
-                            role="menuitem"
-                        >
-                            <Wrench size={14} /> Manutenções
-                        </button>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); if (aoPecas) aoPecas(impressora); fecharMenu(); }}
-                            className="w-full text-left px-4 py-3 text-sm font-bold text-emerald-500 hover:bg-emerald-500/10 flex items-center justify-between transition-colors border-t border-white/5 outline-none"
-                            role="menuitem"
-                        >
-                            <div className="flex items-center gap-2.5">
-                                <Settings size={14} /> Peças/Desgaste
+                            <div className="p-1.5 space-y-0.5">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); if (aoHistorico) aoHistorico(impressora); fecharMenu(); }}
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors group/item uppercase tracking-widest"
+                                    role="menuitem"
+                                >
+                                    <History size={14} className="text-gray-400 group-hover/item:text-indigo-500 transition-colors" />
+                                    Ver Histórico
+                                </button>
+
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); if (aoManutencoes) aoManutencoes(impressora); fecharMenu(); }}
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400 rounded-lg transition-colors group/item uppercase tracking-widest"
+                                    role="menuitem"
+                                >
+                                    <Wrench size={14} className="text-gray-400 group-hover/item:text-amber-500 transition-colors" />
+                                    Manutenções
+                                </button>
+
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); if (aoPecas) aoPecas(impressora); fecharMenu(); }}
+                                    className="w-full flex items-center justify-between gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg transition-colors group/item uppercase tracking-widest text-left"
+                                    role="menuitem"
+                                >
+                                    <div className="flex items-center gap-2.5">
+                                        <Settings size={14} className="text-gray-400 group-hover/item:text-emerald-500 transition-colors" />
+                                        Peças/Desgaste
+                                    </div>
+                                    {impressora.pecasDesgaste && impressora.pecasDesgaste.length > 0 && (
+                                        <span className="bg-emerald-500/20 text-emerald-500 text-[10px] font-black px-1.5 py-0.5 rounded">
+                                            {impressora.pecasDesgaste.length}
+                                        </span>
+                                    )}
+                                </button>
+
+                                <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
+
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); aoEditar(impressora); fecharMenu(); }}
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors group/item uppercase tracking-widest"
+                                    role="menuitem"
+                                >
+                                    <Edit2 size={14} className="text-gray-400 group-hover/item:text-gray-900 dark:group-hover/item:text-white transition-colors" />
+                                    Editar 
+                                </button>
+
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); aoAposentar(impressora); fecharMenu(); }}
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-rose-600 hover:bg-rose-500/10 rounded-lg transition-colors group/item uppercase tracking-widest"
+                                    role="menuitem"
+                                >
+                                    <Archive size={14} className="text-rose-400 group-hover/item:text-rose-600 transition-colors" />
+                                    Aposentar
+                                </button>
                             </div>
-                            {impressora.pecasDesgaste && impressora.pecasDesgaste.length > 0 && (
-                                <span className="bg-emerald-500/20 text-emerald-500 text-[10px] font-black px-1.5 py-0.5 rounded">
-                                    {impressora.pecasDesgaste.length}
-                                </span>
-                            )}
-                        </button>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); aoAposentar(impressora); fecharMenu(); }}
-                            className="w-full text-left px-4 py-3 text-sm font-bold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 flex items-center gap-2.5 transition-colors border-t border-gray-100 dark:border-white/5 outline-none"
-                            role="menuitem"
-                        >
-                            <Archive size={14} /> Aposentar
-                        </button>
-                    </div>
-                )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Imagem Central */}

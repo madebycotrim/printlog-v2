@@ -14,6 +14,7 @@ import {
   Check,
   AlertTriangle,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -80,7 +81,7 @@ export function Apresentacao() {
   const refCartao = useRef<HTMLDivElement>(null);
   const refEmblema1 = useRef<HTMLDivElement>(null); // Lucro Garantido (esquerda)
   const refEmblema2 = useRef<HTMLDivElement>(null); // Rolo no Fim (direita-baixo)
-  const refEmblema3 = useRef<HTMLDivElement>(null); // Sugestão IA (direita-cima)
+  const refEmblema3 = useRef<HTMLDivElement>(null); // Otimização (direita-cima)
 
   const calcularLinhas = useCallback(() => {
     const env = refEnvelope.current;
@@ -100,7 +101,7 @@ export function Apresentacao() {
       const x1 = b.right;
       const y1 = b.cy;
       const x2 = cartao.left;
-      const y2 = cartao.top + cartao.height * 0.25;
+      const y2 = cartao.top + cartao.height * 0.22;
       const cx1 = x1 + (x2 - x1) * 0.5;
       const cy1 = y1;
       const cx2 = x2 - (x2 - x1) * 0.3;
@@ -142,7 +143,7 @@ export function Apresentacao() {
       const x1 = b.left;
       const y1 = b.cy;
       const x2 = cartao.right;
-      const y2 = cartao.top + cartao.height * 0.18;
+      const y2 = cartao.top + cartao.height * 0.22;
       const cx1 = x1 - (x1 - x2) * 0.5;
       const cy1 = y1;
       const cx2 = x2 + (x1 - x2) * 0.3;
@@ -357,7 +358,7 @@ export function Apresentacao() {
         />
 
         {/* ── Conteúdo ── */}
-        <div className="container mx-auto px-6 z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20 items-center">
+        <div className="container mx-auto px-6 z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 xl:gap-32 items-center">
           {/* ── ESQUERDA ── */}
           <div
             className="flex flex-col items-start"
@@ -458,7 +459,7 @@ export function Apresentacao() {
 
             {/* Selo de Confiança */}
             <div
-              className="mt-10 flex items-center gap-3"
+              className="mt-12 flex items-center gap-3"
               style={{
                 animation: visivel
                   ? "surgirCimaApresentacao .8s .65s ease both"
@@ -466,32 +467,18 @@ export function Apresentacao() {
                 opacity: 0,
               }}
             >
-              <div className="flex -space-x-2">
-                {(
-                  [
-                    "#06b6d4",
-                    "#0ea5e9",
-                    "#0284c7",
-                    "#2563eb",
-                    "#6366f1",
-                    "#10b981",
-                    "#fbbf24",
-                    "#f59e0b",
-                  ] as const
-                ).map((c, i) => (
-                  <div
-                    key={i}
-                    className="w-7 h-7 rounded-full border-2 border-[#050507] flex items-center justify-center text-[10px] font-bold text-white"
-                    style={{ background: c, zIndex: 4 - i }}
-                  >
-                    {["P", "R", "I", "N", "T", "L", "O", "G"][i]}
-                  </div>
-                ))}
+              <div className="flex items-start gap-4 pl-4 border-l-2 border-emerald-500/30 hover:border-emerald-500 transition-colors duration-500 max-w-sm group">
+                <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-white text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+                    Compromisso Ético
+                    <span className="h-px w-8 bg-zinc-800" />
+                  </span>
+                  <p className="text-zinc-500 text-[11px] leading-relaxed italic">
+                    "Transparência em primeiro lugar — construindo o PrintLog de forma honesta, aberta e em constante evolução junto com a comunidade 3D brasileira."
+                  </p>
+                </div>
               </div>
-              <span className="text-zinc-500 text-xs">
-                <span className="text-white font-semibold">+1.200 makers</span>{" "}
-                já usam o PrintLog
-              </span>
             </div>
           </div>
 
@@ -728,7 +715,7 @@ export function Apresentacao() {
               ref={refEmblema1}
               atraso="0s"
               className="hidden lg:flex items-center gap-3 p-3.5 pr-5"
-              style={{ top: "60px", left: "-145px", zIndex: 20 }}
+              style={{ top: "40px", left: "-120px", zIndex: 20 }}
             >
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
@@ -755,8 +742,8 @@ export function Apresentacao() {
               atraso="2s"
               className="hidden lg:block p-4"
               style={{
-                bottom: "60px",
-                right: "-145px",
+                bottom: "40px",
+                right: "-120px",
                 width: 230,
                 zIndex: 20,
               }}
@@ -825,7 +812,7 @@ export function Apresentacao() {
               ref={refEmblema3}
               atraso="1s"
               className="hidden xl:flex items-center gap-2.5 px-4 py-3"
-              style={{ top: "-10px", right: "-145px", zIndex: 20 }}
+              style={{ top: "40px", right: "-120px", zIndex: 20 }}
             >
               <div
                 className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-sm"
@@ -838,10 +825,10 @@ export function Apresentacao() {
               </div>
               <div>
                 <div className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest mb-0.5">
-                  Sugestão IA
+                  Otimização
                 </div>
                 <div className="text-white font-semibold text-xs">
-                  Aumente 12% o preço
+                  Preço Sugerido
                 </div>
               </div>
             </EmblemaFlutuante>

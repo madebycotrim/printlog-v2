@@ -1,10 +1,17 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Shield, AlertTriangle, Trash2, Loader2, Download } from "lucide-react";
+import { motion } from "framer-motion";
 import { CabecalhoCard } from "./Compartilhados";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
 
-export function CardPrivacidade() {
+interface PropsCardPrivacidade {
+    destaque?: boolean;
+}
+
+export function CardPrivacidade({ destaque }: PropsCardPrivacidade) {
+    const navegar = useNavigate();
     const { excluirConta, exportarDadosPessoais } = usarAutenticacao();
 
     const [confirmouEliminacao, definirConfirmouEliminacao] = useState(false);
@@ -15,6 +22,7 @@ export function CardPrivacidade() {
     const lidarComEliminacao = async () => {
         definirEliminando(true);
         try {
+            navegar("/", { replace: true });
             await excluirConta();
         } catch (erro: any) {
             alert(erro.message || "Erro ao excluir conta. Faça login novamente e tente de novo.");
@@ -31,32 +39,49 @@ export function CardPrivacidade() {
 
     return (
         <>
-            <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#18181b] p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden">
+            <motion.div
+                animate={destaque ? {
+                    borderColor: ["rgba(255, 0, 0, 0.2)", "rgba(255, 0, 0, 1)", "rgba(255, 0, 0, 0.2)"],
+                    outline: ["2px solid rgba(255, 0, 0, 0)", "2px solid rgba(255, 0, 0, 0.4)", "2px solid rgba(255, 0, 0, 0)"],
+                    boxShadow: [
+                        "0 0 0 0px rgba(255, 0, 0, 0)",
+                        "0 0 0 12px rgba(255, 0, 0, 0.15)",
+                        "0 0 0 0px rgba(255, 0, 0, 0)"
+                    ],
+                } : {}}
+                transition={{
+                    duration: 1.2,
+                    repeat: destaque ? 4 : 0,
+                    ease: "easeInOut"
+                }}
+                className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#141417] p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group transition-all duration-300"
+            >
                 <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/[0.03] to-zinc-500/[0.01] dark:from-zinc-500/[0.05] dark:to-zinc-500/[0.02] pointer-events-none" />
-                <CabecalhoCard titulo="Privacidade (LGPD)" descricao="Lei nº 13.709/2018 — Direitos do titular de dados pessoais" icone={Shield} corIcone="text-rose-500" />
+                <CabecalhoCard titulo="Privacidade (LGPD)" descricao="Lei nº 13.709/2018 — Sua privacidade é um direito" icone={Shield} corIcone="text-rose-500" />
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
                     <p className="text-xs leading-relaxed text-gray-600 dark:text-zinc-400">
-                        Seus dados são tratados conforme nossa <a href="/politica-de-privacidade" className="text-sky-500 hover:underline font-bold">Política de Privacidade</a>.<br />
-                        Dúvidas: <a href="mailto:privacidade@printlog.com.br" className="font-bold text-gray-900 dark:text-white hover:underline transition-colors">privacidade@printlog.com.br</a>
+                        Seus dados são tratados com transparência e responsabilidade, conforme nossa <a href="/politica-de-privacidade" className="hover:underline font-bold" style={{ color: "var(--cor-primaria)" }}>Política de Privacidade</a>.<br />
+                        Para exercer seus direitos ou tirar dúvidas, fale com nosso DPO: <a href="mailto:privacidade@printlog.com.br" className="font-bold text-gray-900 dark:text-white hover:underline transition-colors">privacidade@printlog.com.br</a>
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0">
                         <button
                             onClick={exportarDadosPessoais}
-                            className="h-10 px-4 rounded-xl bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-500/20 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all whitespace-nowrap"
+                            className="h-10 px-4 rounded-xl text-white hover:brightness-110 text-[10px] font-black uppercase tracking-[0.12em] flex items-center justify-center gap-2 transition-all active:scale-95 whitespace-nowrap"
+                            style={{ backgroundColor: "var(--cor-primaria)" }}
                         >
-                            <Download size={13} /> Exportar meus dados
+                            <Download size={13} /> Exportar
                         </button>
                         <button
                             onClick={abrirModal}
-                            className="h-10 px-4 rounded-xl border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-300 dark:hover:border-rose-500/30 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all whitespace-nowrap"
+                            className="h-10 px-4 rounded-xl border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-300 dark:hover:border-rose-500/30 text-[10px] font-black uppercase tracking-[0.12em] flex items-center justify-center gap-2 transition-all active:scale-95 whitespace-nowrap"
                         >
-                            <Trash2 size={13} /> Excluir conta
+                            <Trash2 size={13} /> Excluir Conta
                         </button>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* MODAL */}
             <Dialogo
@@ -86,13 +111,13 @@ export function CardPrivacidade() {
                                 <div>
                                     <h3 className="text-sm font-bold text-rose-900 dark:text-rose-200">Essa ação é definitiva</h3>
                                     <p className="text-xs text-rose-700 dark:text-rose-300 mt-2 leading-relaxed">
-                                        Ao confirmar, todos os seus dados — projetos, clientes e histórico de impressões — serão apagados permanentemente das nossas bases.
+                                        Ao confirmar, todos os seus dados — projetos, clientes e histórico de impressões — serão apagados permanentemente das nossas bases em até 30 dias, salvo os dados que a lei nos obriga a manter.
                                     </p>
                                 </div>
                             </div>
 
                             <p className="text-[11px] text-gray-500 dark:text-zinc-400 text-center leading-relaxed">
-                                Manteremos apenas algumas cópias limitadas e estritamente necessárias por obrigações legais, conforme detalhado na nossa <a href="/politica-de-privacidade" className="text-sky-500 hover:underline">Política de Privacidade</a>.
+                                Manteremos apenas algumas cópias limitadas e estritamente necessárias por obrigações legais, conforme detalhado na nossa <a href="/politica-de-privacidade" className="hover:underline" style={{ color: "var(--cor-primaria)" }}>Política de Privacidade</a>.
                             </p>
 
                             <div className="grid grid-cols-2 gap-3 pt-2">
@@ -127,7 +152,7 @@ export function CardPrivacidade() {
                                     className="mt-0.5 h-4.5 w-4.5 rounded text-rose-600 focus:ring-rose-500 border-gray-300 bg-white dark:border-white/20 dark:bg-zinc-800 cursor-pointer transition-all"
                                 />
                                 <span className="text-xs text-gray-700 dark:text-zinc-300 leading-relaxed">
-                                    <strong>Concordo:</strong> Entendo que meus dados serão apagados permanentemente e quero excluir minha conta.
+                                    <strong>Concordo:</strong> Entendo que meus dados serão apagados permanentemente (salvo retenções legais) e quero excluir minha conta.
                                 </span>
                             </label>
 
@@ -142,8 +167,8 @@ export function CardPrivacidade() {
                                     onClick={lidarComEliminacao}
                                     disabled={!confirmouEliminacao || eliminando}
                                     className={`h-11 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all uppercase tracking-wider ${confirmouEliminacao && !eliminando
-                                            ? "bg-gradient-to-r from-rose-600 to-rose-700 text-white hover:brightness-110 shadow-lg shadow-rose-500/20 active:scale-[0.98]"
-                                            : "bg-gray-100 dark:bg-zinc-800/50 text-gray-400 dark:text-zinc-600 cursor-not-allowed"
+                                        ? "bg-gradient-to-r from-rose-600 to-rose-700 text-white hover:brightness-110 shadow-lg shadow-rose-500/20 active:scale-[0.98]"
+                                        : "bg-gray-100 dark:bg-zinc-800/50 text-gray-400 dark:text-zinc-600 cursor-not-allowed"
                                         }`}
                                 >
                                     {eliminando ? (

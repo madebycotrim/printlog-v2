@@ -43,7 +43,7 @@ export function ModalAbatimentoPeso({
   const numQtd = Number(quantidade.replace(",", "."));
 
   // Simulação do resultado (Preview)
-  const pesoRestanteAtual = material.pesoRestante;
+  const pesoRestanteAtual = material.pesoRestanteGramas;
   const novoPesoRestante = Math.max(0, pesoRestanteAtual - (numQtd || 0));
   const abaterDoEstoqueLacrado = numQtd > pesoRestanteAtual; // Se o cara pedir pra abater mais do que tem no rolo atual
 
@@ -61,7 +61,7 @@ export function ModalAbatimentoPeso({
     }
 
     const estoqueTotalDisponivel =
-      material.pesoRestante + material.estoque * material.peso;
+      material.pesoRestanteGramas + material.estoque * material.pesoGramas;
 
     if (numQtd > estoqueTotalDisponivel) {
       definirErro(
@@ -101,7 +101,7 @@ export function ModalAbatimentoPeso({
               <span className="text-xs text-gray-500 dark:text-zinc-400 font-medium truncate">
                 Atual:{" "}
                 <strong className="text-sky-500">
-                  {material.pesoRestante}
+                  {material.pesoRestanteGramas}
                   {unidade}
                 </strong>{" "}
                 no uso (Estoque: {material.estoque}x)

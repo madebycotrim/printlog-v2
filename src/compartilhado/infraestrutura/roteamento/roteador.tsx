@@ -2,16 +2,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/compartilhado/componentes_ui/Layout";
 import { RotaProtegida } from "@/compartilhado/infraestrutura/roteamento/RotaProtegida";
+import { ScrollParaTopo } from "@/compartilhado/utilitarios/ScrollParaTopo";
 import { ProvedorAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
 
-// --- COMPONENTES ESTÃTICOS ESSENCIAIS ---
-// Esses nÃ£o devem usar lazy loading pois sÃ£o a base da navegaÃ§Ã£o/seguranÃ§a
 
-// --- PÃGINAS COM LAZY LOADING (CODE SPLITTING) ---
-// O carregamento inicial baixa apenas o Layout e AutenticaÃ§Ã£o.
-// As pÃ¡ginas sÃ£o baixadas apenas sob demanda quando acessadas.
-
-// Landing Page PÃºblica
+// Landing Page Publica
 const PaginaLanding = lazy(() =>
   import("@/funcionalidades/landing_page/PaginaLanding").then((m) => ({
     default: m.PaginaLanding,
@@ -33,7 +28,7 @@ const TermosUso = lazy(() =>
   })),
 );
 
-// AutenticaÃ§Ã£o
+// Autenticação
 const PaginaAcesso = lazy(() =>
   import("@/funcionalidades/autenticacao/PaginaAcesso").then((m) => ({
     default: m.PaginaAcesso,
@@ -62,7 +57,7 @@ const PaginaCalculadora = lazy(() =>
   })),
 );
 
-// 2. ProduÃ§Ã£o
+// 2. Produção
 const PaginaProjetos = lazy(() =>
   import("@/funcionalidades/producao/projetos/pagina").then((m) => ({
     default: m.PaginaProjetos,
@@ -103,7 +98,7 @@ const PaginaConfiguracoes = lazy(() =>
   ),
 );
 const PaginaAjuda = lazy(() =>
-  import("@/funcionalidades/sistema/ajuda/pagina").then((m) => ({
+  import("@/funcionalidades/sistema/central-maker/pagina").then((m) => ({
     default: m.PaginaAjuda,
   })),
 );
@@ -119,9 +114,10 @@ export function RoteadorPrincipal() {
   return (
     <ProvedorAutenticacao>
       <BrowserRouter>
+        <ScrollParaTopo />
         <Suspense fallback={<FallbackCarregamento />}>
           <Routes>
-            {/* Landing Page PÃºblica */}
+            {/* Landing Page Pública */}
             <Route path="/" element={<PaginaLanding />} />
             <Route
               path="/seguranca-e-privacidade"
@@ -133,7 +129,7 @@ export function RoteadorPrincipal() {
             />
             <Route path="/termos-de-uso" element={<TermosUso />} />
 
-            {/* AutenticaÃ§Ã£o */}
+            {/* Autenticação */}
             <Route path="/login" element={<PaginaAcesso />} />
             <Route path="/cadastro" element={<PaginaCadastro />} />
             <Route
@@ -141,7 +137,7 @@ export function RoteadorPrincipal() {
               element={<PaginaRecuperacaoSenha />}
             />
 
-            {/* AplicaÃ§Ã£o Interna Protegida */}
+            {/* Aplicação Interna Protegida */}
             {/* 1. GERAL */}
             <Route
               path="/dashboard"

@@ -16,6 +16,7 @@ import {
 import { Combobox } from "@/compartilhado/componentes_ui/Combobox";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
 import { Impressora, PerfilImpressoraCatalogo } from "@/funcionalidades/producao/impressoras/tipos";
+import { StatusImpressora } from "@/compartilhado/tipos_globais/modelos";
 
 const esquemaImpressora = z.object({
     nome: z.string().min(2, "O apelido deve ter pelo menos 2 caracteres"),
@@ -24,11 +25,11 @@ const esquemaImpressora = z.object({
     modeloBase: z.string().min(1, "O modelo é obrigatório."),
     imagemUrl: z.string().optional(),
     potenciaWatts: z.coerce.number().optional(),
-    valorCompra: z.coerce.number().optional(),
-    horimetroTotal: z.coerce.number().optional(),
-    intervaloRevisao: z.coerce.number().optional(),
+    valorCompraCentavos: z.coerce.number().optional(),
+    horimetroTotalMinutos: z.coerce.number().optional(),
+    intervaloRevisaoMinutos: z.coerce.number().optional(),
     consumoKw: z.coerce.number().optional(),
-    taxaHora: z.coerce.number().optional(),
+    taxaHoraCentavos: z.coerce.number().optional(),
 });
 
 type ImpressoraFormData = z.infer<typeof esquemaImpressora>;
@@ -66,10 +67,10 @@ export function FormularioImpressora({
             modeloBase: "",
             imagemUrl: "",
             potenciaWatts: "" as unknown as number,
-            valorCompra: "" as unknown as number,
-            taxaHora: 15,
-            horimetroTotal: 0,
-            intervaloRevisao: 300,
+            valorCompraCentavos: "" as unknown as number,
+            taxaHoraCentavos: 15,
+            horimetroTotalMinutos: 0,
+            intervaloRevisaoMinutos: 300,
         },
     });
 
@@ -107,10 +108,10 @@ export function FormularioImpressora({
                     modeloBase: impressoraEditando.modeloBase || "",
                     imagemUrl: impressoraEditando.imagemUrl || "",
                     potenciaWatts: impressoraEditando.potenciaWatts,
-                    valorCompra: impressoraEditando.valorCompra,
-                    taxaHora: impressoraEditando.taxaHora ?? 15,
-                    horimetroTotal: impressoraEditando.horimetroTotal || 0,
-                    intervaloRevisao: impressoraEditando.intervaloRevisao || 300,
+                    valorCompraCentavos: (impressoraEditando.valorCompraCentavos || 0) / 100,
+                    taxaHoraCentavos: (impressoraEditando.taxaHoraCentavos || 1500) / 100,
+                    horimetroTotalMinutos: Math.floor((impressoraEditando.horimetroTotalMinutos || 0) / 60),
+                    intervaloRevisaoMinutos: Math.floor((impressoraEditando.intervaloRevisaoMinutos || 18000) / 60),
                     consumoKw: impressoraEditando.consumoKw,
                 });
             } else {
@@ -121,10 +122,10 @@ export function FormularioImpressora({
                     modeloBase: "",
                     imagemUrl: "",
                     potenciaWatts: "" as unknown as number,
-                    valorCompra: "" as unknown as number,
-                    taxaHora: 15,
-                    horimetroTotal: 0,
-                    intervaloRevisao: 300,
+                    valorCompraCentavos: "" as unknown as number,
+                    taxaHoraCentavos: 15,
+                    horimetroTotalMinutos: 0,
+                    intervaloRevisaoMinutos: 300,
                 });
             }
             definirConfirmarDescarte(false);
@@ -179,16 +180,16 @@ export function FormularioImpressora({
             nome: dados.nome,
             tecnologia: dados.tecnologia,
             volumeImpressao: impressoraEditando?.volumeImpressao || { largura: 0, profundidade: 0, altura: 0 },
-            status: impressoraEditando?.status || "Operacional",
+            status: impressoraEditando?.status || StatusImpressora.LIVRE,
             marca: dados.marca,
             modeloBase: dados.modeloBase,
             imagemUrl: dados.imagemUrl,
             consumoKw: dados.consumoKw,
             potenciaWatts: dados.potenciaWatts,
-            valorCompra: dados.valorCompra,
-            taxaHora: dados.taxaHora,
-            horimetroTotal: dados.horimetroTotal,
-            intervaloRevisao: dados.intervaloRevisao,
+            valorCompraCentavos: Math.round((dados.valorCompraCentavos || 0) * 100),
+            taxaHoraCentavos: Math.round((dados.taxaHoraCentavos || 0) * 100),
+            horimetroTotalMinutos: (dados.horimetroTotalMinutos || 0) * 60,
+            intervaloRevisaoMinutos: (dados.intervaloRevisaoMinutos || 300) * 60,
             id: impressoraEditando?.id || "",
             dataCriacao: impressoraEditando?.dataCriacao || new Date(),
             dataAtualizacao: new Date(),
@@ -378,7 +379,7 @@ export function FormularioImpressora({
                                     <input
                                         type="number"
                                         step="0.01"
-                                        {...register("valorCompra")}
+                                        {...register("valorCompraCentavos")}
                                         placeholder="0,00"
                                         className="w-full h-11 pl-10 pr-12 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:border-gray-900 focus:ring-gray-900 dark:focus:border-white dark:focus:ring-white focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-1 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner"
                                     />
@@ -401,7 +402,7 @@ export function FormularioImpressora({
                                     <input
                                         type="number"
                                         step="0.01"
-                                        {...register("taxaHora")}
+                                        {...register("taxaHoraCentavos")}
                                         placeholder="15,00"
                                         title="Valor cobrado ou gerado estatisticamente por cada hora ligada."
                                         className="w-full h-11 pl-10 pr-16 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:border-gray-900 focus:ring-gray-900 dark:focus:border-white dark:focus:ring-white focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-1 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner"
@@ -434,7 +435,7 @@ export function FormularioImpressora({
                                     <input
                                         type="number"
                                         step="1"
-                                        {...register("horimetroTotal")}
+                                        {...register("horimetroTotalMinutos")}
                                         placeholder="0"
                                         className="w-full h-11 pl-10 pr-12 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:border-gray-900 focus:ring-gray-900 dark:focus:border-white dark:focus:ring-white focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-1 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner"
                                     />
@@ -457,7 +458,7 @@ export function FormularioImpressora({
                                     <input
                                         type="number"
                                         step="1"
-                                        {...register("intervaloRevisao")}
+                                        {...register("intervaloRevisaoMinutos")}
                                         placeholder="300"
                                         className="w-full h-11 pl-10 pr-12 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:border-gray-900 focus:ring-gray-900 dark:focus:border-white dark:focus:ring-white focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-1 rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner"
                                     />

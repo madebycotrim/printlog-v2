@@ -39,6 +39,17 @@ export function BarraLateral({
     const localizacao = useLocation();
     const { usuario, sair } = usarAutenticacao();
 
+    const lidarComSair = async () => {
+        try {
+            await sair();
+            // Força um recarregamento total na Home para evitar que a RotaProtegida 
+            // intercepte a navegação enquanto o estado do Firebase ainda está sendo limpo.
+            window.location.href = "/";
+        } catch (erro) {
+            console.error("Erro ao realizar logout:", erro);
+        }
+    };
+
     const grupos: GrupoNavegacao[] = [
         {
             titulo: "Geral",
@@ -230,7 +241,7 @@ export function BarraLateral({
                                 </p>
                             </div>
                             <button
-                                onClick={sair}
+                                onClick={lidarComSair}
                                 title="Sair"
                                 className="shrink-0 p-1.5 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             >

@@ -1,5 +1,6 @@
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
 import { Impressora } from "@/funcionalidades/producao/impressoras/tipos";
+import { StatusImpressora } from "@/compartilhado/tipos_globais/modelos";
 import {
     Printer,
     Zap,
@@ -32,10 +33,11 @@ export function ModalDetalhesImpressora({ impressora, aberto, aoFechar, aoSalvar
             setEditandoObs(false);
         }
     }, [impressora, aberto]);
+
     if (!impressora) return null;
 
-    const isOperacional = impressora.status === "Operacional";
-    const isManutencao = impressora.status === "Em Manutenção";
+    const isOperacional = impressora.status === StatusImpressora.LIVRE || impressora.status === StatusImpressora.IMPRIMINDO;
+    const isManutencao = impressora.status === StatusImpressora.MANUTENCAO;
 
     const statusCor = isOperacional
         ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
@@ -48,21 +50,18 @@ export function ModalDetalhesImpressora({ impressora, aberto, aoFechar, aoSalvar
     const subtitulo = [impressora.marca, impressora.modeloBase]
         .filter(Boolean).join(" • ") || impressora.tecnologia;
 
-    const horasUsadas = impressora.horimetroTotal || 0;
-    const intervalo = impressora.intervaloRevisao || 300;
-    const porcentagemRevisao = Math.min(100, (horasUsadas % intervalo) / intervalo * 100);
-    const horasRestantes = Math.max(0, intervalo - (horasUsadas % intervalo));
+    const horasUsadas = (impressora.horimetroTotalMinutos || 0) / 60;
+    const intervaloHoras = (impressora.intervaloRevisaoMinutos || 18000) / 60; // Default 300h
+    const porcentagemRevisao = Math.min(100, (horasUsadas % intervaloHoras) / intervaloHoras * 100);
+    const horasRestantes = Math.max(0, intervaloHoras - (horasUsadas % intervaloHoras));
 
-    // Lógica do ROI (Retorno sobre Investimento)
-    const valorCompra = impressora.valorCompra || 0;
+    // Lógica do ROI (Retorno sobre Investimento) em Centavos
+    const valorCompraCentavos = impressora.valorCompraCentavos || 0;
+    const taxaHoraCentavos = impressora.taxaHoraCentavos ?? 1500; // 15,00 fallback
+    const valorGeradoCentavos = horasUsadas * taxaHoraCentavos;
 
-    // Estimativa por hora trabalhada vinda do cadastro da máquina (fallback 15BRL para antigas)
-    const taxaHoraEstimada = impressora.taxaHora ?? 15;
-    const valorGeradoEstimado = horasUsadas * taxaHoraEstimada;
-
-    // A meta é o valor de compra.
-    const porcentagemRoi = valorCompra > 0
-        ? Math.min(100, (valorGeradoEstimado / valorCompra) * 100)
+    const porcentagemRoi = valorCompraCentavos > 0
+        ? Math.min(100, (valorGeradoCentavos / valorCompraCentavos) * 100)
         : 0;
 
     const lidarSalvarObs = () => {
@@ -75,12 +74,9 @@ export function ModalDetalhesImpressora({ impressora, aberto, aoFechar, aoSalvar
     return (
         <Dialogo aberto={aberto} aoFechar={aoFechar} larguraMax="max-w-2xl" esconderCabecalho>
             <div className="flex flex-col relative overflow-hidden">
-
-                {/* ── Fundo Decorativo no Topo ── */}
                 <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-sky-500/10 dark:from-sky-400/5 to-transparent pointer-events-none" />
 
                 <div className="p-6 space-y-5 relative z-10">
-                    {/* ── Cabeçalho Principal ── */}
                     <div className="flex items-start gap-5 pb-3 border-b border-gray-100 dark:border-white/5">
                         <div
                             className="w-24 h-24 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden shadow-sm"
@@ -124,7 +120,6 @@ export function ModalDetalhesImpressora({ impressora, aberto, aoFechar, aoSalvar
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* ── Horímetro ── */}
                         <div className="rounded-xl p-4 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/5 flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center gap-2 mb-3">
@@ -138,7 +133,7 @@ export function ModalDetalhesImpressora({ impressora, aberto, aoFechar, aoSalvar
                                         {horasUsadas.toLocaleString("pt-BR")}h
                                     </span>
                                     <span className="text-xs font-bold text-gray-400 dark:text-zinc-600 tabular-nums">
-                                        {horasRestantes}h restantes
+                                        {Math.round(horasRestantes)}h restantes
                                     </span>
                                 </div>
                             </div>
@@ -150,13 +145,12 @@ export function ModalDetalhesImpressora({ impressora, aberto, aoFechar, aoSalvar
                                     />
                                 </div>
                                 <p className="text-[10px] font-medium text-gray-400 dark:text-zinc-600 flex justify-between">
-                                    <span>A cada {intervalo}h</span>
+                                    <span>A cada {intervaloHoras}h</span>
                                     <span>{Math.round(porcentagemRevisao)}% concluído</span>
                                 </p>
                             </div>
                         </div>
 
-                        {/* ── ROI (Retorno sobre Investimento) ── */}
                         <div className="rounded-xl p-4 bg-gradient-to-br from-gray-50 to-white dark:from-white/[0.03] dark:to-white/[0.01] border border-gray-200 dark:border-white/5 shadow-sm flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-4">
@@ -168,7 +162,7 @@ export function ModalDetalhesImpressora({ impressora, aberto, aoFechar, aoSalvar
                                             ROI Estimado
                                         </span>
                                     </div>
-                                    {valorCompra > 0 ? (
+                                    {valorCompraCentavos > 0 ? (
                                         <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
                                             {Math.round(porcentagemRoi)}% Atingido
                                         </span>
@@ -185,7 +179,7 @@ export function ModalDetalhesImpressora({ impressora, aberto, aoFechar, aoSalvar
                                             Valor Gerado
                                         </p>
                                         <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 tabular-nums leading-none">
-                                            R$ {valorGeradoEstimado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                            R$ {(valorGeradoCentavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                         </p>
                                     </div>
                                     <div className="text-right">
@@ -193,7 +187,7 @@ export function ModalDetalhesImpressora({ impressora, aberto, aoFechar, aoSalvar
                                             Custo (100%)
                                         </p>
                                         <p className="text-sm font-bold text-gray-400 dark:text-zinc-400 tabular-nums leading-none">
-                                            R$ {valorCompra > 0 ? valorCompra.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "0,00"}
+                                            R$ {valorCompraCentavos > 0 ? (valorCompraCentavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "0,00"}
                                         </p>
                                     </div>
                                 </div>
@@ -209,17 +203,13 @@ export function ModalDetalhesImpressora({ impressora, aberto, aoFechar, aoSalvar
                         </div>
                     </div>
 
-                    {/* ── Especificações ── */}
                     <div className="grid grid-cols-2 gap-3">
                         <InfoCard icone={Zap} rotulo="Potência" valor={impressora.potenciaWatts ? `${impressora.potenciaWatts}W` : "—"} />
-                        <InfoCard icone={Box} rotulo="Peças Impressas" valor="15" />
+                        <InfoCard icone={Box} rotulo="Peças Impressas" valor={impressora.historicoProducao?.length.toString() || "0"} />
                         <InfoCard icone={Wrench} rotulo="Consumo Energético" valor={impressora.consumoKw ? `${impressora.consumoKw} kW/h` : "—"} />
-                        <InfoCard icone={Activity} rotulo="Taxa de Sucesso" valor="95%" />
+                        <InfoCard icone={Activity} rotulo="Taxa de Sucesso" valor="—" />
                     </div>
 
-
-
-                    {/* ── Observações (Editável) ── */}
                     <div className="rounded-xl p-4 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 relative group transition-colors hover:bg-white dark:hover:bg-white/[0.04]">
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">

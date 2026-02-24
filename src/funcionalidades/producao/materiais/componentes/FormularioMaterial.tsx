@@ -155,10 +155,10 @@ export function FormularioMaterial({
           tipoMaterial: materialEditando.tipoMaterial || "",
           nomePersonalizado: temNomeCustomizado ? materialEditando.nome : "",
           cor: materialEditando.cor || "",
-          preco: materialEditando.preco,
-          peso: materialEditando.peso,
+          preco: materialEditando.precoCentavos ? materialEditando.precoCentavos / 100 : 0,
+          peso: materialEditando.pesoGramas,
           estoqueInicial: materialEditando.estoque,
-          usarGramas: false, // Defaulting behavior original
+          usarGramas: false,
         });
       } else {
         reset({
@@ -189,14 +189,14 @@ export function FormularioMaterial({
       `${dados.tipoMaterial || "Material"} ${dados.fabricante || ""}`.trim();
 
     aoSalvar({
-      id: materialEditando?.id || Date.now().toString(),
+      id: materialEditando?.id || crypto.randomUUID(),
       tipo: dados.tipo,
       nome: nomeFinal,
       tipoMaterial: dados.tipoMaterial,
       fabricante: dados.fabricante,
       cor: corFinal,
-      preco: dados.preco,
-      peso: dados.peso,
+      precoCentavos: Math.round(Number(dados.preco) * 100),
+      pesoGramas: Number(dados.peso),
       estoque: dados.estoqueInicial,
     });
   };
@@ -566,4 +566,3 @@ export function FormularioMaterial({
     </Dialogo>
   );
 }
-

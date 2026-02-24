@@ -27,7 +27,7 @@ export function Rodape() {
                 </span>
               </div>
               <p className="text-zinc-500 text-sm leading-relaxed max-w-sm">
-                Sistema de gestão profissional para makers 3D. Calcule com
+                Sistema de gestão para makers 3D. Calcule com
                 precisão seus custos de impressão e maximize seus lucros.
               </p>
             </div>

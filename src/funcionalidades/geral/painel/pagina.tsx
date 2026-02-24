@@ -30,8 +30,8 @@ export function PaginaInicial() {
 
   // 🧮 CÁLCULOS DE KPI
   const totaisPecas = insumos.reduce((acc, i) => acc + i.quantidadeAtual, 0);
-  const maquinasAtivas = impressoras.filter(i => i.status !== "Aposentada").length;
-  const alertaMateriais = materiais.filter(m => (m.pesoRestante / m.peso) < 0.2).length;
+  const maquinasAtivas = impressoras.filter(i => !i.dataAposentadoria).length;
+  const alertaMateriais = materiais.filter(m => (m.pesoRestanteGramas / m.pesoGramas) < 0.2).length;
 
   usarDefinirCabecalho({
     titulo: `Olá, ${usuario?.ehAnonimo ? "Convidado" : usuario?.nome?.split(" ")[0] || "Maker"}! 👋`,

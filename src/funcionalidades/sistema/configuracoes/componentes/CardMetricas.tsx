@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Database, User, PackageSearch, Activity, Download, FolderKanban, CheckCircle2 } from "lucide-react";
+import { registrar } from "@/compartilhado/utilitarios/registrador";
 import { CabecalhoCard } from "./Compartilhados";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
 import { usarArmazemMateriais } from "@/funcionalidades/producao/materiais/estado/armazemMateriais";
@@ -13,11 +14,11 @@ export function CardMetricas() {
 
     const gerarLogBackend = (formato: string) => {
         // [Art. 37 - ROA] Simulando log em um sistema de auditoria (D1/Logs).
-        console.log(`[LGPD - LOG DE OPERAÇÃO DE PORTABILIDADE]`);
-        console.log(`Titular: ${usuario?.uid || "Desconhecido"}`);
-        console.log(`Ação: Exercício do Direito de Portabilidade (Art. 18, V)`);
-        console.log(`Formato: ${formato}`);
-        console.log(`Data/Hora: ${new Date().toISOString()}`);
+        registrar.info({
+            rastreioId: "auditoria-portabilidade", // No futuro viria do contexto de req
+            titularId: usuario?.uid || "Desconhecido",
+            formato
+        }, `Exercício do Direito de Portabilidade (Art. 18, V)`);
     };
 
     const exibirSucesso = () => {
@@ -44,7 +45,7 @@ export function CardMetricas() {
                         titular: usuario.ehAnonimo ? "Convidado" : (usuario.nome || "Usuário não identificado"),
                         usuario_id: usuario.uid,
                         dataExportacao: new Date().toISOString(),
-                        versaoSistema: "v2.0",
+                        versaoSistema: "BETA",
                         referenciaLegal: "Direito de Portabilidade - Art. 18, V, LGPD",
                         politicaPrivacidade: "https://printlog.com.br/politica-de-privacidade",
                         isolamento: "Dados restritos ao UID logado (Art. 6º, I)."
@@ -70,7 +71,7 @@ export function CardMetricas() {
                 csvContent += `Titular:,${usuario.ehAnonimo ? "Convidado" : (usuario.nome || "Usuário")}\n`;
                 csvContent += `ID Titular:,${usuario.uid}\n`;
                 csvContent += `Data de Exportacao:,${new Date().toISOString()}\n`;
-                csvContent += `Versão do Sistema:,v2.0\n`;
+                csvContent += `Versão do Sistema:,BETA\n`;
                 csvContent += `Referencia Legal:,Direito de Portabilidade - Art. 18 V LGPD\n`;
                 csvContent += `Politica de Privacidade:,https://printlog.com.br/politica-de-privacidade\n\n`;
                 csvContent += `Tipo de Dado,Quantidade,Nota de Isolamento\n`;
@@ -101,9 +102,9 @@ export function CardMetricas() {
         }
     };
     return (
-        <div className="h-full rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#18181b] p-4 md:p-5 flex flex-col gap-4 relative overflow-hidden group">
+        <div className="h-full rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#141417] p-4 md:p-5 flex flex-col gap-4 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/[0.03] to-zinc-500/[0.01] dark:from-zinc-500/[0.05] dark:to-zinc-500/[0.02] pointer-events-none" />
-            <CabecalhoCard titulo="Métricas e Sistema" descricao="Resumo do estúdio e exportação" icone={Database} corIcone="text-cyan-500" />
+            <CabecalhoCard titulo="Painel do Estúdio" descricao="Resumo geral e exportação de dados" icone={Database} corIcone="text-cyan-500" />
             <div className="grid grid-cols-5 gap-1.5">
                 {[
                     { val: "12", lab: "Clientes", icone: User, cor: "text-sky-500", fundo: "bg-sky-500/10" },
@@ -113,11 +114,11 @@ export function CardMetricas() {
                     { val: "42", lab: "Projetos", icone: FolderKanban, cor: "text-rose-500", fundo: "bg-rose-500/10" },
                 ].map((item) => (
                     <div key={item.lab} className="rounded-xl border border-gray-200 dark:border-white/10 py-2 bg-gray-50/70 dark:bg-white/[0.02] flex flex-col items-center justify-center text-center">
-                        <span className={`rounded-lg p-1.5 ${item.fundo} ${item.cor} mb-1.5`}>
+                        <span className={`rounded-lg p-1.5 ${item.fundo} ${item.cor} mb-1`}>
                             <item.icone size={13} />
                         </span>
-                        <p className="text-base font-black text-gray-900 dark:text-white leading-none">{item.val}</p>
-                        <p className="mt-1 text-[10px] uppercase tracking-[0.12em] font-black text-gray-500 dark:text-zinc-500 truncate w-full px-1">{item.lab}</p>
+                        <p className="text-sm font-black text-gray-900 dark:text-white leading-none">{item.val}</p>
+                        <p className="mt-1 text-[9px] uppercase tracking-[0.14em] font-black text-gray-500 dark:text-zinc-500 truncate w-full px-1">{item.lab}</p>
                     </div>
                 ))}
             </div>
@@ -129,10 +130,10 @@ export function CardMetricas() {
                     </span>
                     <div className="truncate">
                         <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-900 dark:text-white leading-tight truncate">
-                            {mensagemSucesso || "Cópia e Portabilidade"}
+                            {mensagemSucesso || "Exportação de Dados"}
                         </p>
                         <p className="text-[9px] text-gray-500 dark:text-zinc-500 leading-tight truncate">
-                            Clientes, projetos, filamentos, insumos e máquinas.
+                            Exportar todos os dados do estúdio
                         </p>
                     </div>
                 </div>
@@ -142,7 +143,7 @@ export function CardMetricas() {
                             key={tipo}
                             onClick={() => lidarComExportacao(tipo)}
                             disabled={exportando}
-                            className="h-8 px-3 rounded-lg bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/10 text-[10px] font-black uppercase text-gray-700 dark:text-zinc-300 hover:border-gray-300 dark:hover:border-white/20 transition-all shadow-sm disabled:opacity-50 disabled:cursor-wait"
+                            className="h-8 px-3 rounded-xl bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/10 text-[10px] font-black uppercase text-gray-700 dark:text-zinc-300 hover:border-gray-300 dark:hover:border-white/20 transition-all shadow-sm disabled:opacity-50 disabled:cursor-wait"
                         >
                             {tipo}
                         </button>

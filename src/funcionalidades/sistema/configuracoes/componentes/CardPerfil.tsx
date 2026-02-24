@@ -13,9 +13,9 @@ interface PropsCardPerfil {
 
 export function CardPerfil({ usuario, nome, definirNome, enviandoEmail, sucessoEmail, lidarComTrocaSenha, pendente }: PropsCardPerfil) {
     return (
-        <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#18181b] p-5 md:p-6 flex flex-col gap-5 relative overflow-hidden group">
+        <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#141417] p-5 md:p-6 flex flex-col gap-5 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/[0.03] to-zinc-500/[0.01] dark:from-zinc-500/[0.05] dark:to-zinc-500/[0.02] pointer-events-none" />
-            <CabecalhoCard titulo="Perfil Maker" descricao="Sua conta de acesso e segurança" icone={User} corIcone="text-sky-500" pendente={pendente} />
+            <CabecalhoCard titulo="Perfil Maker" descricao="Sua conta de acesso e segurança" icone={User} corIcone="text-[var(--cor-primaria)]" pendente={pendente} />
 
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
                 <div className="flex flex-col items-center justify-center shrink-0 w-32 rounded-2xl p-4 bg-gray-50/70 dark:bg-white/[0.02]">
@@ -26,19 +26,17 @@ export function CardPerfil({ usuario, nome, definirNome, enviandoEmail, sucessoE
                             <span className="text-3xl font-black text-gray-400 dark:text-zinc-700">{usuario?.nome?.charAt(0) || "C"}</span>
                         )}
                     </div>
-
                 </div>
 
-                <div className="flex-1 w-full space-y-4">
-                    <CampoDashboard label="Nome Completo" valor={nome} aoMudar={definirNome} icone={User} placeholder="Seu nome" />
-                    <div>
-                        <label className="mb-1.5 block text-xs font-black uppercase tracking-[0.16em] text-gray-500 dark:text-zinc-500">
-                            E-mail Vinculado
-                        </label>
-                        <div className="h-11 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.02] px-4 flex items-center gap-3">
+                <div className="flex-1 space-y-4 w-full">
+                    <CampoDashboard label="Nome no Perfil" valor={nome} aoMudar={definirNome} placeholder="Seu nome maker" icone={User} />
+
+                    <div className="w-full">
+                        <label className="mb-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-gray-500 dark:text-zinc-500 ml-1">E-mail de Acesso</label>
+                        <div className="h-11 w-full bg-transparent border-b-2 border-gray-200 dark:border-white/10 flex items-center gap-3">
                             <Mail size={16} className="text-gray-400" />
                             <span className="truncate text-sm font-semibold text-gray-700 dark:text-zinc-300 flex-1">
-                                {usuario?.ehAnonimo ? "Conta de Convidado (Sem E-mail)" : usuario?.email}
+                                {usuario?.ehAnonimo ? "Visitante (Acesso Temporário)" : usuario?.email}
                             </span>
                             {usuario?.provedorGoogle && (
                                 <svg className="shrink-0 w-4 h-4" viewBox="0 0 48 48">
@@ -53,22 +51,20 @@ export function CardPerfil({ usuario, nome, definirNome, enviandoEmail, sucessoE
                 </div>
             </div>
 
-
-
             {!usuario?.ehAnonimo && !enviandoEmail && !sucessoEmail && (
                 <button
                     onClick={lidarComTrocaSenha}
                     className="mt-auto h-11 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.02] text-gray-700 dark:text-zinc-300 hover:border-gray-300 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-[0.12em] transition-all shadow-sm active:scale-[0.98]"
                 >
-                    <Lock size={14} className="text-sky-500" />
+                    <Lock size={14} className="text-[var(--cor-primaria)]" />
                     Gerar Link de Redefinição
                 </button>
             )}
 
             {enviandoEmail && (
-                <div className="mt-auto h-11 w-full rounded-xl border border-sky-200 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center gap-3">
-                    <div className="w-4 h-4 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-sky-700 dark:text-sky-400">Processando Solicitação...</span>
+                <div className="mt-auto h-11 w-full rounded-xl border border-[var(--cor-primaria)]/20 bg-[var(--cor-primaria)]/5 flex items-center justify-center gap-3">
+                    <div className="w-4 h-4 border-2 border-[var(--cor-primaria)] border-t-transparent rounded-full animate-spin" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--cor-primaria)]">Processando Solicitação...</span>
                 </div>
             )}
 
@@ -85,7 +81,7 @@ export function CardPerfil({ usuario, nome, definirNome, enviandoEmail, sucessoE
             )}
 
             <p className="mt-2 text-[11px] leading-relaxed text-gray-400 dark:text-zinc-500 text-center px-4">
-                <strong>Finalidade:</strong> Seus dados de perfil são tratados exclusivamente para identificação e segurança na plataforma, conforme Art. 7º, V da LGPD.
+                <strong>Finalidade:</strong> Seus dados de perfil são utilizados para identificação e acesso à plataforma, conforme Art. 7º, V da LGPD.
             </p>
         </div>
     );

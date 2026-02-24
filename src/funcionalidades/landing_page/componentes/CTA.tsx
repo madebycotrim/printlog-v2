@@ -75,8 +75,8 @@ export function ChamadaAcao() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-zinc-400 mb-10 max-w-2xl mx-auto leading-relaxed"
           >
-            Junte-se a centenas de makers e farms que já otimizaram sua
-            precificação e aumentaram seus lucros.
+            Feito para makers e farms que querem otimizar sua
+            precificação e aumentar seus lucros.
           </motion.p>
 
           {/* Botão de Ação */}

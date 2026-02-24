@@ -59,7 +59,7 @@ export function PaginaCadastro() {
     try {
       definirCarregandoCadastro(true);
       await cadastro(email, senha, nome);
-      navegar("/dashboard");
+      // O useEffect acima cuidará do redirecionamento
     } catch (err: any) {
       definirErro(err.message);
     } finally {
@@ -74,7 +74,7 @@ export function PaginaCadastro() {
     }
     try {
       await loginGoogle();
-      navegar("/dashboard");
+      // O useEffect acima cuidará do redirecionamento
     } catch (err: any) {
       definirErro(err.message);
     }

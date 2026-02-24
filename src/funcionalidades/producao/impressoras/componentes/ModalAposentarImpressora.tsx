@@ -80,7 +80,7 @@ export function ModalAposentarImpressora({
                     <button
                         type="button"
                         onClick={aoConfirmar}
-                        className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95"
+                        className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-lg shadow-lg shadow-rose-500/10 flex items-center gap-2 transition-all active:scale-95"
                     >
                         <Archive size={18} strokeWidth={2.5} />
                         Sim, Aposentar Máquina

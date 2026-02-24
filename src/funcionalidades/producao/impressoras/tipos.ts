@@ -1,6 +1,7 @@
-export type TecnologiaImpressora = "FDM" | "SLA" | "DLP" | "LCD";
+import { Centavos, StatusImpressora } from "../../../compartilhado/tipos_globais/modelos";
+export { StatusImpressora };
 
-export type StatusImpressora = "Operacional" | "Em Manutenção" | "Aposentada";
+export type TecnologiaImpressora = "FDM" | "SLA" | "DLP" | "LCD";
 
 export interface VolumeImpressao {
     largura: number;
@@ -24,25 +25,25 @@ export interface RegistroManutencao {
     tipo: "Preventiva" | "Corretiva" | "Melhoria";
     descricao: string;
     pecasTrocadas?: string;
-    custo: number;
+    custoCentavos: Centavos;
     responsavel: string;
-    tempoParadaHoras?: number;
-    horasMaquinaNoMomento?: number;
+    tempoParadaMinutos: number;
+    horasMaquinaNoMomentoMinutos: number;
 }
 
 export interface PecaDesgaste {
     id: string;
     nome: string;
-    horasTrocado: number;
-    vidaUtilEstimada: number;
+    minutosTrocado: number;
+    vidaUtilEstimadaMinutos: number;
     dataInclusao: string;
 }
 
 export interface RegistroProducao {
     idProtocolo: string;
     nomeProjeto: string;
-    horasImpressao: number;
-    valorGerado: number;
+    minutosImpressao: number;
+    valorGeradoCentavos: Centavos;
     dataConclusao: string;
     sucesso: boolean;
 }
@@ -53,7 +54,7 @@ export interface Impressora {
     tecnologia: TecnologiaImpressora;
     volumeImpressao: VolumeImpressao;
     /** Aplicável apenas para tecnologia FDM */
-    diametroBicoAtual?: number;
+    diametroBicoAtualMm?: number;
     /** Aplicável apenas para tecnologias de Resina (SLA/DLP/LCD) */
     tamanhoTela?: string;
     status: StatusImpressora;
@@ -68,14 +69,14 @@ export interface Impressora {
     consumoKw?: number;
     /** Potência em Watts */
     potenciaWatts?: number;
-    /** Valor de compra em BRL */
-    valorCompra?: number;
-    /** Taxa hora da máquina em BRL/h */
-    taxaHora?: number;
-    /** Horímetro total em horas de uso acumulado */
-    horimetroTotal?: number;
-    /** Intervalo em horas entre revisões preventivas */
-    intervaloRevisao?: number;
+    /** Valor de compra em centavos */
+    valorCompraCentavos?: Centavos;
+    /** Taxa hora da máquina em centavos (por hora de uso) */
+    taxaHoraCentavos?: Centavos;
+    /** Horímetro total em minutos de uso acumulado */
+    horimetroTotalMinutos?: number;
+    /** Intervalo em minutos entre revisões preventivas */
+    intervaloRevisaoMinutos?: number;
     /** Rastreamento de consumíveis críticos */
     pecasDesgaste?: PecaDesgaste[];
     /** Simulação de histórico de produção vinculada */

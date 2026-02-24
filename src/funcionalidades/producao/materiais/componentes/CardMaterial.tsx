@@ -1,10 +1,12 @@
-import { MoreVertical, Edit2, Trash2, Scissors, History, PackagePlus } from "lucide-react";
+import { Pencil, Trash2, Scissors, History, PackagePlus, MoreVertical } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
 import {
   Carretel,
   GarrafaResina,
 } from "@/compartilhado/componentes_ui/Icones3D";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
+import { pluralizar } from "@/compartilhado/utilitarios/formatadores";
 
 interface CardMaterialProps {
   material: Material;
@@ -23,39 +25,24 @@ export function CardMaterial({
   aoHistorico,
   aoRepor,
 }: CardMaterialProps) {
-  const [menuAberto, definirMenuAberto] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [estaVisivel, definirEstaVisivel] = useState(false);
-
-  // Fechar menu ao clicar fora ou apertar ESC
-  const lidarComTecla = useCallback((event: KeyboardEvent) => {
-    if (event.key === "Escape") definirMenuAberto(false);
-  }, []);
+  const [menuAberto, definirMenuAberto] = useState(false);
 
   useEffect(() => {
-    function lidarComCliqueFora(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+    const clicarFora = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         definirMenuAberto(false);
       }
-    }
-
-    if (menuAberto) {
-      document.addEventListener("mousedown", lidarComCliqueFora);
-      document.addEventListener("keydown", lidarComTecla);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", lidarComCliqueFora);
-      document.removeEventListener("keydown", lidarComTecla);
     };
-  }, [menuAberto, lidarComTecla]);
+    document.addEventListener("mousedown", clicarFora);
+    return () => document.removeEventListener("mousedown", clicarFora);
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Usa margem grande para renderizar o pesado SVG *antes* de entrar na tela,
-        // mas o descarrega (unmount) se rolar pra longe, poupando a GPU.
         definirEstaVisivel(entry.isIntersecting);
       },
       { rootMargin: "250px" }
@@ -68,7 +55,7 @@ export function CardMaterial({
 
   const porcentagem = Math.min(
     100,
-    Math.max(0, (material.pesoRestante / material.peso) * 100),
+    Math.max(0, (material.pesoRestanteGramas / material.pesoGramas) * 100),
   );
 
   // Cor da barra de progresso e textos
@@ -91,11 +78,11 @@ export function CardMaterial({
         </span>
       </div>
 
-      {/* Indicador de Quantidade Fechada (Estoque) movido um pouco para o lado */}
+      {/* Indicador de Quantidade Fechada (Estoque) */}
       {material.estoque > 0 && (
         <div className="absolute top-4 right-14 bg-emerald-500/10 text-emerald-400 text-[10px] font-black px-2 py-1 rounded-md flex items-center gap-1 z-20 border border-emerald-500/20 shadow-[0_0_8px_rgba(52,211,153,0.1)]">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-[pulse_2s_ease-in-out_infinite]" />
-          +{material.estoque} Lacre
+          +{pluralizar(material.estoque, "lacre", "lacres")}
         </div>
       )}
 
@@ -123,73 +110,69 @@ export function CardMaterial({
         </div>
       </div>
 
-      {/* Menu Dropdown de Ações */}
-      <div className="absolute top-4 right-3 z-30" ref={menuRef}>
+      {/* Ações Rápidas (Sempre visíveis) */}
+      <div className="absolute top-4 right-4 z-30" ref={menuRef}>
         <button
           onClick={(e) => { e.stopPropagation(); definirMenuAberto(!menuAberto); }}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 outline-none text-gray-400 hover:text-gray-900 dark:text-white/20 dark:hover:text-white"
-          aria-label="Opções do material"
+          className={`p-2 rounded-xl transition-all ${menuAberto ? 'bg-zinc-100 dark:bg-white/10 text-zinc-900 dark:text-white' : 'text-zinc-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
         >
-          <MoreVertical size={16} />
+          <MoreVertical size={18} />
         </button>
 
-        {menuAberto && (
-          <div
-            className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden z-30 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right"
-            role="menu"
-          >
-            <button
-              onClick={() => {
-                aoAbater(material.id);
-                definirMenuAberto(false);
-              }}
-              className="w-full text-left px-4 py-3 text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 flex items-center gap-2.5 transition-colors outline-none"
-              role="menuitem"
+        <AnimatePresence>
+          {menuAberto && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-white/10 rounded-2xl shadow-xl z-50 overflow-hidden"
             >
-              <Scissors size={14} /> Registrar Uso
-            </button>
-            <button
-              onClick={() => {
-                aoHistorico(material.id);
-                definirMenuAberto(false);
-              }}
-              className="w-full text-left px-4 py-3 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 flex items-center gap-2.5 transition-colors border-t border-gray-100 dark:border-white/5 outline-none"
-              role="menuitem"
-            >
-              <History size={14} /> Histórico
-            </button>
-            <button
-              onClick={() => {
-                aoRepor(material.id);
-                definirMenuAberto(false);
-              }}
-              className="w-full text-left px-4 py-3 text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 flex items-center gap-2.5 transition-colors border-t border-gray-100 dark:border-white/5 outline-none"
-              role="menuitem"
-            >
-              <PackagePlus size={14} /> Repor Estoque
-            </button>
-            <button
-              onClick={() => {
-                aoEditar(material);
-                definirMenuAberto(false);
-              }}
-              className="w-full text-left px-4 py-3 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2.5 transition-colors border-t border-gray-100 dark:border-white/5 outline-none"
-              role="menuitem"
-            >
-              <Edit2 size={14} /> Editar
-            </button>
-            <button
-              onClick={() => {
-                aoExcluir(material.id);
-                definirMenuAberto(false);
-              }}
-              className="w-full text-left px-4 py-3 text-sm font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors border-t border-gray-100 dark:border-white/5 outline-none"
-              role="menuitem"
-            >
-              <Trash2 size={14} /> Remover
-            </button>
-          </div>
-        )}
+              <div className="p-1.5 space-y-0.5">
+                <button
+                  onClick={(e) => { e.stopPropagation(); aoAbater(material.id); definirMenuAberto(false); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400 rounded-lg transition-colors group/item uppercase tracking-widest"
+                >
+                  <Scissors size={14} className="text-gray-400 group-hover/item:text-sky-500 transition-colors" />
+                  REGISTRAR USO
+                </button>
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); aoRepor(material.id); definirMenuAberto(false); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg transition-colors group/item uppercase tracking-widest"
+                >
+                  <PackagePlus size={14} className="text-gray-400 group-hover/item:text-emerald-500 transition-colors" />
+                  REPOR ESTOQUE
+                </button>
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); aoHistorico(material.id); definirMenuAberto(false); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors group/item uppercase tracking-widest"
+                >
+                  <History size={14} className="text-gray-400 group-hover/item:text-indigo-500 transition-colors" />
+                  VER HISTÓRICO
+                </button>
+
+                <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); aoEditar(material); definirMenuAberto(false); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors group/item uppercase tracking-widest"
+                >
+                  <Pencil size={14} className="text-gray-400 group-hover/item:text-gray-900 dark:group-hover/item:text-white transition-colors" />
+                  EDITAR
+                </button>
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); aoExcluir(material.id); definirMenuAberto(false); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-rose-600 hover:bg-rose-500/10 rounded-lg transition-colors group/item uppercase tracking-widest"
+                >
+                  <Trash2 size={14} className="text-rose-400 group-hover/item:text-rose-600 transition-colors" />
+                  REMOVER
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Rodapé: Fabricante | Nome | Quantidade Restante */}
@@ -208,7 +191,7 @@ export function CardMaterial({
 
         <div className="flex flex-col items-end shrink-0">
           <span className={`text-[25px] font-black ${corProgressoTexto} leading-none tracking-tighter`}>
-            {material.pesoRestante}<span className="text-[14px] opacity-70 ml-[1px]">{unidade}</span>
+            {material.pesoRestanteGramas}<span className="text-[14px] opacity-70 ml-[1px]">{unidade}</span>
           </span>
           <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400 dark:text-zinc-600 mt-2">
             Restantes

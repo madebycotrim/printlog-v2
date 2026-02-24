@@ -32,7 +32,7 @@ export function GraficoConsumo() {
                 </select>
             </div>
 
-            <div className="h-[300px] w-full">
+            <div className="h-[300px] w-full" style={{ minWidth: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={DADOS_GRAFICO}>
                         <defs>
