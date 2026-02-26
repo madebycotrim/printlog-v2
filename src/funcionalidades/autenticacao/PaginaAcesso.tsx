@@ -1,19 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  Mail,
-  Lock,
-  AlertCircle,
-  ArrowRight,
-  CheckCircle2,
-  User,
-} from "lucide-react";
+import { Mail, Lock, AlertCircle, ArrowRight, CheckCircle2, User } from "lucide-react";
 import { LayoutAutenticacao } from "./componentes/LayoutAutenticacao";
 import { PainelBranding } from "./componentes/PainelBranding";
 import { InputAuth } from "./componentes/InputAuth";
-import { usarAutenticacao } from "./contexto/ContextoAutenticacao";
+import { usarAutenticacao } from "./contextos/ContextoAutenticacao";
 import { ComponenteTurnstile } from "./componentes/ComponenteTurnstile";
-import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
+import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 
 export function PaginaAcesso() {
   const navegar = useNavigate();
@@ -134,23 +127,13 @@ export function PaginaAcesso() {
       <div className="w-full lg:w-1/2 p-8 lg:p-14 flex flex-col justify-center relative bg-black/20">
         {/* Mobile Logo */}
         <div className="lg:hidden flex items-center gap-2 mb-8">
-          <img
-            src="/logo-colorida.png"
-            alt="Logo"
-            className="w-8 h-8 object-contain"
-          />
-          <span className="text-white font-black tracking-tighter text-xl">
-            PRINTLOG
-          </span>
+          <img src="/logo-colorida.png" alt="Logo" className="w-8 h-8 object-contain" />
+          <span className="text-white font-black tracking-tighter text-xl">PRINTLOG</span>
         </div>
 
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Acesse sua conta
-          </h2>
-          <p className="text-zinc-500 text-sm">
-            Bem-vindo de volta! Insira seus dados para continuar.
-          </p>
+          <h2 className="text-2xl font-bold text-white mb-2">Acesse sua conta</h2>
+          <p className="text-zinc-500 text-sm">Bem-vindo de volta! Insira seus dados para continuar.</p>
         </div>
 
         {erro && (
@@ -187,10 +170,7 @@ export function PaginaAcesso() {
             }
           />
 
-          <ComponenteTurnstile
-            aoValidar={definirTokenCaptcha}
-            aoExpirar={() => definirTokenCaptcha(null)}
-          />
+          <ComponenteTurnstile aoValidar={definirTokenCaptcha} aoExpirar={() => definirTokenCaptcha(null)} />
 
           <button
             type="submit"
@@ -257,10 +237,7 @@ export function PaginaAcesso() {
 
         <p className="mt-8 text-center text-sm text-zinc-500">
           Não tem uma conta?{" "}
-          <a
-            href="/cadastro"
-            className="font-bold text-[#0ea5e9] hover:underline hover:text-[#0284c7]"
-          >
+          <a href="/cadastro" className="font-bold text-[#0ea5e9] hover:underline hover:text-[#0284c7]">
             Cadastre-se grátis
           </a>
         </p>

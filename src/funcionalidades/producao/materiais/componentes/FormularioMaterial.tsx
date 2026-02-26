@@ -2,24 +2,12 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-  Carretel,
-  GarrafaResina,
-} from "@/compartilhado/componentes_ui/Icones3D";
-import {
-  Save,
-  Plus,
-  Building2,
-  Layers,
-  Tag,
-  Weight,
-  BoxSelect,
-  Beaker,
-} from "lucide-react";
-import { Combobox } from "@/compartilhado/componentes_ui/Combobox";
-import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
-import { CampoTexto } from "@/compartilhado/componentes_ui/CampoTexto";
-import { CampoMonetario } from "@/compartilhado/componentes_ui/CampoMonetario";
+import { Carretel, GarrafaResina } from "@/compartilhado/componentes/Icones3D";
+import { Save, Plus, Building2, Layers, Tag, Weight, BoxSelect, Beaker } from "lucide-react";
+import { Combobox } from "@/compartilhado/componentes/Combobox";
+import { Dialogo } from "@/compartilhado/componentes/Dialogo";
+import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
+import { CampoMonetario } from "@/compartilhado/componentes/CampoMonetario";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
 
@@ -30,12 +18,8 @@ const esquemaMaterial = z.object({
   tipoMaterial: z.string().min(1, "O tipo de material é obrigatório."),
   nomePersonalizado: z.string().optional(),
   cor: z.string().optional(),
-  preco: z
-    .number({ message: "Valor numérico obrigatório." })
-    .positive("O valor deve ser maior que zero."),
-  peso: z
-    .number({ message: "Quantidade num. obrigatória." })
-    .positive("A quantidade deve ser maior que zero."),
+  preco: z.number({ message: "Valor numérico obrigatório." }).positive("O valor deve ser maior que zero."),
+  peso: z.number({ message: "Quantidade num. obrigatória." }).positive("A quantidade deve ser maior que zero."),
   estoqueInicial: z
     .number({ message: "Estoque num. obrigatório." })
     .int("Deixe sem casas decimais.")
@@ -87,10 +71,34 @@ const MATERIAIS_SLA = [
 
 // --- PALETA DE CORES ---
 const CORES_PREDEFINIDAS = [
-  "#FFFFFF", "#F5DEB3", "#C0C0C0", "#FFFF00", "#FFD700", "#FFA500", "#FF4500",
-  "#8B0000", "#800080", "#4B0082", "#00FFFF", "#00BFFF", "#0000FF", "#000080",
-  "#8B4513", "#5D4037", "#808000", "#808080", "#708090", "#2F4F4F", "#000000",
-  "#FA8072", "#FFC0CB", "#FF00FF", "#FF0000", "#32CD32", "#008000", "#006400",
+  "#FFFFFF",
+  "#F5DEB3",
+  "#C0C0C0",
+  "#FFFF00",
+  "#FFD700",
+  "#FFA500",
+  "#FF4500",
+  "#8B0000",
+  "#800080",
+  "#4B0082",
+  "#00FFFF",
+  "#00BFFF",
+  "#0000FF",
+  "#000080",
+  "#8B4513",
+  "#5D4037",
+  "#808000",
+  "#808080",
+  "#708090",
+  "#2F4F4F",
+  "#000000",
+  "#FA8072",
+  "#FFC0CB",
+  "#FF00FF",
+  "#FF0000",
+  "#32CD32",
+  "#008000",
+  "#006400",
 ];
 
 interface PropriedadesFormularioMaterial {
@@ -105,12 +113,7 @@ interface PropriedadesFormularioMaterial {
   materialEditando?: Material | null;
 }
 
-export function FormularioMaterial({
-  aberto,
-  aoSalvar,
-  aoCancelar,
-  materialEditando,
-}: PropriedadesFormularioMaterial) {
+export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEditando }: PropriedadesFormularioMaterial) {
   const estaEditando = Boolean(materialEditando);
 
   const [confirmarDescarte, definirConfirmarDescarte] = useState(false);
@@ -153,8 +156,7 @@ export function FormularioMaterial({
       if (materialEditando) {
         const nomeFinalEsperado = `${materialEditando.tipoMaterial || ""} ${materialEditando.fabricante || ""}`.trim();
         const temNomeCustomizado =
-          materialEditando.nome !== nomeFinalEsperado &&
-          materialEditando.nome !== materialEditando.tipoMaterial;
+          materialEditando.nome !== nomeFinalEsperado && materialEditando.nome !== materialEditando.tipoMaterial;
 
         reset({
           tipo: materialEditando.tipo,
@@ -193,8 +195,7 @@ export function FormularioMaterial({
     try {
       const corFinal = dados.cor || "#3b82f6";
       const nomeFinal =
-        dados.nomePersonalizado ||
-        `${dados.tipoMaterial || "Material"} ${dados.fabricante || ""}`.trim();
+        dados.nomePersonalizado || `${dados.tipoMaterial || "Material"} ${dados.fabricante || ""}`.trim();
 
       await aoSalvar({
         id: materialEditando?.id || crypto.randomUUID(),
@@ -242,10 +243,8 @@ export function FormularioMaterial({
                 "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
               backgroundSize: "32px 32px",
               backgroundPosition: "center center",
-              maskImage:
-                "radial-gradient(ellipse at center, black 40%, transparent 75%)",
-              WebkitMaskImage:
-                "radial-gradient(ellipse at center, black 40%, transparent 75%)",
+              maskImage: "radial-gradient(ellipse at center, black 40%, transparent 75%)",
+              WebkitMaskImage: "radial-gradient(ellipse at center, black 40%, transparent 75%)",
             }}
           />
 
@@ -300,10 +299,7 @@ export function FormularioMaterial({
         </div>
 
         {/* --- COLUNA DIREITA: FORMULÁRIO --- */}
-        <form
-          onSubmit={handleSubmit(lidarComEnvioRHF)}
-          className="flex flex-col bg-transparent"
-        >
+        <form onSubmit={handleSubmit(lidarComEnvioRHF)} className="flex flex-col bg-transparent">
           <div className="flex-1 p-5 md:p-6 space-y-6">
             {/* SEÇÃO: IDENTIFICAÇÃO */}
             <div className="space-y-6">

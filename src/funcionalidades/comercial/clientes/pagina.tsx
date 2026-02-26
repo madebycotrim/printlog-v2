@@ -1,6 +1,6 @@
 import { Plus, Users, Search, Globe, Zap } from "lucide-react";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
-import { usarGerenciadorClientes } from "./ganchos/usarGerenciadorClientes";
+import { usarGerenciadorClientes } from "./hooks/usarGerenciadorClientes";
 import { CardCliente } from "./componentes/CardCliente";
 import { FormularioCliente } from "./componentes/FormularioCliente";
 import { ResumoClientes } from "./componentes/ResumoClientes";
@@ -8,9 +8,9 @@ import { FiltrosCliente } from "./componentes/FiltrosCliente";
 import { ModalRemocaoCliente } from "./componentes/ModalRemocaoCliente";
 import { ModalHistoricoCliente } from "./componentes/ModalHistoricoCliente";
 import { motion, AnimatePresence } from "framer-motion";
-import { EstadoVazio } from "@/compartilhado/componentes_ui/EstadoVazio";
-import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
-import { servicoIntegracaoLanding } from "@/compartilhado/infraestrutura/servicos/servicoIntegracaoLanding";
+import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
+import { Carregamento } from "@/compartilhado/componentes/Carregamento";
+import { servicoIntegracaoLanding } from "./servicos/servicoIntegracaoLanding";
 import toast from "react-hot-toast";
 
 export function PaginaClientes() {
@@ -18,7 +18,13 @@ export function PaginaClientes() {
 
   const simularPedidoLanding = async () => {
     const nomes = ["Ricardo Oliveira", "Mariana Santos", "TechCorp Soluções", "Estúdio Criativo", "Felipe Almeida"];
-    const projetos = ["Prototipagem de Engrenagem", "Case Personalizado iPhone", "Miniatura de RPG Dragon", "Peça Reposição Drone", "Arquitetura Maquete"];
+    const projetos = [
+      "Prototipagem de Engrenagem",
+      "Case Personalizado iPhone",
+      "Miniatura de RPG Dragon",
+      "Peça Reposição Drone",
+      "Arquitetura Maquete",
+    ];
 
     const randomNome = nomes[Math.floor(Math.random() * nomes.length)];
     const randomProjeto = projetos[Math.floor(Math.random() * projetos.length)];
@@ -29,13 +35,13 @@ export function PaginaClientes() {
         emailCliente: `${randomNome.toLowerCase().replace(" ", ".")}@exemplo.com`,
         telefoneCliente: "(11) 98888-7777",
         descricaoProjeto: randomProjeto,
-        arquivoNome: "modelo_3d_v1.stl"
+        arquivoNome: "modelo_3d_v1.stl",
       }),
       {
-        loading: 'Simulando recebimento de pedido via Landing Page...',
-        success: 'Novo Pedido & Cliente Prospect integrados!',
-        error: 'Falha na simulação.',
-      }
+        loading: "Simulando recebimento de pedido via Landing Page...",
+        success: "Novo Pedido & Cliente Prospect integrados!",
+        error: "Falha na simulação.",
+      },
     );
   };
 
@@ -69,11 +75,14 @@ export function PaginaClientes() {
           <div className="space-y-2 relative z-10 text-center md:text-left">
             <div className="flex items-center gap-2 justify-center md:justify-start">
               <Globe size={16} className="text-sky-500" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-sky-500">Conexão Landing Page</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-sky-500">
+                Conexão Landing Page
+              </span>
             </div>
             <h3 className="text-lg font-black uppercase tracking-tight">Captação Automática Ativa</h3>
             <p className="text-xs font-medium text-gray-500 dark:text-zinc-400 max-w-md">
-              Seus formulários públicos estão conectados. Novos orçamentos geram prospects automaticamente aqui e ordens de serviço no quadro de produção.
+              Seus formulários públicos estão conectados. Novos orçamentos geram prospects automaticamente aqui e ordens
+              de serviço no quadro de produção.
             </p>
           </div>
           <button

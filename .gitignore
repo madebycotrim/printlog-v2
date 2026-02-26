@@ -142,5 +142,16 @@ firebase-debug.log
 # Cloudflare Wrangler
 .wrangler/
 
-# Arquivos de texto
-.txt
+# Arquivos de texto e backups temporarios
+*.txt
+*.old
+*.bak
+
+# Certificados SSL / Arquivos sensíveis
+*.pem
+*.p12
+*.crt
+*.key
+.env
+.env.*
+!.env.example

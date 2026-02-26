@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Save, Droplets, ArrowRight, Tag } from "lucide-react";
-import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
-import { Combobox } from "@/compartilhado/componentes_ui/Combobox";
+import { Dialogo } from "@/compartilhado/componentes/Dialogo";
+import { Combobox } from "@/compartilhado/componentes/Combobox";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
-import { CampoTexto } from "@/compartilhado/componentes_ui/CampoTexto";
+import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
 
 const MOTIVOS_ABATIMENTO = [
   { valor: "Falha de Impressão", rotulo: "Falha de Impressão" },
@@ -20,12 +20,7 @@ interface PropriedadesModalAbatimentoPeso {
   material: Material | null;
 }
 
-export function ModalAbatimentoPeso({
-  aberto,
-  aoFechar,
-  aoConfirmar,
-  material,
-}: PropriedadesModalAbatimentoPeso) {
+export function ModalAbatimentoPeso({ aberto, aoFechar, aoConfirmar, material }: PropriedadesModalAbatimentoPeso) {
   const [quantidade, definirQuantidade] = useState<string>("");
   const [motivo, definirMotivo] = useState<string>("");
   const [erro, definirErro] = useState<string | null>(null);
@@ -78,13 +73,10 @@ export function ModalAbatimentoPeso({
       return;
     }
 
-    const estoqueTotalDisponivel =
-      material.pesoRestanteGramas + material.estoque * material.pesoGramas;
+    const estoqueTotalDisponivel = material.pesoRestanteGramas + material.estoque * material.pesoGramas;
 
     if (numQtd > estoqueTotalDisponivel) {
-      definirErro(
-        `Você não tem tudo isso. Máximo possível: ${estoqueTotalDisponivel}${unidade}`,
-      );
+      definirErro(`Você não tem tudo isso. Máximo possível: ${estoqueTotalDisponivel}${unidade}`);
       return;
     }
 
@@ -92,16 +84,8 @@ export function ModalAbatimentoPeso({
   };
 
   return (
-    <Dialogo
-      aberto={aberto}
-      aoFechar={lidarComTentativaFechamento}
-      titulo="Abater Consumo"
-      larguraMax="max-w-md"
-    >
-      <form
-        onSubmit={lidarComEnvio}
-        className="flex flex-col bg-white dark:bg-[#18181b]"
-      >
+    <Dialogo aberto={aberto} aoFechar={lidarComTentativaFechamento} titulo="Abater Consumo" larguraMax="max-w-md">
+      <form onSubmit={lidarComEnvio} className="flex flex-col bg-white dark:bg-[#18181b]">
         <div className="p-6 md:p-8 space-y-6 relative z-10">
           {/* Cabeçalho do Material */}
           <div className="flex items-center gap-4 bg-white dark:bg-zinc-900/50 p-4 rounded-xl border border-gray-200 shadow-sm dark:shadow-none dark:border-white/5 relative z-10 w-full mb-6">
@@ -175,16 +159,8 @@ export function ModalAbatimentoPeso({
                     {unidade}
                   </span>
                   <ArrowRight size={14} className="text-gray-400" />
-                  <span
-                    className={
-                      abaterDoEstoqueLacrado
-                        ? "text-red-500"
-                        : "text-green-500 dark:text-green-400"
-                    }
-                  >
-                    {abaterDoEstoqueLacrado
-                      ? "ESGOTADO"
-                      : `${novoPesoRestante}${unidade}`}
+                  <span className={abaterDoEstoqueLacrado ? "text-red-500" : "text-green-500 dark:text-green-400"}>
+                    {abaterDoEstoqueLacrado ? "ESGOTADO" : `${novoPesoRestante}${unidade}`}
                   </span>
                 </div>
               </div>

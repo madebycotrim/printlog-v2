@@ -6,12 +6,12 @@ import { ResumoFinanceiroComponente } from "./componentes/ResumoFinanceiro";
 import { TabelaLancamentos } from "./componentes/TabelaLancamentos";
 import { FormularioLancamento } from "./componentes/FormularioLancamento";
 import { FiltrosFinanceiro } from "./componentes/FiltrosFinanceiro";
-import { EstadoVazio } from "@/compartilhado/componentes_ui/EstadoVazio";
-import { usarFinanceiro } from "./ganchos/usarFinanceiro";
-import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
+import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
+import { usarFinanceiro } from "./hooks/usarFinanceiro";
+import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 import { usarArmazemMateriais } from "@/funcionalidades/producao/materiais/estado/armazemMateriais";
-import { usarPedidos } from "@/funcionalidades/producao/projetos/ganchos/usarPedidos";
-import { servicoFinanceiroAvancado } from "@/compartilhado/infraestrutura/servicos/servicoFinanceiroAvancado";
+import { usarPedidos } from "@/funcionalidades/producao/projetos/hooks/usarPedidos";
+import { servicoFinanceiroAvancado } from "@/compartilhado/servicos/servicoFinanceiroAvancado";
 
 export function PaginaFinanceiro() {
   const [modalAberto, setModalAberto] = useState(false);
@@ -27,15 +27,16 @@ export function PaginaFinanceiro() {
     definirFiltroTipo,
     ordenarPor,
     inverterOrdem,
-    pesquisar
+    pesquisar,
   } = usarFinanceiro();
 
-  const materiais = usarArmazemMateriais(s => s.materiais);
+  const materiais = usarArmazemMateriais((s) => s.materiais);
   const { pedidos } = usarPedidos();
 
-  const dre = useMemo(() =>
-    servicoFinanceiroAvancado.gerarDRE(pedidos, lancamentos, materiais),
-    [pedidos, lancamentos, materiais]);
+  const dre = useMemo(
+    () => servicoFinanceiroAvancado.gerarDRE(pedidos, lancamentos, materiais),
+    [pedidos, lancamentos, materiais],
+  );
 
   usarDefinirCabecalho({
     titulo: "Ecossistema Financeiro",
@@ -69,10 +70,7 @@ export function PaginaFinanceiro() {
           />
         ) : (
           <>
-            <ResumoFinanceiroComponente
-              resumo={resumo}
-              lucratividadePercentual={dre.lucratividadePercentual}
-            />
+            <ResumoFinanceiroComponente resumo={resumo} lucratividadePercentual={dre.lucratividadePercentual} />
 
             {/* Banner de Status DRE */}
             <div className="bg-white dark:bg-[#121214] border border-gray-100 dark:border-white/5 rounded-[2rem] p-8 flex items-center justify-between group overflow-hidden relative shadow-sm">
@@ -81,12 +79,17 @@ export function PaginaFinanceiro() {
               </div>
               <div className="space-y-3 relative z-10">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${dre.lucroLiquidoCentavos >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Status de Rentabilidade</h4>
+                  <div
+                    className={`w-2 h-2 rounded-full ${dre.lucroLiquidoCentavos >= 0 ? "bg-emerald-500" : "bg-rose-500"}`}
+                  />
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                    Status de Rentabilidade
+                  </h4>
                 </div>
                 <p className="text-sm font-medium text-gray-500 dark:text-zinc-400 max-w-lg">
-                  Baseado no Mix de Produção atual, seu estúdio está operando com uma margem de <strong className="text-zinc-900 dark:text-white">{dre.lucratividadePercentual}%</strong>.
-                  Este cálculo considera o preço de venda vs. consumo estimado de filamento.
+                  Baseado no Mix de Produção atual, seu estúdio está operando com uma margem de{" "}
+                  <strong className="text-zinc-900 dark:text-white">{dre.lucratividadePercentual}%</strong>. Este
+                  cálculo considera o preço de venda vs. consumo estimado de filamento.
                 </p>
               </div>
             </div>

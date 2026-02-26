@@ -8,14 +8,13 @@ import {
   RefreshCcw,
   FileUp,
   Sparkles,
-  ArrowRight,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { useState, useMemo, useEffect } from "react";
 import { calcularCustoImpressao } from "@/compartilhado/utilitarios/calculosFinanceiros";
 import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
-import { usarAnalisadorGCode } from "@/compartilhado/ganchos/usarAnalisadorGCode";
+import { usarAnalisadorGCode } from "@/compartilhado/hooks/usarAnalisadorGCode";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function PaginaCalculadora() {
@@ -52,24 +51,23 @@ export function PaginaCalculadora() {
       potenciaW: potencia,
       precoKwhCentavos: Math.round(precoKwh * 100),
       taxaLucro: margem / 100,
-      maoDeObraHoraCentavos: Math.round(maoDeObra * 100)
+      maoDeObraHoraCentavos: Math.round(maoDeObra * 100),
     });
   }, [peso, tempo, precoFilamento, potencia, precoKwh, margem, maoDeObra]);
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start animate-in fade-in slide-in-from-bottom-4 duration-700">
-
       {/* COLUNA DE INPUTS */}
       <div className="xl:col-span-8 space-y-6">
-
         {/* DROPZONE G-CODE */}
         <div
-          className={`relative p-8 rounded-3xl border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center gap-4 group overflow-hidden ${analisando
+          className={`relative p-8 rounded-3xl border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center gap-4 group overflow-hidden ${
+            analisando
               ? "border-sky-500 bg-sky-500/5"
               : resultado
                 ? "border-emerald-500/30 bg-emerald-500/5"
                 : "border-gray-100 dark:border-white/5 bg-white dark:bg-[#121214] hover:border-sky-500/30 shadow-sm"
-            }`}
+          }`}
         >
           <input
             type="file"
@@ -91,7 +89,9 @@ export function PaginaCalculadora() {
               >
                 <Loader2 size={40} className="text-sky-500 animate-spin mb-4" />
                 <h4 className="text-sm font-black uppercase tracking-widest">Processando Geometria...</h4>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">Extraindo parâmetros via Web Worker</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">
+                  Extraindo parâmetros via Web Worker
+                </p>
               </motion.div>
             ) : resultado ? (
               <motion.div
@@ -102,7 +102,9 @@ export function PaginaCalculadora() {
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-4">
                   <Sparkles size={24} />
                 </div>
-                <h4 className="text-sm font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Parâmetros Importados com Sucesso!</h4>
+                <h4 className="text-sm font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                  Parâmetros Importados com Sucesso!
+                </h4>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">
                   {resultado.fatiadorDetectado} • {resultado.quantidadeLinhas.toLocaleString()} linhas
                 </p>
@@ -119,13 +121,17 @@ export function PaginaCalculadora() {
                   <FileUp size={32} strokeWidth={1.5} />
                 </div>
                 <h4 className="text-sm font-black uppercase tracking-widest mt-6">Solte seu G-Code aqui</h4>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">Auto-preenchimento inteligente de peso e tempo</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">
+                  Auto-preenchimento inteligente de peso e tempo
+                </p>
               </div>
             )}
           </AnimatePresence>
 
           {erroAnalise && (
-            <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest mt-4 animate-bounce">{erroAnalise}</span>
+            <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest mt-4 animate-bounce">
+              {erroAnalise}
+            </span>
           )}
         </div>
 
@@ -140,7 +146,9 @@ export function PaginaCalculadora() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Peso Estimado (Gramas)</label>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                  Peso Estimado (Gramas)
+                </label>
                 <div className="relative">
                   <input
                     type="number"
@@ -153,7 +161,9 @@ export function PaginaCalculadora() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Tempo de Impressão (Minutos)</label>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                  Tempo de Impressão (Minutos)
+                </label>
                 <div className="relative">
                   <input
                     type="number"
@@ -176,7 +186,9 @@ export function PaginaCalculadora() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Preço do Filamento (R$/kg)</label>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                  Preço do Filamento (R$/kg)
+                </label>
                 <input
                   type="number"
                   value={precoFilamento}
@@ -185,7 +197,9 @@ export function PaginaCalculadora() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Consumo (W)</label>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                  Consumo (W)
+                </label>
                 <input
                   type="number"
                   value={potencia}
@@ -194,7 +208,9 @@ export function PaginaCalculadora() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">kWh (R$)</label>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                  kWh (R$)
+                </label>
                 <input
                   type="number"
                   step="0.01"
@@ -211,7 +227,9 @@ export function PaginaCalculadora() {
         <div className="p-8 rounded-3xl bg-white dark:bg-[#121214] border border-gray-100 dark:border-white/5 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div>
             <div className="flex justify-between items-center mb-4">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Margem de Lucro Sugerida</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                Margem de Lucro Sugerida
+              </label>
               <span className="text-sm font-black text-sky-500">{margem}%</span>
             </div>
             <input
@@ -225,7 +243,9 @@ export function PaginaCalculadora() {
             />
           </div>
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Mão de Obra por Hora (R$)</label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+              Mão de Obra por Hora (R$)
+            </label>
             <div className="relative">
               <input
                 type="number"
@@ -246,13 +266,17 @@ export function PaginaCalculadora() {
           <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-sky-500/20 to-transparent blur-3xl" />
 
           <div className="relative z-10 w-full">
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-sky-400 opacity-60">Preço Estimado de Venda</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-sky-400 opacity-60">
+              Preço Estimado de Venda
+            </span>
             <div className="mt-6 mb-10 flex flex-col items-center">
               <h2 className="text-6xl font-black text-white tracking-tighter leading-none mb-2">
                 {centavosParaReais(calculo.precoSugerido)}
               </h2>
               <div className="px-3 py-1 bg-sky-500/10 border border-sky-500/20 rounded-full">
-                <span className="text-[9px] font-black text-sky-400 uppercase tracking-widest">Margem de {margem}% Aplicada</span>
+                <span className="text-[9px] font-black text-sky-400 uppercase tracking-widest">
+                  Margem de {margem}% Aplicada
+                </span>
               </div>
             </div>
 
@@ -262,7 +286,9 @@ export function PaginaCalculadora() {
                   <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
                     <Scale size={14} />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-gray-300 transition-colors">Material</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-gray-300 transition-colors">
+                    Material
+                  </span>
                 </div>
                 <span className="text-sm font-black text-white">{centavosParaReais(calculo.custoMaterial)}</span>
               </div>
@@ -272,7 +298,9 @@ export function PaginaCalculadora() {
                   <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
                     <Zap size={14} />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-gray-300 transition-colors">Energia</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-gray-300 transition-colors">
+                    Energia
+                  </span>
                 </div>
                 <span className="text-sm font-black text-white">{centavosParaReais(calculo.custoEnergia)}</span>
               </div>
@@ -282,20 +310,22 @@ export function PaginaCalculadora() {
                   <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
                     <TrendingUp size={14} />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-gray-300 transition-colors">Mão de Obra</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-gray-300 transition-colors">
+                    Mão de Obra
+                  </span>
                 </div>
                 <span className="text-sm font-black text-white">{centavosParaReais(calculo.custoMaoDeObra)}</span>
               </div>
 
               <div className="pt-6 mt-6 border-t border-white/5 flex justify-between items-center">
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Custo Total Real</span>
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">
+                  Custo Total Real
+                </span>
                 <span className="text-lg font-black text-emerald-400">{centavosParaReais(calculo.custoTotal)}</span>
               </div>
             </div>
 
-            <button
-              className="mt-12 w-full h-14 bg-white hover:bg-sky-400 text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl shadow-black/20"
-            >
+            <button className="mt-12 w-full h-14 bg-white hover:bg-sky-400 text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl shadow-black/20">
               <RefreshCcw size={16} strokeWidth={3} />
               Refinar Estratégia
             </button>
@@ -307,14 +337,16 @@ export function PaginaCalculadora() {
             <TrendingUp size={20} />
           </div>
           <div className="space-y-1">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-sky-600 dark:text-sky-400">Insight Maker</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-sky-600 dark:text-sky-400">
+              Insight Maker
+            </h4>
             <p className="text-[11px] font-medium text-gray-500 dark:text-sky-200/50 leading-relaxed">
-              Aumentar a margem para {margem + 20}% pode cobrir amortizações de hardware em menos de 6 meses baseado no fluxo atual.
+              Aumentar a margem para {margem + 20}% pode cobrir amortizações de hardware em menos de 6 meses baseado no
+              fluxo atual.
             </p>
           </div>
         </div>
       </div>
-
     </div>
   );
 }

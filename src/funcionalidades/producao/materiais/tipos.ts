@@ -1,4 +1,4 @@
-import { Centavos } from "../../../compartilhado/tipos_globais/modelos";
+import { Centavos } from "../../../compartilhado/tipos/modelos";
 
 export interface RegistroUso {
   id: string;

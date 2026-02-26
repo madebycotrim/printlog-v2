@@ -1,14 +1,7 @@
 import { useState } from "react";
-import { usarAutenticacao } from "./contexto/ContextoAutenticacao";
+import { usarAutenticacao } from "./contextos/ContextoAutenticacao";
 import { useNavigate } from "react-router-dom";
-import {
-  Mail,
-  ArrowRight,
-  ArrowLeft,
-  AlertCircle,
-  CheckCircle2,
-  ShieldCheck,
-} from "lucide-react";
+import { Mail, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2, ShieldCheck } from "lucide-react";
 import { LayoutAutenticacao } from "./componentes/LayoutAutenticacao";
 import { PainelBranding } from "./componentes/PainelBranding";
 import { InputAuth } from "./componentes/InputAuth";
@@ -47,11 +40,7 @@ export function PaginaRecuperacaoSenha() {
   };
 
   return (
-    <LayoutAutenticacao
-      linkVoltar="/login"
-      textoVoltar="Voltar ao login"
-      larguraMaxima="max-w-5xl"
-    >
+    <LayoutAutenticacao linkVoltar="/login" textoVoltar="Voltar ao login" larguraMaxima="max-w-5xl">
       {/* ESQUERDA - BRANDING (Componente Padronizado) */}
       <PainelBranding
         largura="w-1/2"
@@ -80,26 +69,15 @@ export function PaginaRecuperacaoSenha() {
       <div className="w-full lg:w-1/2 p-8 lg:p-14 flex flex-col justify-center relative bg-black/20">
         {/* Mobile Logo */}
         <div className="lg:hidden flex items-center gap-2 mb-8">
-          <img
-            src="/logo-colorida.png"
-            alt="Logo"
-            className="w-8 h-8 object-contain"
-          />
-          <span className="text-white font-black tracking-tighter text-xl">
-            PRINTLOG
-          </span>
+          <img src="/logo-colorida.png" alt="Logo" className="w-8 h-8 object-contain" />
+          <span className="text-white font-black tracking-tighter text-xl">PRINTLOG</span>
         </div>
 
         {!sucesso ? (
           <>
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-white mb-2">
-                Esqueceu a senha?
-              </h1>
-              <p className="text-zinc-500 text-sm">
-                Digite seu email profissional para receber o link de
-                redefinição.
-              </p>
+              <h1 className="text-2xl font-bold text-white mb-2">Esqueceu a senha?</h1>
+              <p className="text-zinc-500 text-sm">Digite seu email profissional para receber o link de redefinição.</p>
             </div>
 
             {erro && (
@@ -140,9 +118,7 @@ export function PaginaRecuperacaoSenha() {
             <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
               <CheckCircle2 size={40} className="text-emerald-500" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">
-              Email Enviado!
-            </h2>
+            <h2 className="text-2xl font-bold text-white mb-3">Email Enviado!</h2>
             <p className="text-zinc-400 text-sm mb-8 leading-relaxed max-w-sm mx-auto">
               Enviamos um link de recuperação para <strong>{email}</strong>.
               <br />

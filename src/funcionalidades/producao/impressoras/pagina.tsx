@@ -1,6 +1,6 @@
 import { Plus, Printer, Search } from "lucide-react";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
-import { usarGerenciadorImpressoras } from "./ganchos/usarGerenciadorImpressoras";
+import { usarGerenciadorImpressoras } from "./hooks/usarGerenciadorImpressoras";
 import { FormularioImpressora } from "./componentes/FormularioImpressora";
 import { CardImpressora } from "./componentes/CardImpressora";
 import { ResumoImpressoras } from "./componentes/ResumoImpressoras";
@@ -11,8 +11,8 @@ import { ModalManutencao } from "./manutencao/componentes/ModalManutencao";
 import { ModalHistoricoProducao } from "./componentes/ModalHistoricoProducao";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { EstadoVazio } from "@/compartilhado/componentes_ui/EstadoVazio";
-import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
+import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
+import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 
 export function PaginaImpressoras() {
   const { estado, acoes } = usarGerenciadorImpressoras();
@@ -36,7 +36,9 @@ export function PaginaImpressoras() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        {estado.carregando && estado.impressoras.length > 0 && <Carregamento tipo="global" mensagem="Carregando impressoras..." />}
+        {estado.carregando && estado.impressoras.length > 0 && (
+          <Carregamento tipo="global" mensagem="Carregando impressoras..." />
+        )}
         {estado.impressoras.length === 0 ? (
           <EstadoVazio
             titulo="Nenhuma impressora encontrada"
@@ -69,12 +71,8 @@ export function PaginaImpressoras() {
             {estado.impressorasFiltradas.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <Search size={36} strokeWidth={1.5} className="text-gray-300 dark:text-zinc-700 mb-4" />
-                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">
-                  Nenhum resultado encontrado
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-zinc-400">
-                  Tente buscar com termos diferentes.
-                </p>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Nenhum resultado encontrado</h3>
+                <p className="text-sm text-gray-500 dark:text-zinc-400">Tente buscar com termos diferentes.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-10">
@@ -142,8 +140,6 @@ export function PaginaImpressoras() {
         aoFechar={acoes.fecharAposentar}
         aoConfirmar={acoes.confirmarAposentadoria}
       />
-
-
 
       {estado.modalManutencaoAberto && estado.impressoraManutencao && (
         <ModalManutencao

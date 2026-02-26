@@ -8,19 +8,20 @@ import {
   TrendingUp,
   Clock,
   LayoutDashboard,
-  Wrench
+  Wrench,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
-import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
+import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
+import { usarBeta } from "@/compartilhado/contextos/ContextoBeta";
 import { usarArmazemMateriais } from "@/funcionalidades/producao/materiais/estado/armazemMateriais";
 import { usarArmazemImpressoras } from "@/funcionalidades/producao/impressoras/estado/armazemImpressoras";
 import { usarArmazemInsumos } from "@/funcionalidades/producao/insumos/estado/armazemInsumos";
 import { usarArmazemFinanceiro } from "@/funcionalidades/comercial/financeiro/estado/armazemFinanceiro";
-import { usarPedidos } from "@/funcionalidades/producao/projetos/ganchos/usarPedidos";
-import { ALERTA_ESTOQUE_FILAMENTO_GRAMAS } from "@/compartilhado/utilitarios/constantesNegocio";
+import { usarPedidos } from "@/funcionalidades/producao/projetos/hooks/usarPedidos";
+import { ALERTA_ESTOQUE_FILAMENTO_GRAMAS } from "@/compartilhado/constantes/constantesNegocio";
 
 // Componentes Separados
 import { AtalhoItem } from "./componentes/AtalhoItem";
@@ -29,31 +30,35 @@ import { StatusTempoReal } from "./componentes/StatusTempoReal";
 import { AgendaManutencao } from "./componentes/AgendaManutencao";
 import { RelatorioInventario } from "./componentes/RelatorioInventario";
 import { RelatorioDesperdicio } from "./componentes/RelatorioDesperdicio";
-import { ResumoBI } from "./componentes/ResumoBI";
+import { ResumoBI } from "@/funcionalidades/beta/relatorios_ia/componentes/ResumoBI";
 import { RelatorioPerformanceOperacional } from "./componentes/RelatorioPerformanceOperacional";
-import { CardResumo } from "@/compartilhado/componentes_ui/CardResumo";
-import { StatusPedido } from "@/compartilhado/tipos_globais/modelos";
-import { servicoRelatorios } from "@/compartilhado/infraestrutura/servicos/servicoRelatorios";
+import { FronteiraErroBeta } from "@/compartilhado/componentes/FronteiraErroBeta";
+import { CardResumo } from "@/compartilhado/componentes/CardResumo";
+import { StatusPedido } from "@/compartilhado/tipos/modelos";
+import { servicoRelatorios } from "@/compartilhado/servicos/servicoRelatorios";
 import { BarChart, PieChart, FileText, History as HistoryIcon } from "lucide-react";
-import { servicoExportacao } from "@/compartilhado/infraestrutura/servicos/servicoExportacao";
+import { servicoExportacao } from "@/compartilhado/servicos/servicoExportacao";
 
 export function PaginaInicial() {
   const { usuario } = usarAutenticacao();
   const { pedidos } = usarPedidos();
+  const { betaRelatorios } = usarBeta();
   const navegar = useNavigate();
 
   // 🏪 ACESSO AO ESTADO
-  const materiais = usarArmazemMateriais(s => s.materiais);
-  const impressoras = usarArmazemImpressoras(s => s.impressoras);
-  const insumos = usarArmazemInsumos(s => s.insumos);
-  const lancamentos = usarArmazemFinanceiro(s => s.lancamentos);
+  const materiais = usarArmazemMateriais((s) => s.materiais);
+  const impressoras = usarArmazemImpressoras((s) => s.impressoras);
+  const insumos = usarArmazemInsumos((s) => s.insumos);
+  const lancamentos = usarArmazemFinanceiro((s) => s.lancamentos);
 
   // 🧮 CÁLCULOS DE KPI
   const totaisPecas = insumos.reduce((acc, i) => acc + i.quantidadeAtual, 0);
-  const maquinasAtivas = impressoras.filter(i => !i.dataAposentadoria).length;
+  const maquinasAtivas = impressoras.filter((i) => !i.dataAposentadoria).length;
   // Regra v9.0: Threshold fixo de 200g importado de constantesNegocio.ts
-  const alertaMateriais = materiais.filter(m => m.pesoRestanteGramas < ALERTA_ESTOQUE_FILAMENTO_GRAMAS).length;
-  const pedidosAtivos = pedidos.filter(p => p.status !== StatusPedido.CONCLUIDO && p.status !== StatusPedido.ARQUIVADO).length;
+  const alertaMateriais = materiais.filter((m) => m.pesoRestanteGramas < ALERTA_ESTOQUE_FILAMENTO_GRAMAS).length;
+  const pedidosAtivos = pedidos.filter(
+    (p) => p.status !== StatusPedido.CONCLUIDO && p.status !== StatusPedido.ARQUIVADO,
+  ).length;
 
   const metricas = useMemo(() => servicoRelatorios.gerarMetricasProducao(pedidos), [pedidos]);
 
@@ -68,9 +73,9 @@ export function PaginaInicial() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   return (
@@ -131,13 +136,7 @@ export function PaginaInicial() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <CardResumo
-            titulo="Produção Ativa"
-            valor={pedidosAtivos}
-            unidade="pedidos"
-            icone={Clock}
-            cor="sky"
-          />
+          <CardResumo titulo="Produção Ativa" valor={pedidosAtivos} unidade="pedidos" icone={Clock} cor="sky" />
           <CardResumo
             titulo="Capacidade Operacional"
             valor={maquinasAtivas}
@@ -154,27 +153,25 @@ export function PaginaInicial() {
             aoClicar={() => navegar("/materiais")}
             textoAcao="Verificar"
           />
-          <CardResumo
-            titulo="Total de Insumos"
-            valor={totaisPecas}
-            unidade="unidades"
-            icone={Package}
-            cor="indigo"
-          />
+          <CardResumo titulo="Total de Insumos" valor={totaisPecas} unidade="unidades" icone={Package} cor="indigo" />
         </div>
       </section>
 
       {/* 🧠 INTELIGÊNCIA COMERCIAL & RENTABILIDADE (DRE & BI) */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Activity size={18} className="text-indigo-500" />
-          <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 dark:text-zinc-500">
-            Inteligência Comercial & BI
-          </h2>
-        </div>
+      {betaRelatorios && (
+        <section className="space-y-6">
+          <div className="flex items-center gap-3">
+            <Activity size={18} className="text-indigo-500" />
+            <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 dark:text-zinc-500">
+              Inteligência Comercial & BI
+            </h2>
+          </div>
 
-        <ResumoBI pedidos={pedidos} materiais={materiais} lancamentos={lancamentos} />
-      </section>
+          <FronteiraErroBeta nomeFuncionalidade="Inteligência Comercial & BI">
+            <ResumoBI pedidos={pedidos} materiais={materiais} lancamentos={lancamentos} />
+          </FronteiraErroBeta>
+        </section>
+      )}
 
       {/* 📈 VISTA OPERACIONAL (GRÁFICOS E STATUS) */}
       <section className="space-y-6">
@@ -249,7 +246,9 @@ export function PaginaInicial() {
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
                   <span className="text-4xl font-black">{metricas.eficienciaPercentual}%</span>
-                  <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">Score Saudável</span>
+                  <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">
+                    Score Saudável
+                  </span>
                 </div>
                 <div className="h-2 w-full bg-gray-50 dark:bg-white/5 rounded-full overflow-hidden">
                   <motion.div
@@ -269,7 +268,9 @@ export function PaginaInicial() {
               </div>
               <div className="space-y-1">
                 <span className="text-4xl font-black">{metricas.mediaGramasPorPedido}g</span>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Média prevista por projeto</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  Média prevista por projeto
+                </p>
               </div>
             </div>
 
@@ -280,14 +281,21 @@ export function PaginaInicial() {
               <div className="space-y-4 relative z-10 max-w-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-sky-500" />
-                  <h4 className="text-[11px] font-black uppercase tracking-widest text-sky-400">Exportação LGPD (Art. 18)</h4>
+                  <h4 className="text-[11px] font-black uppercase tracking-widest text-sky-400">
+                    Exportação LGPD (Art. 18)
+                  </h4>
                 </div>
                 <p className="text-[12px] font-medium text-gray-400 leading-relaxed">
                   Relatório consolidado de dados pessoais e portabilidade para o titular da conta.
                 </p>
               </div>
               <button
-                onClick={() => servicoExportacao.gerarRelatorioPortabilidade(usuario || { nome: "Maker Anônimo", email: "anonimo@printlog.com.br", id: "anon" }, pedidos)}
+                onClick={() =>
+                  servicoExportacao.gerarRelatorioPortabilidade(
+                    usuario || { nome: "Maker Anônimo", email: "anonimo@printlog.com.br", id: "anon" },
+                    pedidos,
+                  )
+                }
                 className="relative z-10 px-8 py-4 bg-white hover:bg-sky-400 text-black font-black uppercase text-[10px] tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
               >
                 Gerar Portabilidade

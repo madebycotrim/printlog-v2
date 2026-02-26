@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { History, Package, Clock, Box, DollarSign } from "lucide-react";
-import { ModalListagemPremium } from "@/compartilhado/componentes_ui/ModalListagemPremium";
+import { ModalListagemPremium } from "@/compartilhado/componentes/ModalListagemPremium";
 import { Material, RegistroUso } from "@/funcionalidades/producao/materiais/tipos";
 
 interface ModalHistoricoConsumoProps {
@@ -9,11 +9,7 @@ interface ModalHistoricoConsumoProps {
   material: Material | null;
 }
 
-export function ModalHistoricoConsumo({
-  aberto,
-  aoFechar,
-  material,
-}: ModalHistoricoConsumoProps) {
+export function ModalHistoricoConsumo({ aberto, aoFechar, material }: ModalHistoricoConsumoProps) {
   const [registros, definirRegistros] = useState<RegistroUso[]>([]);
   const [busca, definirBusca] = useState("");
 
@@ -29,17 +25,14 @@ export function ModalHistoricoConsumo({
   const registrosFiltrados = useMemo(() => {
     const termo = busca.toLowerCase().trim();
     if (!termo) return registros;
-    return registros.filter(reg => reg.nomePeca.toLowerCase().includes(termo));
+    return registros.filter((reg) => reg.nomePeca.toLowerCase().includes(termo));
   }, [registros, busca]);
 
   if (!material) return null;
 
   const unidade = material.tipo === "SLA" ? "ml" : "g";
-  const custoPorUnidade = (material.precoCentavos / 100) / (material.pesoGramas || 1);
-  const totalGastoHistorico = registros.reduce(
-    (acc, curr) => acc + curr.quantidadeGastaGramas,
-    0,
-  );
+  const custoPorUnidade = material.precoCentavos / 100 / (material.pesoGramas || 1);
+  const totalGastoHistorico = registros.reduce((acc, curr) => acc + curr.quantidadeGastaGramas, 0);
   const custoTotalHistorico = totalGastoHistorico * custoPorUnidade;
 
   return (
@@ -105,7 +98,9 @@ export function ModalHistoricoConsumo({
                 </span>
                 <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
                   {totalGastoHistorico}
-                  <small className="text-xs text-gray-400 dark:text-zinc-600 font-bold uppercase ml-1">{unidade.toUpperCase()}</small>
+                  <small className="text-xs text-gray-400 dark:text-zinc-600 font-bold uppercase ml-1">
+                    {unidade.toUpperCase()}
+                  </small>
                 </span>
               </div>
             </div>
@@ -139,10 +134,7 @@ export function ModalHistoricoConsumo({
             {registrosFiltrados.map((registro) => {
               const custoDaPeca = registro.quantidadeGastaGramas * custoPorUnidade;
               return (
-                <div
-                  key={registro.id}
-                  className="relative pl-10 group"
-                >
+                <div key={registro.id} className="relative pl-10 group">
                   {/* Conector Visual */}
                   <div className="absolute left-[11px] top-8 bottom-0 w-[2px] bg-gray-100 dark:bg-white/5 group-last:hidden" />
 
@@ -150,12 +142,13 @@ export function ModalHistoricoConsumo({
                   <div
                     className={`absolute left-0 top-1.5 w-6 h-6 rounded-full border-4 border-white dark:border-[#18181b] flex items-center justify-center transition-all duration-300 z-10
                                             shadow-[0_0_15px_rgba(0,0,0,0.1)] group-hover:scale-110
-                                            ${registro.status === "SUCESSO"
-                        ? "bg-emerald-500 shadow-emerald-500/20"
-                        : registro.status === "FALHA"
-                          ? "bg-rose-500 shadow-rose-500/20"
-                          : "bg-gray-400 shadow-gray-400/20"
-                      }`}
+                                            ${
+                                              registro.status === "SUCESSO"
+                                                ? "bg-emerald-500 shadow-emerald-500/20"
+                                                : registro.status === "FALHA"
+                                                  ? "bg-rose-500 shadow-rose-500/20"
+                                                  : "bg-gray-400 shadow-gray-400/20"
+                                            }`}
                   >
                     <div className="w-1 h-1 rounded-full bg-white" />
                   </div>
@@ -177,14 +170,13 @@ export function ModalHistoricoConsumo({
                         <div className="flex items-center gap-4 text-gray-400 dark:text-zinc-500">
                           <div className="flex items-center gap-1.5">
                             <History size={12} strokeWidth={2.5} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">
-                              {registro.data}
-                            </span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest">{registro.data}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Box size={12} strokeWidth={2.5} />
                             <span className="text-[10px] font-bold uppercase tracking-widest text-gray-900 dark:text-white">
-                              {registro.quantidadeGastaGramas}{unidade}
+                              {registro.quantidadeGastaGramas}
+                              {unidade}
                             </span>
                           </div>
                           {registro.tempoImpressaoMinutos && (

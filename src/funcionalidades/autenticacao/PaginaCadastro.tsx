@@ -1,16 +1,8 @@
 import { useState, useEffect } from "react";
-import { usarAutenticacao } from "./contexto/ContextoAutenticacao";
+import { usarAutenticacao } from "./contextos/ContextoAutenticacao";
 import { ComponenteTurnstile } from "./componentes/ComponenteTurnstile";
 import { useNavigate } from "react-router-dom";
-import {
-  Mail,
-  Lock,
-  User,
-  ArrowRight,
-  AlertCircle,
-  ShieldCheck,
-  CheckCircle2,
-} from "lucide-react";
+import { Mail, Lock, User, ArrowRight, AlertCircle, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { LayoutAutenticacao } from "./componentes/LayoutAutenticacao";
 import { PainelBranding } from "./componentes/PainelBranding";
 import { InputAuth } from "./componentes/InputAuth";
@@ -141,23 +133,13 @@ export function PaginaCadastro() {
       <div className="w-full lg:w-1/2 p-8 lg:p-14 flex flex-col justify-center relative bg-black/20">
         {/* Mobile Logo */}
         <div className="lg:hidden flex items-center gap-2 mb-6">
-          <img
-            src="/logo-colorida.png"
-            alt="Logo"
-            className="w-8 h-8 object-contain"
-          />
-          <span className="text-white font-black tracking-tighter text-xl">
-            PRINTLOG
-          </span>
+          <img src="/logo-colorida.png" alt="Logo" className="w-8 h-8 object-contain" />
+          <span className="text-white font-black tracking-tighter text-xl">PRINTLOG</span>
         </div>
 
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Crie sua conta grátis
-          </h2>
-          <p className="text-zinc-500 text-sm">
-            Preencha os dados abaixo para começar.
-          </p>
+          <h2 className="text-2xl font-bold text-white mb-2">Crie sua conta grátis</h2>
+          <p className="text-zinc-500 text-sm">Preencha os dados abaixo para começar.</p>
         </div>
 
         {erro && (
@@ -206,12 +188,7 @@ export function PaginaCadastro() {
                 className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-zinc-700 bg-zinc-900/50 transition-all checked:border-[#0ea5e9] checked:bg-[#0ea5e9]"
               />
               <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-3.5 w-3.5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -220,32 +197,20 @@ export function PaginaCadastro() {
                 </svg>
               </div>
             </div>
-            <label
-              htmlFor="termos"
-              className="text-sm text-zinc-400 cursor-pointer select-none leading-tight"
-            >
+            <label htmlFor="termos" className="text-sm text-zinc-400 cursor-pointer select-none leading-tight">
               Li e aceito os{" "}
-              <a
-                href="/termos-de-uso"
-                className="text-[#0ea5e9] hover:underline"
-              >
+              <a href="/termos-de-uso" className="text-[#0ea5e9] hover:underline">
                 Termos de Uso
               </a>{" "}
               e a{" "}
-              <a
-                href="/politica-de-privacidade"
-                className="text-[#0ea5e9] hover:underline"
-              >
+              <a href="/politica-de-privacidade" className="text-[#0ea5e9] hover:underline">
                 Política de Privacidade
               </a>
               .
             </label>
           </div>
 
-          <ComponenteTurnstile
-            aoValidar={definirTokenCaptcha}
-            aoExpirar={() => definirTokenCaptcha(null)}
-          />
+          <ComponenteTurnstile aoValidar={definirTokenCaptcha} aoExpirar={() => definirTokenCaptcha(null)} />
 
           <button
             type="submit"
@@ -302,10 +267,7 @@ export function PaginaCadastro() {
 
         <p className="mt-8 text-center text-sm text-zinc-500">
           Já tem uma conta?{" "}
-          <a
-            href="/login"
-            className="font-bold text-[#0ea5e9] hover:underline hover:text-[#0284c7]"
-          >
+          <a href="/login" className="font-bold text-[#0ea5e9] hover:underline hover:text-[#0284c7]">
             Acessar conta
           </a>
         </p>

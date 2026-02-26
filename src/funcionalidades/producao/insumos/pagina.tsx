@@ -1,6 +1,6 @@
 import { Box, Plus, Search } from "lucide-react";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
-import { usarGerenciadorInsumos } from "./ganchos/usarGerenciadorInsumos";
+import { usarGerenciadorInsumos } from "./hooks/usarGerenciadorInsumos";
 import { ResumoInsumos } from "./componentes/ResumoInsumos";
 import { CardInsumo } from "./componentes/CardInsumo";
 import { FormularioInsumo } from "./componentes/FormularioInsumo";
@@ -11,8 +11,8 @@ import { ModalHistoricoInsumo } from "./componentes/ModalHistoricoInsumo";
 import { FiltrosInsumo } from "./componentes/FiltrosInsumo";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { EstadoVazio } from "@/compartilhado/componentes_ui/EstadoVazio";
-import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
+import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
+import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 
 export function PaginaInsumos() {
   const { estado, acoes } = usarGerenciadorInsumos();
@@ -36,7 +36,9 @@ export function PaginaInsumos() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        {estado.carregando && estado.insumos.length > 0 && <Carregamento tipo="global" mensagem="Carregando insumos..." />}
+        {estado.carregando && estado.insumos.length > 0 && (
+          <Carregamento tipo="global" mensagem="Carregando insumos..." />
+        )}
         {estado.insumos.length === 0 ? (
           <EstadoVazio
             titulo="Nenhum insumo encontrado"
@@ -48,7 +50,6 @@ export function PaginaInsumos() {
         ) : (
           <div className=" ">
             <ResumoInsumos
-              insumos={estado.insumos}
               totalItensUnicos={estado.kpis.totalItens}
               valorInvestido={estado.kpis.valorInvestido}
               alertasBaixoEstoque={estado.kpis.alertasBaixoEstoque}
@@ -68,12 +69,8 @@ export function PaginaInsumos() {
             {estado.agrupadosPorCategoria.length === 0 && estado.insumos.length > 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <Search size={36} strokeWidth={1.5} className="text-gray-300 dark:text-zinc-700 mb-4" />
-                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">
-                  Nenhum resultado encontrado
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-zinc-400">
-                  Tente buscar com termos diferentes.
-                </p>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Nenhum resultado encontrado</h3>
+                <p className="text-sm text-gray-500 dark:text-zinc-400">Tente buscar com termos diferentes.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-10">

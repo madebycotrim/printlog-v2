@@ -1,17 +1,17 @@
 import { FolderKanban, Plus, Archive } from "lucide-react";
 import { useState } from "react";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
-import { StatusPedido } from "@/compartilhado/tipos_globais/modelos";
+import { StatusPedido } from "@/compartilhado/tipos/modelos";
 import { QuadroKanban } from "./componentes/QuadroKanban";
 import { FormularioPedido } from "./componentes/FormularioPedido";
 import { ModalArquivoProjetos } from "./componentes/ModalArquivoProjetos";
 import { ModalProjetosAtrasados } from "./componentes/ModalProjetosAtrasados";
-import { usarPedidos } from "./ganchos/usarPedidos";
-import { EstadoVazio } from "@/compartilhado/componentes_ui/EstadoVazio";
+import { usarPedidos } from "./hooks/usarPedidos";
+import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
 import { CriarPedidoInput, Pedido } from "./tipos";
 import { filtrarPedidosAtrasados } from "@/compartilhado/utilitarios/gestaoAtrasos";
 import { AlertTriangle } from "lucide-react";
-import { CardResumo } from "@/compartilhado/componentes_ui/CardResumo";
+import { CardResumo } from "@/compartilhado/componentes/CardResumo";
 
 export function PaginaProjetos() {
   const [modalAberto, setModalAberto] = useState(false);
@@ -20,7 +20,7 @@ export function PaginaProjetos() {
   const [pedidoEdicao, setPedidoEdicao] = useState<Pedido | null>(null);
   const { pedidos, pedidosFiltrados, criarPedido, atualizarPedido, moverPedido, pesquisar, carregando } = usarPedidos();
 
-  const pedidosArquivadosTotal = pedidos.filter(p => p.status === StatusPedido.ARQUIVADO).length;
+  const pedidosArquivadosTotal = pedidos.filter((p) => p.status === StatusPedido.ARQUIVADO).length;
 
   usarDefinirCabecalho({
     titulo: "Fluxo de Produção",
@@ -48,19 +48,22 @@ export function PaginaProjetos() {
   };
 
   const aoEditar = (id: string) => {
-    const pedido = pedidos.find(p => p.id === id);
+    const pedido = pedidos.find((p) => p.id === id);
     if (pedido) {
       setPedidoEdicao(pedido);
       setModalAberto(true);
     }
   };
 
-  const pedidosAtivos = pedidos.filter(p => p.status !== StatusPedido.CONCLUIDO && p.status !== StatusPedido.ARQUIVADO).length;
+  const pedidosAtivos = pedidos.filter(
+    (p) => p.status !== StatusPedido.CONCLUIDO && p.status !== StatusPedido.ARQUIVADO,
+  ).length;
   const pedidosAtrasados = filtrarPedidosAtrasados(pedidos).length;
-  const concluidosHoje = pedidos.filter(p =>
-    p.status === StatusPedido.CONCLUIDO &&
-    p.dataConclusao &&
-    new Date(p.dataConclusao).toDateString() === new Date().toDateString()
+  const concluidosHoje = pedidos.filter(
+    (p) =>
+      p.status === StatusPedido.CONCLUIDO &&
+      p.dataConclusao &&
+      new Date(p.dataConclusao).toDateString() === new Date().toDateString(),
   ).length;
 
   const cards = [
@@ -86,7 +89,7 @@ export function PaginaProjetos() {
       unidade: "entregues",
       icone: Plus,
       cor: "emerald" as const,
-    }
+    },
   ];
 
   return (
@@ -121,11 +124,7 @@ export function PaginaProjetos() {
         </div>
       ) : (
         <div className="flex-1 min-h-0">
-          <QuadroKanban
-            pedidosInjetados={pedidosFiltrados}
-            aoEditar={aoEditar}
-            aoMover={moverPedido}
-          />
+          <QuadroKanban pedidosInjetados={pedidosFiltrados} aoEditar={aoEditar} aoMover={moverPedido} />
         </div>
       )}
 

@@ -4,20 +4,23 @@ import { useLocation } from "react-router-dom";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
 import { toast } from "react-hot-toast";
-import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
-import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
+import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
+import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 
 import { CardPerfil } from "./componentes/CardPerfil";
 import { CardOperacional } from "./componentes/CardOperacional";
 import { CardAparencia } from "./componentes/CardAparencia";
 import { CardMetricas } from "./componentes/CardMetricas";
 import { CardPrivacidade } from "./componentes/CardPrivacidade";
+import { CardEstudio } from "./componentes/CardEstudio";
 
-import { usarContextoTema } from "@/compartilhado/tema/tema_provider";
+import { usarContextoTema } from "@/configuracoes/tema/tema_provider";
+import { usarBeta } from "@/compartilhado/contextos/ContextoBeta";
 
 export function PaginaConfiguracoes() {
   const { usuario, atualizarPerfil, recuperarSenha } = usarAutenticacao();
   const contextoTema = usarContextoTema();
+  const beta = usarBeta();
   const { search } = useLocation();
 
   const [destaqueLgpd, definirDestaqueLgpd] = useState(false);
@@ -51,27 +54,33 @@ export function PaginaConfiguracoes() {
   const [horaOperador, definirHoraOperador] = useState("R$ 20,00");
   const [margemLucro, definirMargemLucro] = useState("150,00%");
 
+  // Estado Estudio
+  const [participarPrototipos, definirParticiparPrototipos] = useState(beta.participarPrototipos);
+  const [betaMultiEstudio, definirBetaMultiEstudio] = useState(beta.betaMultiEstudio);
+  const [betaRelatorios, definirBetaRelatorios] = useState(beta.betaRelatorios);
+
   // Estado Inicial da Aparencia para detectar mudancas
   const [inicialAparencia, definirInicialAparencia] = useState({
     modo: contextoTema.modoTema,
     cor: contextoTema.corPrimaria,
-    fonte: contextoTema.fonte
+    fonte: contextoTema.fonte,
   });
 
   // Detecção de Alterações Pendentes
   const perfilPendente = nome !== (usuario?.nome || "");
   const operacionalPendente =
-    custoEnergia !== "R$ 0,95" ||
-    horaMaquina !== "R$ 5,00" ||
-    horaOperador !== "R$ 20,00" ||
-    margemLucro !== "150,00%";
+    custoEnergia !== "R$ 0,95" || horaMaquina !== "R$ 5,00" || horaOperador !== "R$ 20,00" || margemLucro !== "150,00%";
 
   const aparenciaPendente =
     contextoTema.modoTema !== inicialAparencia.modo ||
     contextoTema.corPrimaria !== inicialAparencia.cor ||
     contextoTema.fonte !== inicialAparencia.fonte;
 
-  const totalAlteracoes = [perfilPendente, operacionalPendente, aparenciaPendente].filter(Boolean).length;
+  const estudioPendente = participarPrototipos !== false || betaMultiEstudio !== false || betaRelatorios !== false;
+
+  const totalAlteracoes = [perfilPendente, operacionalPendente, aparenciaPendente, estudioPendente].filter(
+    Boolean,
+  ).length;
   const temAlteracoes = totalAlteracoes > 0;
 
   const lidarComTrocaSenha = async () => {
@@ -101,6 +110,11 @@ export function PaginaConfiguracoes() {
     definirHoraOperador("R$ 20,00");
     definirMargemLucro("150,00%");
 
+    // Reset Estudio
+    definirParticiparPrototipos(false);
+    definirBetaMultiEstudio(false);
+    definirBetaRelatorios(false);
+
     // Reset Aparencia (Usando os valores capturados no mount)
     contextoTema.definirModoTema(inicialAparencia.modo);
     contextoTema.definirCorPrimaria(inicialAparencia.cor);
@@ -117,8 +131,13 @@ export function PaginaConfiguracoes() {
       definirInicialAparencia({
         modo: contextoTema.modoTema,
         cor: contextoTema.corPrimaria,
-        fonte: contextoTema.fonte
+        fonte: contextoTema.fonte,
       });
+
+      // Atualiza o Beta Program
+      beta.definirParticiparPrototipos(participarPrototipos);
+      beta.definirBetaMultiEstudio(betaMultiEstudio);
+      beta.definirBetaRelatorios(betaRelatorios);
 
       definirSucesso(true);
       definirToastVisivel(true);
@@ -139,7 +158,7 @@ export function PaginaConfiguracoes() {
   usarDefinirCabecalho({
     titulo: "Configurações",
     subtitulo: temAlteracoes
-      ? `Você possui ${totalAlteracoes} ${totalAlteracoes === 1 ? 'seção com alterações pendentes' : 'seções com alterações pendentes'}`
+      ? `Você possui ${totalAlteracoes} ${totalAlteracoes === 1 ? "seção com alterações pendentes" : "seções com alterações pendentes"}`
       : "Gestão operacional e proteção de dados (LGPD)",
     ocultarBusca: true,
     acao: {
@@ -148,17 +167,18 @@ export function PaginaConfiguracoes() {
       aoClicar: lidarComSalvar,
       desabilitado: salvando || !temAlteracoes,
     },
-    segundaAcao: temAlteracoes ? {
-      texto: "Descartar",
-      icone: X,
-      aoClicar: lidarComDescartar,
-      desabilitado: salvando
-    } : undefined
+    segundaAcao: temAlteracoes
+      ? {
+          texto: "Descartar",
+          icone: X,
+          aoClicar: lidarComDescartar,
+          desabilitado: salvando,
+        }
+      : undefined,
   });
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
-
       {(salvando || enviandoEmail) && (
         <Carregamento texto={salvando ? "Salvando Alterações..." : "Enviando E-mail de Segurança..."} />
       )}
@@ -186,6 +206,17 @@ export function PaginaConfiguracoes() {
           <CardAparencia pendente={aparenciaPendente} />
           <CardMetricas />
         </div>
+
+        <CardEstudio
+          participarPrototipos={participarPrototipos}
+          definirParticiparPrototipos={definirParticiparPrototipos}
+          betaMultiEstudio={betaMultiEstudio}
+          definirBetaMultiEstudio={definirBetaMultiEstudio}
+          betaRelatorios={betaRelatorios}
+          definirBetaRelatorios={definirBetaRelatorios}
+          pendente={estudioPendente}
+        />
+
         <div id="secao-privacidade">
           <CardPrivacidade destaque={destaqueLgpd} />
         </div>
@@ -193,7 +224,8 @@ export function PaginaConfiguracoes() {
         <div className="pt-4 pb-8 border-t border-gray-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
           <p></p>
           <p className="text-[10px] text-gray-400 dark:text-zinc-600 text-center md:text-right leading-relaxed">
-            Plataforma em conformidade com a Lei Federal nº 13.709/2018 (LGPD).<br />
+            Plataforma em conformidade com a Lei Federal nº 13.709/2018 (LGPD).
+            <br />
             Dados criptografados e processados sob rigorosos padrões de segurança.
           </p>
         </div>
@@ -208,7 +240,9 @@ export function PaginaConfiguracoes() {
               </div>
               <div className="pr-2">
                 <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">Configurações salvas</p>
-                <p className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 mt-0.5 leading-tight">Suas preferências foram atualizadas com sucesso.</p>
+                <p className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 mt-0.5 leading-tight">
+                  Suas preferências foram atualizadas com sucesso.
+                </p>
               </div>
             </div>
           ) : (

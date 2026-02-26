@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
-import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
+import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
 
 const surgir = {
   oculto: { opacity: 0, y: 30 },
@@ -10,9 +10,9 @@ const surgir = {
     y: 0,
     transition: {
       duration: 0.8,
-      ease: [0.22, 1, 0.36, 1] as any
-    }
-  }
+      ease: [0.22, 1, 0.36, 1] as any,
+    },
+  },
 };
 
 export function SegurancaPrivacidade() {
@@ -56,8 +56,7 @@ export function SegurancaPrivacidade() {
           style={{
             backgroundImage: `linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)`,
             backgroundSize: "40px 40px",
-            maskImage:
-              "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)",
+            maskImage: "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)",
           }}
         />
       </div>
@@ -95,9 +94,7 @@ export function SegurancaPrivacidade() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
             </span>
-            <span className="text-[10px] font-bold uppercase tracking-widest">
-              Segurança e Privacidade
-            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">Segurança e Privacidade</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-6">
             No PrintLog, a proteção dos seus
@@ -107,9 +104,8 @@ export function SegurancaPrivacidade() {
             </span>
           </h1>
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-            Conheça como mantemos suas informações seguras e resguardamos sua
-            privacidade com tecnologias de ponta e políticas transparentes,
-            em total conformidade com a LGPD (Lei nº 13.709/2018).
+            Conheça como mantemos suas informações seguras e resguardamos sua privacidade com tecnologias de ponta e
+            políticas transparentes, em total conformidade com a LGPD (Lei nº 13.709/2018).
           </p>
         </motion.header>
 
@@ -128,25 +124,22 @@ export function SegurancaPrivacidade() {
               <div className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400">
                 <Icon name="lock" className="w-6 h-6" />
               </div>
-              <h2 className="text-2xl font-bold text-white pt-2">
-                Seus dados pertencem a você
-              </h2>
+              <h2 className="text-2xl font-bold text-white pt-2">Seus dados pertencem a você</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-8 relative z-10">
               <div className="space-y-3">
                 <h3 className="text-white font-semibold">Dados completamente isolados</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
-                  Cada conta possui dados separados e inacessíveis por outros
-                  usuários. Utilizamos tecnologias de isolamento (<em>Row Level Security</em>) na
-                  infraestrutura da <strong className="text-sky-300">Cloudflare</strong> para garantir isolamento completo.
+                  Cada conta possui dados separados e inacessíveis por outros usuários. Utilizamos tecnologias de
+                  isolamento (<em>Row Level Security</em>) na infraestrutura da{" "}
+                  <strong className="text-sky-300">Cloudflare</strong> para garantir isolamento completo.
                 </p>
               </div>
               <div className="space-y-3">
                 <h3 className="text-white font-semibold">Sem acesso administrativo</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
-                  O responsável pelo projeto PrintLog não possui acesso aos seus relatórios,
-                  vendas, produtos ou informações estratégicas do seu negócio.
-                  O acesso administrativo é restrito a metadados técnicos.
+                  O responsável pelo projeto PrintLog não possui acesso aos seus relatórios, vendas, produtos ou
+                  informações estratégicas do seu negócio. O acesso administrativo é restrito a metadados técnicos.
                 </p>
               </div>
             </div>
@@ -165,9 +158,7 @@ export function SegurancaPrivacidade() {
                 <Icon name="shield-check" className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">
-                  Nosso papel jurídico com seus dados
-                </h2>
+                <h2 className="text-2xl font-bold text-white">Nosso papel jurídico com seus dados</h2>
                 <p className="text-zinc-500 text-sm mt-1">Conforme LGPD Art. 5º, VI e VII</p>
               </div>
             </div>
@@ -178,7 +169,9 @@ export function SegurancaPrivacidade() {
                 </span>
                 <h3 className="text-white font-semibold mb-2">Dados do titular da conta</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
-                  Para <strong>seus dados de cadastro</strong> (nome, e-mail, senha), a PrintLog é a <strong className="text-sky-300">Controladora</strong>. Ou seja, nós definimos as finalidades e formas de tratamento dessas informações.
+                  Para <strong>seus dados de cadastro</strong> (nome, e-mail, senha), a PrintLog é a{" "}
+                  <strong className="text-sky-300">Controladora</strong>. Ou seja, nós definimos as finalidades e formas
+                  de tratamento dessas informações.
                 </p>
               </div>
               <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/15">
@@ -187,7 +180,9 @@ export function SegurancaPrivacidade() {
                 </span>
                 <h3 className="text-white font-semibold mb-2">Dados dos seus clientes</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
-                  Para dados que você insere dos <strong>seus clientes finais</strong> (pedidos, contatos), você é o <strong className="text-emerald-300">Controlador</strong>. A PrintLog apenas armazena e processa a seu mando — não usa esses dados para fins próprios.
+                  Para dados que você insere dos <strong>seus clientes finais</strong> (pedidos, contatos), você é o{" "}
+                  <strong className="text-emerald-300">Controlador</strong>. A PrintLog apenas armazena e processa a seu
+                  mando — não usa esses dados para fins próprios.
                 </p>
               </div>
             </div>
@@ -209,9 +204,7 @@ export function SegurancaPrivacidade() {
                   <Icon name="eye-off" className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white">
-                    Modo Convidado: Privacidade Local Máxima
-                  </h2>
+                  <h2 className="text-2xl font-bold text-white">Modo Convidado: Privacidade Local Máxima</h2>
                   <p className="text-zinc-500 text-sm mt-1">Dados que nunca saem do seu navegador</p>
                 </div>
               </div>
@@ -223,7 +216,8 @@ export function SegurancaPrivacidade() {
                     Zero Coleta
                   </h3>
                   <p className="text-zinc-400 text-xs leading-relaxed">
-                    Nenhum dado é enviado para nossos servidores. O sistema funciona como uma ferramenta local, respeitando sua privacidade total.
+                    Nenhum dado é enviado para nossos servidores. O sistema funciona como uma ferramenta local,
+                    respeitando sua privacidade total.
                   </p>
                 </div>
                 <div className="space-y-3">
@@ -232,7 +226,8 @@ export function SegurancaPrivacidade() {
                     Armazenamento Local
                   </h3>
                   <p className="text-zinc-400 text-xs leading-relaxed">
-                    Suas informações ficam guardadas no <em>LocalStorage</em> do seu próprio dispositivo, sob seu controle exclusivo.
+                    Suas informações ficam guardadas no <em>LocalStorage</em> do seu próprio dispositivo, sob seu
+                    controle exclusivo.
                   </p>
                 </div>
                 <div className="space-y-3">
@@ -241,7 +236,8 @@ export function SegurancaPrivacidade() {
                     Aviso: Sem Backup
                   </h3>
                   <p className="text-zinc-400 text-xs leading-relaxed">
-                    Como não acessamos seus dados, <strong>não podemos recuperá-los</strong> se você limpar o cache ou formatar o computador.
+                    Como não acessamos seus dados, <strong>não podemos recuperá-los</strong> se você limpar o cache ou
+                    formatar o computador.
                   </p>
                 </div>
               </div>
@@ -265,9 +261,7 @@ export function SegurancaPrivacidade() {
             whileInView="visivel"
             viewport={{ once: true, amount: 0.2 }}
           >
-            <h2 className="text-2xl font-bold text-white mb-8 border-b border-white/5 pb-4">
-              Proteção técnica
-            </h2>
+            <h2 className="text-2xl font-bold text-white mb-8 border-b border-white/5 pb-4">Proteção técnica</h2>
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 {
@@ -312,13 +306,35 @@ export function SegurancaPrivacidade() {
             </h2>
             <div className="grid md:grid-cols-2 gap-4">
               {[
-                { prazo: "30 dias", cor: "emerald", dado: "Dados cadastrais e de negócio", detalhe: "Excluídos até 30 dias corridos após o encerramento da conta." },
-                { prazo: "6 meses", cor: "amber", dado: "Logs de acesso (IP, data/hora)", detalhe: "Retenção obrigatória — Art. 15 do Marco Civil da Internet (Lei nº 12.965/2014)." },
-                { prazo: "5 anos", cor: "amber", dado: "Registros de aceite de termos", detalhe: "Prazo prescricional civil para defesa em litígio (Art. 206 do Código Civil)." },
-                { prazo: "5 anos", cor: "amber", dado: "Logs de auditoria e segurança", detalhe: "Prazo de segurança para análise histórica e defesa em litígio (Art. 206 CC)." },
+                {
+                  prazo: "30 dias",
+                  cor: "emerald",
+                  dado: "Dados cadastrais e de negócio",
+                  detalhe: "Excluídos até 30 dias corridos após o encerramento da conta.",
+                },
+                {
+                  prazo: "6 meses",
+                  cor: "amber",
+                  dado: "Logs de acesso (IP, data/hora)",
+                  detalhe: "Retenção obrigatória — Art. 15 do Marco Civil da Internet (Lei nº 12.965/2014).",
+                },
+                {
+                  prazo: "5 anos",
+                  cor: "amber",
+                  dado: "Registros de aceite de termos",
+                  detalhe: "Prazo prescricional civil para defesa em litígio (Art. 206 do Código Civil).",
+                },
+                {
+                  prazo: "5 anos",
+                  cor: "amber",
+                  dado: "Logs de auditoria e segurança",
+                  detalhe: "Prazo de segurança para análise histórica e defesa em litígio (Art. 206 CC).",
+                },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5">
-                  <span className={`mt-0.5 shrink-0 px-2 py-0.5 rounded text-[10px] font-bold bg-${item.cor}-500/10 text-${item.cor}-400 border border-${item.cor}-500/20`}>
+                  <span
+                    className={`mt-0.5 shrink-0 px-2 py-0.5 rounded text-[10px] font-bold bg-${item.cor}-500/10 text-${item.cor}-400 border border-${item.cor}-500/20`}
+                  >
                     {item.prazo}
                   </span>
                   <div>
@@ -337,17 +353,32 @@ export function SegurancaPrivacidade() {
             whileInView="visivel"
             viewport={{ once: true, amount: 0.2 }}
           >
-            <h2 className="text-2xl font-bold text-white mb-8 border-b border-white/5 pb-4">
-              Política de Cookies
-            </h2>
+            <h2 className="text-2xl font-bold text-white mb-8 border-b border-white/5 pb-4">Política de Cookies</h2>
             <div className="space-y-3">
               {[
-                { tipo: "Necessários (técnicos)", desc: "Cookie de sessão, cookie de segurança (CSRF) e cookie de preferências (tema claro/escuro). Essenciais ao funcionamento — não requerem consentimento.", cor: "emerald", tag: "Sempre ativos" },
-                { tipo: "Analíticos (desempenho)", desc: "Métricas de uso agregadas para melhoria da plataforma. Atualmente não utilizados. Quando implementados, serão opcionais e exigirão consentimento.", cor: "zinc", tag: "Opcionais" },
-                { tipo: "Rastreamento / Ads", desc: "O PrintLog não utiliza cookies de rastreamento comportamental, pixels de publicidade ou fingerprinting de qualquer natureza.", cor: "red", tag: "Não utilizados" },
+                {
+                  tipo: "Necessários (técnicos)",
+                  desc: "Cookie de sessão, cookie de segurança (CSRF) e cookie de preferências (tema claro/escuro). Essenciais ao funcionamento — não requerem consentimento.",
+                  cor: "emerald",
+                  tag: "Sempre ativos",
+                },
+                {
+                  tipo: "Analíticos (desempenho)",
+                  desc: "Métricas de uso agregadas para melhoria da plataforma. Atualmente não utilizados. Quando implementados, serão opcionais e exigirão consentimento.",
+                  cor: "zinc",
+                  tag: "Opcionais",
+                },
+                {
+                  tipo: "Rastreamento / Ads",
+                  desc: "O PrintLog não utiliza cookies de rastreamento comportamental, pixels de publicidade ou fingerprinting de qualquer natureza.",
+                  cor: "red",
+                  tag: "Não utilizados",
+                },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5">
-                  <span className={`mt-0.5 shrink-0 px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap bg-${item.cor}-500/10 text-${item.cor}-400 border border-${item.cor}-500/20`}>
+                  <span
+                    className={`mt-0.5 shrink-0 px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap bg-${item.cor}-500/10 text-${item.cor}-400 border border-${item.cor}-500/20`}
+                  >
                     {item.tag}
                   </span>
                   <div>
@@ -372,12 +403,16 @@ export function SegurancaPrivacidade() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-white">Transferência Internacional de Dados</h2>
-                <p className="text-xs text-zinc-500 mt-0.5">Fundamento legal: Art. 33, II da LGPD (Lei nº 13.709/2018)</p>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  Fundamento legal: Art. 33, II da LGPD (Lei nº 13.709/2018)
+                </p>
               </div>
             </div>
 
             <p className="text-sm text-zinc-400 leading-relaxed mb-6">
-              A PrintLog utiliza fornecedores com certificações internacionais de segurança. O tratamento de dados em suas infraestruturas é regulado pelos próprios Termos de Serviço e políticas de privacidade de cada fornecedor, descritos abaixo.
+              A PrintLog utiliza fornecedores com certificações internacionais de segurança. O tratamento de dados em
+              suas infraestruturas é regulado pelos próprios Termos de Serviço e políticas de privacidade de cada
+              fornecedor, descritos abaixo.
             </p>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -388,7 +423,8 @@ export function SegurancaPrivacidade() {
                   <h3 className="text-white font-semibold text-sm">Cloudflare, Inc. (EUA)</h3>
                 </div>
                 <p className="text-xs text-zinc-400 leading-relaxed">
-                  Infraestrutura principal de armazenamento e CDN. Sediada nos EUA, portanto sujeita a transferência internacional.
+                  Infraestrutura principal de armazenamento e CDN. Sediada nos EUA, portanto sujeita a transferência
+                  internacional.
                 </p>
                 <ul className="space-y-1.5 text-xs text-zinc-400">
                   <li className="flex items-start gap-2">
@@ -413,7 +449,10 @@ export function SegurancaPrivacidade() {
                   <h3 className="text-white font-semibold text-sm">Google Firebase Auth (Brasil)</h3>
                 </div>
                 <p className="text-xs text-zinc-400 leading-relaxed">
-                  Autenticação configurada preferencialmente na região <strong className="text-amber-300 font-mono text-[10px]">southamerica-east1</strong> (São Paulo). O processamento primário ocorre no Brasil, mas dados podem transitar por servidores internacionais do Google em situações específicas.
+                  Autenticação configurada preferencialmente na região{" "}
+                  <strong className="text-amber-300 font-mono text-[10px]">southamerica-east1</strong> (São Paulo). O
+                  processamento primário ocorre no Brasil, mas dados podem transitar por servidores internacionais do
+                  Google em situações específicas.
                 </p>
                 <ul className="space-y-1.5 text-xs text-zinc-400">
                   <li className="flex items-start gap-2">
@@ -428,7 +467,6 @@ export function SegurancaPrivacidade() {
               </div>
             </div>
           </motion.section>
-
 
           {/* ── 7. Incidentes de Segurança ── */}
           <motion.section
@@ -445,35 +483,44 @@ export function SegurancaPrivacidade() {
               <div>
                 <h3 className="text-white font-bold mb-1">Em caso de Incidente de Segurança</h3>
                 <p className="text-sm text-zinc-400 leading-relaxed mb-3">
-                  Mantemos práticas de monitoramento contínuo da infraestrutura. Na ocorrência de uma violação de dados que configure <strong className="text-white">risco relevante ao titular</strong> — conforme critérios do Art. 48 da LGPD e da Resolução ANPD nº 15/2024 —, comprometemo-nos a:
+                  Mantemos práticas de monitoramento contínuo da infraestrutura. Na ocorrência de uma violação de dados
+                  que configure <strong className="text-white">risco relevante ao titular</strong> — conforme critérios
+                  do Art. 48 da LGPD e da Resolução ANPD nº 15/2024 —, comprometemo-nos a:
                 </p>
                 <ul className="space-y-2 text-xs text-zinc-400">
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 mt-1 rounded-full bg-red-400 shrink-0" />
                     <span>
-                      Notificar a <strong className="text-white">ANPD</strong> em até 3 dias úteis após o <strong className="text-white">conhecimento</strong> do incidente, conforme Art. 48, §1º da LGPD e Resolução ANPD nº 15/2024.
+                      Notificar a <strong className="text-white">ANPD</strong> em até 3 dias úteis após o{" "}
+                      <strong className="text-white">conhecimento</strong> do incidente, conforme Art. 48, §1º da LGPD e
+                      Resolução ANPD nº 15/2024.
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 mt-1 rounded-full bg-red-400 shrink-0" />
                     <span>
-                      Comunicar os <strong className="text-white">usuários afetados</strong> por e-mail cadastrado e notificação na plataforma, com informações claras sobre a natureza do ocorrido e as ações recomendadas.
+                      Comunicar os <strong className="text-white">usuários afetados</strong> por e-mail cadastrado e
+                      notificação na plataforma, com informações claras sobre a natureza do ocorrido e as ações
+                      recomendadas.
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 mt-1 rounded-full bg-red-400 shrink-0" />
                     <span>
-                      Manter <strong className="text-white">registro interno</strong> do incidente contendo data de ocorrência, categoria dos dados envolvidos e histórico das ações adotadas.
+                      Manter <strong className="text-white">registro interno</strong> do incidente contendo data de
+                      ocorrência, categoria dos dados envolvidos e histórico das ações adotadas.
                     </span>
                   </li>
                 </ul>
                 <p className="text-xs text-zinc-500 mt-4 leading-relaxed border-t border-white/5 pt-3">
-                  <strong className="text-zinc-400">Nota:</strong> Nem todo evento técnico constitui um incidente notificável. A obrigação de comunicação se aplica exclusivamente a violações que envolvam dados pessoais com potencial de causar dano relevante ao titular — tentativas de acesso bloqueadas, falhas sem exposição de dados ou eventos sem risco real não geram essa obrigação.
+                  <strong className="text-zinc-400">Nota:</strong> Nem todo evento técnico constitui um incidente
+                  notificável. A obrigação de comunicação se aplica exclusivamente a violações que envolvam dados
+                  pessoais com potencial de causar dano relevante ao titular — tentativas de acesso bloqueadas, falhas
+                  sem exposição de dados ou eventos sem risco real não geram essa obrigação.
                 </p>
               </div>
             </div>
           </motion.section>
-
 
           {/* ── 8. Transparência ── */}
           <motion.div
@@ -484,17 +531,15 @@ export function SegurancaPrivacidade() {
             className="grid md:grid-cols-2 gap-8"
           >
             <section className="space-y-6">
-              <h2 className="text-2xl font-bold text-white mb-6 border-b border-white/5 pb-4">
-                Transparência
-              </h2>
+              <h2 className="text-2xl font-bold text-white mb-6 border-b border-white/5 pb-4">Transparência</h2>
               <ul className="space-y-5">
                 <li className="flex gap-4">
                   <div className="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                   <div>
                     <h4 className="text-white font-bold text-sm">Privacidade comercial absoluta</h4>
                     <p className="text-zinc-400 text-sm mt-1">
-                      Seus dados pessoais e informações estratégicas nunca são
-                      vendidos, alugados ou compartilhados com terceiros para fins comerciais ou publicitários.
+                      Seus dados pessoais e informações estratégicas nunca são vendidos, alugados ou compartilhados com
+                      terceiros para fins comerciais ou publicitários.
                     </p>
                   </div>
                 </li>
@@ -503,8 +548,8 @@ export function SegurancaPrivacidade() {
                   <div>
                     <h4 className="text-white font-bold text-sm">Métricas anônimas</h4>
                     <p className="text-zinc-400 text-sm mt-1">
-                      Podemos utilizar métricas globais anônimas e agregadas
-                      (como número total de usuários) apenas para melhoria do produto. Dados anonimizados não são dados pessoais (Art. 12, LGPD).
+                      Podemos utilizar métricas globais anônimas e agregadas (como número total de usuários) apenas para
+                      melhoria do produto. Dados anonimizados não são dados pessoais (Art. 12, LGPD).
                     </p>
                   </div>
                 </li>
@@ -513,7 +558,9 @@ export function SegurancaPrivacidade() {
                   <div>
                     <h4 className="text-white font-bold text-sm">Canal do DPO</h4>
                     <p className="text-zinc-400 text-sm mt-1">
-                      O Encarregado pelo Tratamento de Dados Pessoais (DPO), nos termos do Art. 41 da LGPD, é o responsável pelo desenvolvimento e operação da Plataforma PrintLog, acessível pelo canal oficial. Solicitações serão respondidas em até 15 (quinze) dias úteis.
+                      O Encarregado pelo Tratamento de Dados Pessoais (DPO), nos termos do Art. 41 da LGPD, é o
+                      responsável pelo desenvolvimento e operação da Plataforma PrintLog, acessível pelo canal oficial.
+                      Solicitações serão respondidas em até 15 (quinze) dias úteis.
                     </p>
                     <a
                       href="mailto:privacidade@printlog.com.br"
@@ -544,7 +591,8 @@ export function SegurancaPrivacidade() {
                     Exportar meus dados
                   </h4>
                   <p className="text-zinc-500 text-xs">
-                    Portabilidade dos seus dados em formato estruturado (JSON/CSV) — Art. 18, V da LGPD. Acesse as configurações da conta para solicitar.
+                    Portabilidade dos seus dados em formato estruturado (JSON/CSV) — Art. 18, V da LGPD. Acesse as
+                    configurações da conta para solicitar.
                   </p>
                   <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-sky-400">
                     Ir para Configurações →
@@ -561,7 +609,8 @@ export function SegurancaPrivacidade() {
                     Excluir minha conta
                   </h4>
                   <p className="text-zinc-500 text-xs">
-                    Eliminação total dos seus dados pessoais — Art. 18, VI da LGPD. Após a exclusão, seus dados pessoais são removidos em até 30 dias, salvo retenções legais obrigatórias.
+                    Eliminação total dos seus dados pessoais — Art. 18, VI da LGPD. Após a exclusão, seus dados pessoais
+                    são removidos em até 30 dias, salvo retenções legais obrigatórias.
                   </p>
                   <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-red-400">
                     Ir para Configurações →
@@ -587,13 +636,10 @@ export function SegurancaPrivacidade() {
                 <span className="inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-indigo-500 text-white mb-2">
                   Em breve
                 </span>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  Autenticação em Dois Fatores (2FA)
-                </h3>
+                <h3 className="text-xl font-bold text-white mb-2">Autenticação em Dois Fatores (2FA)</h3>
                 <p className="text-zinc-400 text-sm max-w-xl">
-                  Estamos desenvolvendo a autenticação em dois fatores para
-                  adicionar uma camada extra de segurança à sua conta. Você
-                  poderá utilizar aplicativos como Google Authenticator ou receber código por e-mail.
+                  Estamos desenvolvendo a autenticação em dois fatores para adicionar uma camada extra de segurança à
+                  sua conta. Você poderá utilizar aplicativos como Google Authenticator ou receber código por e-mail.
                 </p>
               </div>
             </div>
@@ -607,9 +653,7 @@ export function SegurancaPrivacidade() {
             viewport={{ once: true }}
             className="border-t border-white/5 pt-10 mt-10 text-center"
           >
-            <p className="text-xs text-zinc-600 mb-6">
-              Documentos legais completos:
-            </p>
+            <p className="text-xs text-zinc-600 mb-6">Documentos legais completos:</p>
             <div className="flex flex-wrap justify-center gap-6 mb-8">
               <a
                 href="/politica-de-privacidade"
@@ -618,10 +662,7 @@ export function SegurancaPrivacidade() {
                 Política de Privacidade
               </a>
               <span className="text-zinc-800">•</span>
-              <a
-                href="/termos-de-uso"
-                className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-              >
+              <a href="/termos-de-uso" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
                 Termos de Uso
               </a>
             </div>

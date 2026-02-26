@@ -1,14 +1,9 @@
-﻿import {
-  PackageSearch,
-  DollarSign,
-  AlertTriangle,
-  Activity,
-} from "lucide-react";
+﻿import { PackageSearch, DollarSign, AlertTriangle, Activity } from "lucide-react";
 import { useState } from "react";
 import { GraficoConsumoMateriais } from "./GraficoConsumoMateriais";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
-import { CardResumo } from "@/compartilhado/componentes_ui/CardResumo";
-import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
+import { CardResumo } from "@/compartilhado/componentes/CardResumo";
+import { Dialogo } from "@/compartilhado/componentes/Dialogo";
 
 interface PropriedadesResumoEstoque {
   materiais: Material[];
@@ -27,13 +22,7 @@ export function ResumoEstoque({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-      <CardResumo
-        titulo="Total em Estoque"
-        valor={totalEmbalagens}
-        unidade="itens"
-        icone={PackageSearch}
-        cor="sky"
-      />
+      <CardResumo titulo="Total em Estoque" valor={totalEmbalagens} unidade="itens" icone={PackageSearch} cor="sky" />
 
       <CardResumo
         titulo="Valor Distribuído"

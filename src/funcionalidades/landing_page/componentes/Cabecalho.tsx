@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
+import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
 import { LayoutDashboard } from "lucide-react";
 
 export function Cabecalho() {
@@ -20,10 +20,11 @@ export function Cabecalho() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 border-b ${rolouTela
-          ? "bg-[#050505]/95 backdrop-blur-xl border-zinc-800/80 py-3 shadow-lg shadow-black/20"
-          : "bg-transparent border-transparent py-6"
-          }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 border-b ${
+          rolouTela
+            ? "bg-[#050505]/95 backdrop-blur-xl border-zinc-800/80 py-3 shadow-lg shadow-black/20"
+            : "bg-transparent border-transparent py-6"
+        }`}
       >
         <div className="container mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
@@ -31,11 +32,7 @@ export function Cabecalho() {
             className="flex items-center gap-2 cursor-pointer group relative z-50"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           >
-            <img
-              src="/logo-colorida.png"
-              alt="Logo PrintLog"
-              className="h-8 w-auto"
-            />
+            <img src="/logo-colorida.png" alt="Logo PrintLog" className="h-8 w-auto" />
             <span className="text-white font-black text-xl tracking-tighter">
               PRINTLOG{" "}
               <span className="text-[#0ea5e9] text-xs not-italic font-bold bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20 align-top ml-1 animate-pulse">
@@ -96,10 +93,7 @@ export function Cabecalho() {
       <div
         className={`fixed inset-0 z-40 lg:hidden transition-all duration-500 ${menuMobileAberto ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
       >
-        <div
-          className="absolute inset-0 bg-black/95 backdrop-blur-xl"
-          onClick={() => definirMenuMobileAberto(false)}
-        />
+        <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => definirMenuMobileAberto(false)} />
 
         <div className="relative h-full flex flex-col items-center justify-center gap-8 p-6">
           <div

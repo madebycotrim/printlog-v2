@@ -1,10 +1,7 @@
 import { Pencil, Trash2, History, MoreVertical } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
-import {
-  Carretel,
-  GarrafaResina,
-} from "@/compartilhado/componentes_ui/Icones3D";
+import { Carretel, GarrafaResina } from "@/compartilhado/componentes/Icones3D";
 import { useState, useRef, useEffect } from "react";
 import { pluralizar } from "@/compartilhado/utilitarios/formatadores";
 
@@ -15,12 +12,7 @@ interface PropriedadesCardMaterial {
   aoHistorico: (id: string) => void;
 }
 
-export function CardMaterial({
-  material,
-  aoEditar,
-  aoExcluir,
-  aoHistorico,
-}: PropriedadesCardMaterial) {
+export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico }: PropriedadesCardMaterial) {
   const referenciaCard = useRef<HTMLDivElement>(null);
   const referenciaMenu = useRef<HTMLDivElement>(null);
   const [estaVisivel, definirEstaVisivel] = useState(false);
@@ -41,7 +33,7 @@ export function CardMaterial({
       ([entrada]) => {
         definirEstaVisivel(entrada.isIntersecting);
       },
-      { rootMargin: "250px" }
+      { rootMargin: "250px" },
     );
     if (referenciaCard.current) {
       observador.observe(referenciaCard.current);
@@ -49,10 +41,7 @@ export function CardMaterial({
     return () => observador.disconnect();
   }, []);
 
-  const porcentagem = Math.min(
-    100,
-    Math.max(0, (material.pesoRestanteGramas / material.pesoGramas) * 100),
-  );
+  const porcentagem = Math.min(100, Math.max(0, (material.pesoRestanteGramas / material.pesoGramas) * 100));
 
   // Cor da barra de progresso e textos
   let corProgressoTexto = "text-emerald-600 dark:text-emerald-400";
@@ -66,7 +55,10 @@ export function CardMaterial({
   const unidade = material.tipo === "FDM" ? "g" : "ml";
 
   return (
-    <div ref={referenciaCard} className="group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-default bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/5">
+    <div
+      ref={referenciaCard}
+      className="group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-default bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/5"
+    >
       {/* Badge Superior Esquerdo (Tipo de Material) */}
       <div className="absolute top-4 left-4 z-20">
         <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 dark:text-[#a1a1aa] bg-gray-50/50 dark:bg-transparent border border-gray-200 dark:border-white/5 flex items-center justify-center shadow-sm dark:shadow-none">
@@ -77,8 +69,8 @@ export function CardMaterial({
       {/* Indicador de Quantidade Fechada (Estoque) */}
       {material.estoque > 0 && (
         <div className="absolute top-4 right-14 bg-emerald-500/10 text-emerald-400 text-[10px] font-black px-2 py-1 rounded-md flex items-center gap-1 z-20 border border-emerald-500/20 shadow-[0_0_8px_rgba(52,211,153,0.1)]">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-[pulse_2s_ease-in-out_infinite]" />
-          +{pluralizar(material.estoque, "lacre", "lacres")}
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-[pulse_2s_ease-in-out_infinite]" />+
+          {pluralizar(material.estoque, "lacre", "lacres")}
         </div>
       )}
 
@@ -91,17 +83,9 @@ export function CardMaterial({
               style={{ backgroundColor: material.cor || "#27272a" }}
             />
           ) : material.tipo === "FDM" ? (
-            <Carretel
-              cor={material.cor}
-              tamanho={120}
-              porcentagem={porcentagem}
-            />
+            <Carretel cor={material.cor} tamanho={120} porcentagem={porcentagem} />
           ) : (
-            <GarrafaResina
-              cor={material.cor}
-              tamanho={96}
-              porcentagem={porcentagem}
-            />
+            <GarrafaResina cor={material.cor} tamanho={96} porcentagem={porcentagem} />
           )}
         </div>
       </div>
@@ -109,8 +93,11 @@ export function CardMaterial({
       {/* Ações Rápidas (Sempre visíveis) */}
       <div className="absolute top-4 right-4 z-30" ref={referenciaMenu}>
         <button
-          onClick={(e) => { e.stopPropagation(); definirMenuAberto(!menuAberto); }}
-          className={`p-2 rounded-xl transition-all ${menuAberto ? 'bg-zinc-100 dark:bg-white/10 text-zinc-900 dark:text-white' : 'text-zinc-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            definirMenuAberto(!menuAberto);
+          }}
+          className={`p-2 rounded-xl transition-all ${menuAberto ? "bg-zinc-100 dark:bg-white/10 text-zinc-900 dark:text-white" : "text-zinc-400 hover:bg-gray-50 dark:hover:bg-white/5"}`}
         >
           <MoreVertical size={18} />
         </button>
@@ -125,7 +112,11 @@ export function CardMaterial({
             >
               <div className="p-1.5 space-y-0.5">
                 <button
-                  onClick={(e) => { e.stopPropagation(); aoHistorico(material.id); definirMenuAberto(false); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    aoHistorico(material.id);
+                    definirMenuAberto(false);
+                  }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-primaria/10 hover:text-primaria rounded-xl transition-colors group/item uppercase tracking-widest"
                 >
                   <History size={14} className="text-gray-400 group-hover/item:text-primaria transition-colors" />
@@ -135,15 +126,26 @@ export function CardMaterial({
                 <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
 
                 <button
-                  onClick={(e) => { e.stopPropagation(); aoEditar(material); definirMenuAberto(false); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    aoEditar(material);
+                    definirMenuAberto(false);
+                  }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white rounded-xl transition-colors group/item uppercase tracking-widest"
                 >
-                  <Pencil size={14} className="text-gray-400 group-hover/item:text-gray-900 dark:group-hover/item:text-white transition-colors" />
+                  <Pencil
+                    size={14}
+                    className="text-gray-400 group-hover/item:text-gray-900 dark:group-hover/item:text-white transition-colors"
+                  />
                   EDITAR
                 </button>
 
                 <button
-                  onClick={(e) => { e.stopPropagation(); aoExcluir(material.id); definirMenuAberto(false); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    aoExcluir(material.id);
+                    definirMenuAberto(false);
+                  }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-rose-600 hover:bg-rose-500/10 rounded-xl transition-colors group/item uppercase tracking-widest"
                 >
                   <Trash2 size={14} className="text-rose-400 group-hover/item:text-rose-600 transition-colors" />
@@ -173,7 +175,8 @@ export function CardMaterial({
           <div className="flex items-center gap-2">
             {material.pesoRestanteGramas < 200 && <History size={14} className="text-rose-500 animate-pulse" />}
             <span className={`text-[25px] font-black ${corProgressoTexto} leading-none tracking-tighter`}>
-              {material.pesoRestanteGramas}<span className="text-[14px] opacity-70 ml-[1px]">{unidade}</span>
+              {material.pesoRestanteGramas}
+              <span className="text-[14px] opacity-70 ml-[1px]">{unidade}</span>
             </span>
           </div>
           <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400 dark:text-zinc-600 mt-2">

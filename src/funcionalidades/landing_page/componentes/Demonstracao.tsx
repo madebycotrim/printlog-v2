@@ -11,10 +11,7 @@ import {
   Box,
   SprayCan,
 } from "lucide-react";
-import {
-  Carretel,
-  GarrafaResina,
-} from "@/compartilhado/componentes_ui/Icones3D";
+import { Carretel, GarrafaResina } from "@/compartilhado/componentes/Icones3D";
 
 export function Demonstracao() {
   const refSecao = useRef<HTMLElement>(null);
@@ -33,11 +30,7 @@ export function Demonstracao() {
   }, []);
 
   return (
-    <section
-      id="centro-comando"
-      ref={refSecao}
-      className="py-32 relative overflow-hidden bg-[#050505]"
-    >
+    <section id="centro-comando" ref={refSecao} className="py-32 relative overflow-hidden bg-[#050505]">
       {/* ── Efeitos de Fundo ── */}
       <div className="absolute inset-0 bg-[#050505]" />
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50" />
@@ -53,9 +46,7 @@ export function Demonstracao() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-sky-500/10 bg-sky-500/5 text-sky-400 mb-6 backdrop-blur-md">
             <div className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">
-              Tudo em um só lugar
-            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">Tudo em um só lugar</span>
           </div>
           <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9] mb-6">
             O Cérebro da sua
@@ -65,8 +56,8 @@ export function Demonstracao() {
             </span>
           </h2>
           <p className="text-zinc-500 text-lg max-w-xl mx-auto">
-            Monitore custos em tempo real, gerencie estoques e controle sua
-            frota de impressoras. Tudo em um único lugar.
+            Monitore custos em tempo real, gerencie estoques e controle sua frota de impressoras. Tudo em um único
+            lugar.
           </p>
         </div>
 
@@ -85,11 +76,7 @@ export function Demonstracao() {
                 <div className="w-3 h-3 rounded-full bg-[#28c840] border border-[#1aab29]/50" />
               </div>
               <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-500">
-                <img
-                  src="/logo-branca.png"
-                  alt="PrintLog"
-                  className="w-4 h-4 object-contain opacity-50"
-                />
+                <img src="/logo-branca.png" alt="PrintLog" className="w-4 h-4 object-contain opacity-50" />
                 printlog.com.br
               </div>
               <div className="w-14" /> {/* Espaçador */}
@@ -100,29 +87,16 @@ export function Demonstracao() {
               {/* Barra Lateral */}
               <div className="w-[72px] bg-[#0c0c0e] border-r border-white/5 flex flex-col items-center py-6 gap-6 z-20">
                 <div className="w-8 h-8 flex items-center justify-center mb-4">
-                  <img
-                    src="/logo-branca.png"
-                    alt="PrintLog"
-                    className="w-6 h-6 object-contain opacity-80"
-                  />
+                  <img src="/logo-branca.png" alt="PrintLog" className="w-6 h-6 object-contain opacity-80" />
                 </div>
                 <div className="flex-1 flex flex-col gap-4 w-full px-3">
-                  {[
-                    "painel",
-                    "estoque",
-                    "impressoras",
-                    "financeiro",
-                    "configuracoes",
-                  ].map((icone) => (
+                  {["painel", "estoque", "impressoras", "financeiro", "configuracoes"].map((icone) => (
                     <button
                       key={icone}
                       // onClick={() => definirAbaAtiva(icone)} // Desativado a pedido do usuário
                       className={`w-full aspect-square rounded-xl flex items-center justify-center transition-all duration-300 group/icone relative ${abaAtiva === icone ? "bg-white/10 text-sky-400" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5 cursor-default"}`}
                     >
-                      <IconeBarraLateral
-                        tipo={icone}
-                        ativo={abaAtiva === icone}
-                      />
+                      <IconeBarraLateral tipo={icone} ativo={abaAtiva === icone} />
                       {abaAtiva === icone && (
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-3 bg-sky-400 rounded-r-full shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
                       )}
@@ -145,9 +119,7 @@ export function Demonstracao() {
                 {/* Navegação Superior */}
                 <div className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-[#09090b]/50 backdrop-blur-sm z-10">
                   <div>
-                    <h3 className="text-white font-bold text-lg">
-                      Visão Geral
-                    </h3>
+                    <h3 className="text-white font-bold text-lg">Visão Geral</h3>
                     <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">
                       Quarta-feira, 18 de Fevereiro
                     </p>
@@ -171,9 +143,7 @@ export function Demonstracao() {
                         <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-widest">
                           Orçamentos Recentes
                         </h4>
-                        <button className="text-[10px] text-sky-400 font-bold hover:underline">
-                          VER TODOS
-                        </button>
+                        <button className="text-[10px] text-sky-400 font-bold hover:underline">VER TODOS</button>
                       </div>
 
                       {/* Lista de Projetos */}
@@ -212,41 +182,31 @@ export function Demonstracao() {
                               <FileText className="w-5 h-5" />
                             </div>
                             <div className="flex-1 min-w-0 mr-4">
-                              <div className="text-sm font-bold text-white truncate">
-                                {trabalho.nome}
-                              </div>
+                              <div className="text-sm font-bold text-white truncate">{trabalho.nome}</div>
                               <div className="text-[10px] text-zinc-500 flex items-center gap-2">
-                                <span>{trabalho.cliente}</span> •{" "}
-                                <span>{trabalho.data}</span>
+                                <span>{trabalho.cliente}</span> • <span>{trabalho.data}</span>
                               </div>
                             </div>
 
                             <div className="text-right mr-6">
-                              <div className="text-sm font-bold text-white">
-                                {trabalho.valor}
-                              </div>
-                              <div className="text-[10px] text-zinc-500">
-                                Valor Final
-                              </div>
+                              <div className="text-sm font-bold text-white">{trabalho.valor}</div>
+                              <div className="text-[10px] text-zinc-500">Valor Final</div>
                             </div>
 
                             <div>
                               {trabalho.status === "Aprovado" && (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-500">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>{" "}
-                                  Aprovado
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aprovado
                                 </span>
                               )}
                               {trabalho.status === "Pendente" && (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold text-amber-500">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>{" "}
-                                  Pendente
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Pendente
                                 </span>
                               )}
                               {trabalho.status === "Rascunho" && (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-500/10 border border-zinc-500/20 text-[10px] font-bold text-zinc-500">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>{" "}
-                                  Rascunho
+                                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-500"></span> Rascunho
                                 </span>
                               )}
                             </div>
@@ -262,12 +222,8 @@ export function Demonstracao() {
                           Faturamento (Mês)
                         </h4>
                         <div className="flex items-end gap-2 mb-4">
-                          <span className="text-3xl font-black text-white tracking-tight">
-                            R$ 12.450
-                          </span>
-                          <span className="text-xs font-bold text-emerald-400 mb-1.5">
-                            ▲ 18%
-                          </span>
+                          <span className="text-3xl font-black text-white tracking-tight">R$ 12.450</span>
+                          <span className="text-xs font-bold text-emerald-400 mb-1.5">▲ 18%</span>
                         </div>
                       </div>
 
@@ -280,24 +236,19 @@ export function Demonstracao() {
                           <div className="h-px bg-white/5 w-full" />
                         </div>
 
-                        {[30, 45, 40, 60, 55, 70, 65, 80, 75, 95].map(
-                          (h, i) => (
+                        {[30, 45, 40, 60, 55, 70, 65, 80, 75, 95].map((h, i) => (
+                          <div key={i} className="flex-1 group/barra relative h-full flex items-end">
                             <div
-                              key={i}
-                              className="flex-1 group/barra relative h-full flex items-end"
+                              className="w-full bg-indigo-500/20 border-t border-indigo-500/50 rounded-t-sm transition-all duration-1000 ease-out hover:bg-indigo-500 relative"
+                              style={{ height: visivel ? `${h}%` : "0%" }}
                             >
-                              <div
-                                className="w-full bg-indigo-500/20 border-t border-indigo-500/50 rounded-t-sm transition-all duration-1000 ease-out hover:bg-indigo-500 relative"
-                                style={{ height: visivel ? `${h}%` : "0%" }}
-                              >
-                                {/* Tooltip */}
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 opacity-0 group-hover/barra:opacity-100 transition-opacity bg-zinc-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded border border-white/10 whitespace-nowrap z-10 pointer-events-none">
-                                  R$ {h * 150}
-                                </div>
+                              {/* Tooltip */}
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 opacity-0 group-hover/barra:opacity-100 transition-opacity bg-zinc-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded border border-white/10 whitespace-nowrap z-10 pointer-events-none">
+                                R$ {h * 150}
                               </div>
                             </div>
-                          ),
-                        )}
+                          </div>
+                        ))}
                       </div>
                     </div>
 
@@ -307,9 +258,7 @@ export function Demonstracao() {
                       style={{ transitionDelay: "300ms" }}
                     >
                       <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-widest">
-                          Quadro de Avisos
-                        </h4>
+                        <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-widest">Quadro de Avisos</h4>
                         <button className="w-5 h-5 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors">
                           <Plus className="w-3 h-3" />
                         </button>
@@ -326,11 +275,8 @@ export function Demonstracao() {
                               Manutenção Necessária
                             </div>
                             <div className="text-[10px] text-zinc-400 leading-relaxed">
-                              A impressora{" "}
-                              <span className="text-zinc-300 font-medium">
-                                Ender 3 V2
-                              </span>{" "}
-                              atingiu 500h de uso contínuo.
+                              A impressora <span className="text-zinc-300 font-medium">Ender 3 V2</span> atingiu 500h de
+                              uso contínuo.
                             </div>
                             <button className="mt-2 text-[9px] font-bold text-pink-400 uppercase tracking-wider hover:underline">
                               Agendar
@@ -346,12 +292,8 @@ export function Demonstracao() {
                       style={{ transitionDelay: "400ms" }}
                     >
                       <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-widest">
-                          Insumos (Geral)
-                        </h4>
-                        <button className="text-[10px] text-sky-400 font-bold hover:underline">
-                          REPOR
-                        </button>
+                        <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-widest">Insumos (Geral)</h4>
+                        <button className="text-[10px] text-sky-400 font-bold hover:underline">REPOR</button>
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-center gap-3 p-2 rounded-lg bg-[#121214] border border-white/5">
@@ -361,16 +303,12 @@ export function Demonstracao() {
                             </div>
                           </div>
                           <div className="flex-1">
-                            <div className="text-xs font-bold text-white">
-                              Caixa de Envio P
-                            </div>
+                            <div className="text-xs font-bold text-white">Caixa de Envio P</div>
                             <div className="w-full h-1 bg-zinc-800 rounded-full mt-1">
                               <div className="h-full bg-emerald-500 w-[75%] rounded-full" />
                             </div>
                           </div>
-                          <div className="text-xs font-mono text-zinc-400">
-                            75%
-                          </div>
+                          <div className="text-xs font-mono text-zinc-400">75%</div>
                         </div>
                         <div className="flex items-center gap-3 p-2 rounded-lg bg-[#121214] border border-white/5">
                           <div className="w-10 h-10 flex items-center justify-center bg-zinc-800 rounded text-zinc-400">
@@ -379,16 +317,12 @@ export function Demonstracao() {
                             </div>
                           </div>
                           <div className="flex-1">
-                            <div className="text-xs font-bold text-white">
-                              Cola Spray 3M
-                            </div>
+                            <div className="text-xs font-bold text-white">Cola Spray 3M</div>
                             <div className="w-full h-1 bg-zinc-800 rounded-full mt-1">
                               <div className="h-full bg-red-500 w-[15%] rounded-full animate-pulse" />
                             </div>
                           </div>
-                          <div className="text-xs font-mono text-red-400 font-bold">
-                            15%
-                          </div>
+                          <div className="text-xs font-mono text-red-400 font-bold">15%</div>
                         </div>
                       </div>
                     </div>
@@ -399,55 +333,33 @@ export function Demonstracao() {
                       style={{ transitionDelay: "500ms" }}
                     >
                       <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-widest">
-                          Materiais (MP)
-                        </h4>
-                        <button className="text-[10px] text-sky-400 font-bold hover:underline">
-                          VER TODOS
-                        </button>
+                        <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-widest">Materiais (MP)</h4>
+                        <button className="text-[10px] text-sky-400 font-bold hover:underline">VER TODOS</button>
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-center gap-3 p-2 rounded-lg bg-[#121214] border border-white/5">
                           <div className="w-10 h-10 flex items-center justify-center">
-                            <Carretel
-                              cor="#0ea5e9"
-                              porcentagem={25}
-                              tamanho={36}
-                              id="widget-fdm-1"
-                            />
+                            <Carretel cor="#0ea5e9" porcentagem={25} tamanho={36} id="widget-fdm-1" />
                           </div>
                           <div className="flex-1">
-                            <div className="text-xs font-bold text-white">
-                              PLA Silk Azul
-                            </div>
+                            <div className="text-xs font-bold text-white">PLA Silk Azul</div>
                             <div className="w-full h-1 bg-zinc-800 rounded-full mt-1">
                               <div className="h-full bg-sky-500 w-[25%] rounded-full" />
                             </div>
                           </div>
-                          <div className="text-xs font-mono text-zinc-400">
-                            250g
-                          </div>
+                          <div className="text-xs font-mono text-zinc-400">250g</div>
                         </div>
                         <div className="flex items-center gap-3 p-2 rounded-lg bg-[#121214] border border-white/5">
                           <div className="w-10 h-10 flex items-center justify-center">
-                            <GarrafaResina
-                              cor="#f97316"
-                              porcentagem={10}
-                              tamanho={32}
-                              id="widget-sla-1"
-                            />
+                            <GarrafaResina cor="#f97316" porcentagem={10} tamanho={32} id="widget-sla-1" />
                           </div>
                           <div className="flex-1">
-                            <div className="text-xs font-bold text-white">
-                              Resina Standard
-                            </div>
+                            <div className="text-xs font-bold text-white">Resina Standard</div>
                             <div className="w-full h-1 bg-zinc-800 rounded-full mt-1">
                               <div className="h-full bg-orange-500 w-[10%] rounded-full animate-pulse" />
                             </div>
                           </div>
-                          <div className="text-xs font-mono text-orange-400 font-bold">
-                            100ml
-                          </div>
+                          <div className="text-xs font-mono text-orange-400 font-bold">100ml</div>
                         </div>
                       </div>
                     </div>

@@ -8,33 +8,33 @@ import { CodigoErro } from "../excecoes";
 
 /** Interface de resultado do fatiamento */
 export interface ResultadoAnaliseGCode {
-    tempoEstimadoMinutos: number;
-    pesoEstimadoGramas: number;
-    quantidadeLinhas: number;
-    fatiadorDetectado: string;
+  tempoEstimadoMinutos: number;
+  pesoEstimadoGramas: number;
+  quantidadeLinhas: number;
+  fatiadorDetectado: string;
 }
 
 // Escutando mensagens da thread principal
 self.onmessage = async (evento: MessageEvent<File | string>) => {
-    const dados = evento.data;
+  const dados = evento.data;
 
-    try {
-        let conteudo = "";
-        if (dados instanceof File) {
-            conteudo = await dados.text();
-        } else {
-            conteudo = dados;
-        }
-
-        const resultado = analisarConteudo(conteudo);
-        self.postMessage({ tipo: 'SUCESSO', dados: resultado });
-    } catch (erro) {
-        self.postMessage({
-            tipo: 'ERRO',
-            codigo: CodigoErro.ARQUIVO_FATIAMENTO_INVALIDO,
-            mensagem: "Falha ao processar as coordenadas do arquivo G-Code."
-        });
+  try {
+    let conteudo = "";
+    if (dados instanceof File) {
+      conteudo = await dados.text();
+    } else {
+      conteudo = dados;
     }
+
+    const resultado = analisarConteudo(conteudo);
+    self.postMessage({ tipo: "SUCESSO", dados: resultado });
+  } catch (erro) {
+    self.postMessage({
+      tipo: "ERRO",
+      codigo: CodigoErro.ARQUIVO_FATIAMENTO_INVALIDO,
+      mensagem: "Falha ao processar as coordenadas do arquivo G-Code.",
+    });
+  }
 };
 
 /**
@@ -42,38 +42,38 @@ self.onmessage = async (evento: MessageEvent<File | string>) => {
  * Foca em comentários de metadados (mais performático que simular cada movimento).
  */
 function analisarConteudo(conteudo: string): ResultadoAnaliseGCode {
-    const linhas = conteudo.split('\n');
-    let tempoSegundos = 0;
-    let pesoGramas = 0;
-    let fatiador = "Desconhecido";
+  const linhas = conteudo.split("\n");
+  let tempoSegundos = 0;
+  let pesoGramas = 0;
+  let fatiador = "Desconhecido";
 
-    // Regex comuns para diferentes fatiadores
-    const regexTempoCura = /;TIME:(\d+)/;
-    const regexPesoCura = /;Filament used: (\d+\.?\d*)m/; // Simplificado: precisaria converter metros -> gramas
-    const regexPrusaTime = /; estimated printing time \(normal mode\) = (.*)/;
+  // Regex comuns para diferentes fatiadores
+  const regexTempoCura = /;TIME:(\d+)/;
 
-    for (const linha of linhas) {
-        // Detecção de Fatiador
-        if (linha.includes("Cura_Grand_Unified_Setting_Visibility")) fatiador = "Ultimaker Cura";
-        if (linha.includes("PrusaSlicer")) fatiador = "PrusaSlicer";
-        if (linha.includes("OrcaSlicer")) fatiador = "OrcaSlicer";
+  for (const linha of linhas) {
+    // Detecção de Fatiador
+    if (linha.includes("Cura_Grand_Unified_Setting_Visibility")) fatiador = "Ultimaker Cura";
+    if (linha.includes("PrusaSlicer")) fatiador = "PrusaSlicer";
+    if (linha.includes("OrcaSlicer")) fatiador = "OrcaSlicer";
 
-        // Extração de Tempo (Cura)
-        const matchTempo = linha.match(regexTempoCura);
-        if (matchTempo) {
-            tempoSegundos = parseInt(matchTempo[1], 10);
-        }
-
-        // Extração de Peso Simplificada (Cura costuma colocar em gramas no final em versões novas)
-        if (linha.includes(";File total size:")) { /* ... */ }
+    // Extração de Tempo (Cura)
+    const matchTempo = linha.match(regexTempoCura);
+    if (matchTempo) {
+      tempoSegundos = parseInt(matchTempo[1], 10);
     }
 
-    // Fallback: se não achar nos comentários, precisaríamos calcular via G1 (Paralelismo pesado)
-    // Para este MVP/Exemplo, retornamos os metadados encontrados ou valores padrão
-    return {
-        tempoEstimadoMinutos: Math.ceil(tempoSegundos / 60) || 0,
-        pesoEstimadoGramas: Math.ceil(pesoGramas) || 0,
-        quantidadeLinhas: linhas.length,
-        fatiadorDetectado: fatiador
-    };
+    // Extração de Peso Simplificada (Cura costuma colocar em gramas no final em versões novas)
+    if (linha.includes(";File total size:")) {
+      /* ... */
+    }
+  }
+
+  // Fallback: se não achar nos comentários, precisaríamos calcular via G1 (Paralelismo pesado)
+  // Para este MVP/Exemplo, retornamos os metadados encontrados ou valores padrão
+  return {
+    tempoEstimadoMinutos: Math.ceil(tempoSegundos / 60) || 0,
+    pesoEstimadoGramas: Math.ceil(pesoGramas) || 0,
+    quantidadeLinhas: linhas.length,
+    fatiadorDetectado: fatiador,
+  };
 }
