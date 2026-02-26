@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
-import { Save, Check, Loader2, X } from "lucide-react";
+import { Save, Check, X } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
+import { registrar } from "@/compartilhado/utilitarios/registrador";
+import { toast } from "react-hot-toast";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
+import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
 
 import { CardPerfil } from "./componentes/CardPerfil";
 import { CardOperacional } from "./componentes/CardOperacional";
@@ -81,8 +84,8 @@ export function PaginaConfiguracoes() {
       // O link de sucesso sumira apos 8 segundos para voltar o botao
       setTimeout(() => definirSucessoLink(false), 8000);
     } catch (erro) {
-      console.error("Erro ao enviar e-mail:", erro);
-      alert("Erro ao enviar e-mail de redefinicao.");
+      registrar.error({ rastreioId: "sistema", servico: "Configuracoes" }, "Erro ao enviar e-mail", erro);
+      toast.error("Erro ao enviar e-mail de redefinicao.");
     } finally {
       definirEnviandoEmail(false);
     }
@@ -124,9 +127,10 @@ export function PaginaConfiguracoes() {
         definirToastVisivel(false);
       }, 4000);
     } catch (erro) {
-      console.error("Erro ao salvar:", erro);
-      definirToastVisivel(true);
-      setTimeout(() => definirToastVisivel(false), 4000);
+      registrar.error({ rastreioId: "sistema", servico: "Configuracoes" }, "Erro ao salvar configurações", erro);
+      toast.error("Falha ao salvar configurações.");
+      definirToastVisivel(true); // Keep the custom toast visible for error
+      setTimeout(() => definirToastVisivel(false), 4000); // Hide the custom toast after 4 seconds
     } finally {
       definirSalvando(false);
     }
@@ -139,8 +143,8 @@ export function PaginaConfiguracoes() {
       : "Gestão operacional e proteção de dados (LGPD)",
     ocultarBusca: true,
     acao: {
-      texto: salvando ? "Salvando..." : sucesso ? "Salvo!" : temAlteracoes ? `Salvar (${totalAlteracoes})` : "Salvar",
-      icone: sucesso ? Check : salvando ? Loader2 : Save,
+      texto: salvando ? "Salvando..." : sucesso ? "Salvo!" : temAlteracoes ? `Salvar(${totalAlteracoes})` : "Salvar",
+      icone: sucesso ? Check : Save,
       aoClicar: lidarComSalvar,
       desabilitado: salvando || !temAlteracoes,
     },
@@ -153,15 +157,17 @@ export function PaginaConfiguracoes() {
   });
 
   return (
-    <div className="flex-1 w-full overflow-y-auto p-4 md:p-6 relative">
-      <div className="absolute inset-0 bg-grid-printlog pointer-events-none opacity-50 dark:opacity-100" />
-      <div className="relative mx-auto w-full max-w-6xl space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-10 animate-in fade-in duration-500">
+
+      {(salvando || enviandoEmail) && (
+        <Carregamento texto={salvando ? "Salvando Alterações..." : "Enviando E-mail de Segurança..."} />
+      )}
+      <div className="relative mx-auto w-full max-w-6xl space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <CardPerfil
             usuario={usuario}
             nome={nome}
             definirNome={definirNome}
-            enviandoEmail={enviandoEmail}
             sucessoEmail={sucessoLink}
             lidarComTrocaSenha={lidarComTrocaSenha}
             pendente={perfilPendente}

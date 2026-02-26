@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-interface StatusItemProps {
+interface PropriedadesStatusItem {
     titulo: string;
     maquina: string;
     progresso: number;
@@ -8,7 +8,7 @@ interface StatusItemProps {
     cor: string;
 }
 
-export function StatusItem({ titulo, maquina, progresso, status, cor }: StatusItemProps) {
+export function StatusItem({ titulo, maquina, progresso, status, cor }: PropriedadesStatusItem) {
     return (
         <div className="space-y-2">
             <div className="flex justify-between items-end">

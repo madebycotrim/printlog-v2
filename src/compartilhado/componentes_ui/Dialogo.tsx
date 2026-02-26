@@ -48,21 +48,21 @@ export function Dialogo({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-              className={`w-full ${larguraMax} bg-white dark:bg-[#0e0e11] border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col max-h-[90vh]`}
+              className={`w-full ${larguraMax} bg-card border border-subtle rounded-2xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col max-h-[90vh]`}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Cabeçalho */}
               {!esconderCabecalho && (
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/5 bg-gray-50/80 dark:bg-[#18181b] rounded-t-2xl">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-subtle bg-transparent backdrop-blur-md rounded-t-2xl z-20">
+                  <h3 className="text-sm font-bold text-gray-500 dark:text-zinc-400 tracking-widest uppercase">
                     {titulo}
                   </h3>
                   <button
                     onClick={aoFechar}
-                    className="p-1 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-200/50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-200/50 dark:text-zinc-500 dark:hover:text-white dark:hover:bg-white/10 transition-all active:scale-90"
                     aria-label="Fechar"
                   >
-                    <X size={20} />
+                    <X size={18} strokeWidth={2.5} />
                   </button>
                 </div>
               )}

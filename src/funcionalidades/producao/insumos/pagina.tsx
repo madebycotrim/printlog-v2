@@ -2,7 +2,7 @@ import { Box, Plus, Search } from "lucide-react";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { usarGerenciadorInsumos } from "./ganchos/usarGerenciadorInsumos";
 import { ResumoInsumos } from "./componentes/ResumoInsumos";
-import { ItemInsumo } from "./componentes/CardInsumo";
+import { CardInsumo } from "./componentes/CardInsumo";
 import { FormularioInsumo } from "./componentes/FormularioInsumo";
 import { ModalBaixaInsumo } from "./componentes/ModalBaixaInsumo";
 import { ModalReposicaoInsumo } from "./componentes/ModalReposicaoInsumo";
@@ -11,6 +11,8 @@ import { ModalHistoricoInsumo } from "./componentes/ModalHistoricoInsumo";
 import { FiltrosInsumo } from "./componentes/FiltrosInsumo";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { EstadoVazio } from "@/compartilhado/componentes_ui/EstadoVazio";
+import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
 
 export function PaginaInsumos() {
   const { estado, acoes } = usarGerenciadorInsumos();
@@ -28,30 +30,21 @@ export function PaginaInsumos() {
   });
 
   return (
-    <>
+    <div className="space-y-10">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
+        {estado.carregando && estado.insumos.length > 0 && <Carregamento tipo="global" mensagem="Carregando insumos..." />}
         {estado.insumos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 px-4 text-center mt-4 h-[60vh]">
-            <div className="text-gray-300 dark:text-zinc-700 mb-6">
-              <Box size={48} strokeWidth={1.5} />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-              Nenhum insumo encontrado
-            </h3>
-            <p className="text-gray-500 dark:text-zinc-400 max-w-sm mx-auto mb-8 text-sm">
-              Adicione o seu primeiro insumo para gerenciar o seu estoque de apoio logístico.
-            </p>
-            <button
-              onClick={() => acoes.abrirEditar()}
-              className="bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black font-semibold py-2.5 px-6 rounded-full shadow-sm transition-transform active:scale-95"
-            >
-              Cadastrar Insumo
-            </button>
-          </div>
+          <EstadoVazio
+            titulo="Nenhum insumo encontrado"
+            descricao="Adicione o seu primeiro insumo para gerenciar o seu estoque de apoio logístico."
+            icone={Box}
+            textoBotao="Cadastrar Insumo"
+            aoClicarBotao={() => acoes.abrirEditar()}
+          />
         ) : (
           <div className=" ">
             <ResumoInsumos
@@ -109,7 +102,7 @@ export function PaginaInsumos() {
 
                       <div className="flex flex-col bg-white dark:bg-[#18181b] rounded-xl border border-gray-200 dark:border-white/5">
                         {lista.map((ins, index) => (
-                          <ItemInsumo
+                          <CardInsumo
                             key={ins.id}
                             insumo={ins}
                             ultimo={index === lista.length - 1}
@@ -164,6 +157,6 @@ export function PaginaInsumos() {
         aoFechar={acoes.fecharHistorico}
         insumo={estado.insumoHistorico}
       />
-    </>
+    </div>
   );
 }

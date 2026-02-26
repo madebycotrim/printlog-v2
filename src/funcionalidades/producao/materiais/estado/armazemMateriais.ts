@@ -5,8 +5,9 @@ interface EstadoMateriais {
     materiais: Material[];
     carregando: boolean; // Simular requisições futuras
 
-    // Ações CRUD
+    // Ações Base
     definirMateriais: (materiais: Material[]) => void;
+    definirCarregando: (status: boolean) => void;
     adicionarMaterial: (novo: Material) => void;
     atualizarMaterial: (id: string, dados: Partial<Material>) => void;
     arquivarMaterial: (id: string) => void;
@@ -22,6 +23,7 @@ export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
     carregando: false,
 
     definirMateriais: (materiais) => set({ materiais }),
+    definirCarregando: (status) => set({ carregando: status }),
 
     adicionarMaterial: (novo) => set((state) => ({ materiais: [novo, ...state.materiais] })),
 

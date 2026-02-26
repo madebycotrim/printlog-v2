@@ -1,7 +1,9 @@
-import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
+import { useState, useMemo } from "react";
+import { Printer, Box, CheckCircle2, XCircle, TrendingUp, Clock, Target, DollarSign, History } from "lucide-react";
+import { ModalListagemPremium } from "@/compartilhado/componentes_ui/ModalListagemPremium";
+import { GradeCampos } from "@/compartilhado/componentes_ui/FormularioLayout";
+import { CardResumo } from "@/compartilhado/componentes_ui/CardResumo";
 import { Impressora, RegistroProducao } from "@/funcionalidades/producao/impressoras/tipos";
-import { Printer, Box, CheckCircle2, XCircle, TrendingUp, Clock, Target } from "lucide-react";
-import { useMemo } from "react";
 
 interface ModalHistoricoProducaoProps {
     aberto: boolean;
@@ -13,11 +15,9 @@ interface ModalHistoricoProducaoProps {
 // 🔄 MOCK DE DADOS AUTO GERADO (Para Simular Pedidos Concluídos / Falhados)
 // --------------------------------------------------------------------------------------
 function gerarMockHistorico(horimetroTotalMinutos: number): RegistroProducao[] {
-    const qtdeProjetos = Math.max(1, Math.floor(horimetroTotalMinutos / 720)); // Simula projeto médio de 12h (720 min)
+    const qtdeProjetos = Math.max(1, Math.floor(horimetroTotalMinutos / 720));
     const mock: RegistroProducao[] = [];
-
     const qtdeVisual = Math.min(25, qtdeProjetos);
-
     let dataAtual = new Date();
     dataAtual.setDate(dataAtual.getDate() - 1);
 
@@ -39,7 +39,6 @@ function gerarMockHistorico(horimetroTotalMinutos: number): RegistroProducao[] {
             dataConclusao: new Date(dataAtual.getTime() - i * 86400000 * (Math.random() * 3)).toISOString(),
         });
     }
-
     return mock.sort((a, b) => new Date(b.dataConclusao).getTime() - new Date(a.dataConclusao).getTime());
 }
 
@@ -48,166 +47,172 @@ export function ModalHistoricoProducao({
     aoFechar,
     impressora,
 }: ModalHistoricoProducaoProps) {
+    const [busca, setBusca] = useState("");
 
-    const registros = useMemo(() => {
+    const registrosRaw = useMemo(() => {
         if (!impressora) return [];
         if (impressora.historicoProducao && impressora.historicoProducao.length > 0) {
             return impressora.historicoProducao;
         }
-        return gerarMockHistorico(impressora.horimetroTotalMinutos || 9000); // 150h mock min
+        return gerarMockHistorico(impressora.horimetroTotalMinutos || 9000);
     }, [impressora]);
+
+    const registrosFiltrados = useMemo(() => {
+        if (!busca) return registrosRaw;
+        const termo = busca.toLowerCase();
+        return registrosRaw.filter(r =>
+            r.nomeProjeto.toLowerCase().includes(termo) ||
+            r.idProtocolo.toLowerCase().includes(termo)
+        );
+    }, [registrosRaw, busca]);
 
     if (!impressora) return null;
 
-    const totalPecas = registros.length;
-    const pecasComSucesso = registros.filter(r => r.sucesso).length;
+    const totalPecas = registrosRaw.length;
+    const pecasComSucesso = registrosRaw.filter(r => r.sucesso).length;
     const taxaSucesso = totalPecas > 0 ? (pecasComSucesso / totalPecas) * 100 : 0;
-    const totalFaturadoCentavos = registros.reduce((acc, curr) => acc + curr.valorGeradoCentavos, 0);
+    const totalFaturadoCentavos = registrosRaw.reduce((acc, curr) => acc + curr.valorGeradoCentavos, 0);
 
     return (
-        <Dialogo
+        <ModalListagemPremium
             aberto={aberto}
             aoFechar={aoFechar}
-            titulo="Histórico de Produção"
-            larguraMax="max-w-4xl"
+            titulo="Análise de Produção Histórica"
+            iconeTitulo={History}
+            corDestaque="sky"
+            termoBusca={busca}
+            aoMudarBusca={setBusca}
+            placeholderBusca="BUSCAR POR PROJETO OU PROTOCOLO..."
+            temResultados={registrosFiltrados.length > 0}
+            totalResultados={registrosFiltrados.length}
+            iconeVazio={Box}
+            mensagemVazio="Nenhum registro de produção encontrado para esta busca."
+            infoRodape="Dados auditados • Fase de Sincronização em tempo real."
         >
-            <div className="flex flex-col bg-white dark:bg-[#18181b] min-h-[500px] max-h-[85vh] overflow-hidden">
-                {/* Cabeçalho da Impressora */}
-                <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-zinc-900/20">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#0d0d0f] border border-white/5 shadow-sm overflow-hidden flex-shrink-0">
+            <div className="space-y-10">
+                {/* Cabeçalho da Impressora & Dashboard */}
+                <div className="bg-gray-50/50 dark:bg-white/[0.02] p-8 rounded-3xl border border-gray-100 dark:border-white/5 space-y-8 relative overflow-hidden">
+                    <div className="flex items-center gap-6 mb-2">
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-white dark:bg-card border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden flex-shrink-0 group">
                             {impressora.imagemUrl ? (
-                                <img src={impressora.imagemUrl} alt={impressora.nome} className="w-[85%] h-[85%] object-contain scale-110" />
+                                <img src={impressora.imagemUrl} alt={impressora.nome} className="w-[85%] h-[85%] object-contain group-hover:scale-110 transition-transform duration-500" />
                             ) : (
-                                <Printer size={28} className="text-zinc-600" />
+                                <Printer size={32} className="text-zinc-400 dark:text-zinc-700" />
                             )}
                         </div>
-                        <div className="flex flex-col min-w-0 flex-1">
-                            <h3 className="text-xl font-black text-gray-900 dark:text-white truncate tracking-tight">
+                        <div className="flex flex-col min-w-0 flex-1 gap-1">
+                            <h3 className="text-2xl font-black text-gray-900 dark:text-white truncate uppercase tracking-tight">
                                 {impressora.nome}
                             </h3>
-                            <p className="text-sm font-medium text-gray-500 dark:text-zinc-400 truncate mt-0.5">
-                                Desempenho em Pedidos e Projetos Avulsos
+                            <p className="text-[10px] font-black text-gray-400 dark:text-zinc-500 truncate uppercase tracking-[0.2em]">
+                                Monitoramento de Eficiência e Faturamento
                             </p>
                         </div>
-                        <div className="hidden sm:flex flex-col items-end">
-                            <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-widest block mb-1">
+                        <div className="hidden sm:flex flex-col items-end bg-sky-50 dark:bg-sky-500/10 px-4 py-2 rounded-2xl border border-sky-100 dark:border-sky-500/20 shadow-inner">
+                            <span className="text-[9px] font-black text-sky-600/60 dark:text-sky-400/60 uppercase tracking-widest block mb-0.5">
                                 OEE Estimado
                             </span>
-                            <span className="flex items-center gap-1.5 px-3 py-1 rounded bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 text-sm font-bold border border-sky-100 dark:border-sky-500/20">
-                                <TrendingUp size={14} /> 85%
+                            <span className="flex items-center gap-2 text-base font-black text-sky-600 dark:text-sky-400">
+                                <TrendingUp size={16} /> 85%
                             </span>
                         </div>
                     </div>
 
-                    {/* Dashboard Estatísticas da Máquina */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                        <EstatCard icone={Box} titulo="Projetos" valor={totalPecas.toString()} cor="text-zinc-900 dark:text-white" />
-                        <EstatCard icone={Target} titulo="Taxa de Sucesso" valor={`${Math.round(taxaSucesso)}%`} cor={taxaSucesso >= 80 ? "text-emerald-500" : taxaSucesso >= 50 ? "text-amber-500" : "text-red-500"} />
-                        <EstatCard icone={Clock} titulo="Horas Trabalhadas" valor={`${Math.round((impressora.horimetroTotalMinutos || 9000) / 60)}h`} cor="text-sky-500" />
-                        <EstatCard icone={TrendingUp} titulo="Faturamento Histórico" valor={`R$ ${(totalFaturadoCentavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`} cor="text-emerald-500" bg="bg-emerald-50 dark:bg-emerald-500/5 border-emerald-100 dark:border-emerald-500/20" />
-                    </div>
+                    <GradeCampos colunas={4}>
+                        <CardResumo
+                            titulo="Total de Projetos"
+                            valor={totalPecas}
+                            unidade="projetos"
+                            icone={Box}
+                            cor="zinc"
+                        />
+                        <CardResumo
+                            titulo="Sucesso de Impressão"
+                            valor={`${Math.round(taxaSucesso)}%`}
+                            unidade="de êxito"
+                            icone={Target}
+                            cor={taxaSucesso >= 80 ? "emerald" : taxaSucesso >= 60 ? "amber" : "rose"}
+                        />
+                        <CardResumo
+                            titulo="Horas de Operação"
+                            valor={Math.round((impressora.horimetroTotalMinutos || 0) / 60)}
+                            unidade="horas"
+                            icone={Clock}
+                            cor="sky"
+                        />
+                        <CardResumo
+                            titulo="Receita Gerada"
+                            valor={(totalFaturadoCentavos / 100).toLocaleString("pt-BR", { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}
+                            icone={DollarSign}
+                            cor="emerald"
+                        />
+                    </GradeCampos>
                 </div>
 
-                {/* Lista de Registros */}
-                <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30 dark:bg-[#0c0c0e]/30">
-                    <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-[0.15em] flex items-center gap-2">
-                            <Box size={14} className="text-gray-400" />
-                            Últimas Produções Realizadas
-                        </h4>
-                        <span className="text-xs font-medium text-gray-500 dark:text-zinc-500 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/5 px-2.5 py-1 rounded-md shadow-sm">
-                            Listando os {registros.length} mais recentes
-                        </span>
-                    </div>
-
-                    <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="border-b border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-zinc-900/50">
-                                        <th className="px-5 py-3 text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest whitespace-nowrap">Status</th>
-                                        <th className="px-5 py-3 text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest">Projeto</th>
-                                        <th className="px-5 py-3 text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest whitespace-nowrap">Tempo</th>
-                                        <th className="px-5 py-3 text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest whitespace-nowrap text-right">Faturado</th>
-                                        <th className="px-5 py-3 text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest whitespace-nowrap text-right">Data</th>
+                {/* Tabela de Registros */}
+                <div className="bg-white dark:bg-[#0c0c0e]/50 border border-gray-100 dark:border-white/5 rounded-3xl overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-zinc-900/50">
+                                    <th className="px-6 py-5 text-[9px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest whitespace-nowrap">Status</th>
+                                    <th className="px-6 py-5 text-[9px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">Identificação do Projeto</th>
+                                    <th className="px-6 py-5 text-[9px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest whitespace-nowrap">Duração</th>
+                                    <th className="px-6 py-5 text-[9px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest whitespace-nowrap text-right">Valor</th>
+                                    <th className="px-6 py-5 text-[9px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest whitespace-nowrap text-right">Conclusão</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                                {registrosFiltrados.map((reg: RegistroProducao) => (
+                                    <tr key={reg.idProtocolo} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-colors group">
+                                        <td className="px-6 py-5 whitespace-nowrap">
+                                            {reg.sucesso ? (
+                                                <div className="flex items-center gap-2 text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 rounded-full w-fit border border-emerald-100 dark:border-emerald-500/20 shadow-inner">
+                                                    <CheckCircle2 size={12} strokeWidth={3} /> OK
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2 text-[10px] font-black uppercase text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 px-3 py-1 rounded-full w-fit border border-rose-100 dark:border-rose-500/20 shadow-inner">
+                                                    <XCircle size={12} strokeWidth={3} /> Erro
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-5 max-w-[240px]">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-sm font-black text-gray-900 dark:text-white truncate uppercase tracking-tight">
+                                                    {reg.nomeProjeto}
+                                                </span>
+                                                <span className="text-[9px] font-black text-gray-400 dark:text-zinc-600 uppercase tracking-widest truncate">
+                                                    ID: {reg.idProtocolo}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 whitespace-nowrap">
+                                            <div className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-zinc-400">
+                                                <Clock size={14} className="text-gray-400 dark:text-zinc-600" />
+                                                {Math.round(reg.minutosImpressao / 60)}h
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 whitespace-nowrap text-right">
+                                            {reg.sucesso ? (
+                                                <span className="text-sm font-black text-gray-900 dark:text-white tabular-nums">
+                                                    {((reg.valorGeradoCentavos || 0) / 100).toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' })}
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm font-bold text-gray-400 dark:text-zinc-600 line-through opacity-50 tabular-nums">
+                                                    {((reg.valorGeradoCentavos || 0) / 100).toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' })}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-5 whitespace-nowrap text-right text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                            {new Date(reg.dataConclusao).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                                    {registros.map((reg) => (
-                                        <tr key={reg.idProtocolo} className="hover:bg-gray-50/80 dark:hover:bg-white/[0.02] transition-colors group">
-                                            <td className="px-5 py-3.5 whitespace-nowrap">
-                                                {reg.sucesso ? (
-                                                    <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-md w-fit border border-emerald-100 dark:border-emerald-500/20">
-                                                        <CheckCircle2 size={14} /> Concluído
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center gap-1.5 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 px-2.5 py-1 rounded-md w-fit border border-red-100 dark:border-red-500/20">
-                                                        <XCircle size={14} /> Falha
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-5 py-3.5 max-w-[200px]">
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                                        {reg.nomeProjeto}
-                                                    </span>
-                                                    <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mt-0.5">
-                                                        {reg.idProtocolo}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-5 py-3.5 whitespace-nowrap">
-                                                <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 dark:text-zinc-300">
-                                                    <Clock size={14} className="text-gray-400 dark:text-zinc-500" />
-                                                    {Math.round(reg.minutosImpressao / 60)}h
-                                                </div>
-                                            </td>
-                                            <td className="px-5 py-3.5 whitespace-nowrap text-right">
-                                                {reg.sucesso ? (
-                                                    <span className="text-sm font-black text-gray-900 dark:text-white">
-                                                        R$ {(reg.valorGeradoCentavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-sm font-bold text-gray-400 dark:text-zinc-600 line-through">
-                                                        R$ {(reg.valorGeradoCentavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-5 py-3.5 whitespace-nowrap text-right text-xs font-medium text-gray-500 dark:text-zinc-400">
-                                                {new Date(reg.dataConclusao).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-
-                {/* Footer (Aviso de Mock Provisório) */}
-                <div className="p-4 border-t border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-[#121214] text-center flex justify-center">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-zinc-500">
-                        *Os dados históricos reais serão migrados após a finalização do Módulo de Pedidos.
-                    </span>
-                </div>
             </div>
-        </Dialogo>
-    );
-}
-
-function EstatCard({ icone: Icone, titulo, valor, cor, bg = "bg-white dark:bg-[#18181b] border-gray-200 dark:border-white/5" }: any) {
-    return (
-        <div className={`p-4 rounded-xl border flex flex-col justify-between ${bg}`}>
-            <div className="flex items-center gap-2 mb-2">
-                <Icone size={14} className="text-gray-400" />
-                <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-widest truncate">
-                    {titulo}
-                </span>
-            </div>
-            <span className={`text-[22px] font-black leading-none ${cor}`}>
-                {valor}
-            </span>
-        </div>
+        </ModalListagemPremium>
     );
 }

@@ -7,9 +7,12 @@ import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalh
 import { Plus } from "lucide-react";
 import { auditoria } from "@/compartilhado/utilitarios/Seguranca";
 
+import { ALERTA_ESTOQUE_FILAMENTO_GRAMAS } from "@/compartilhado/utilitarios/constantesNegocio";
+
 export function usarGerenciadorMateriais() {
     // 🎯 SELETORES OTIMIZADOS
     const materiais = usarArmazemMateriais(s => s.materiais);
+    const carregando = usarArmazemMateriais(s => s.carregando);
     const acoesArmazem = usarArmazemMateriais(useShallow(s => ({
         atualizarMaterial: s.atualizarMaterial,
         adicionarMaterial: s.adicionarMaterial,
@@ -58,6 +61,11 @@ export function usarGerenciadorMateriais() {
         definirModalAberto(false);
     };
 
+    /**
+     * Salva ou atualiza um material.
+     * @param dadosDoFormulario Dados brutos do formulário (Any justificado por tipagem dinâmica de campos de fatiamento).
+     * @lgpd Base legal: Execução de contrato (Art. 7º, V) - Dados técnicos do material.
+     */
     const salvarMaterial = (dadosDoFormulario: any) => {
         const eEdicao = Boolean(materialSendoEditado);
         if (materialSendoEditado) {
@@ -110,16 +118,17 @@ export function usarGerenciadorMateriais() {
     // KPIs
     const materiaisAtivos = useMemo(() => materiais.filter(m => !m.arquivado), [materiais]);
 
-    const kpis = useMemo(() => {
+    const metricas = useMemo(() => {
         const totalEmbalagens = materiaisAtivos.reduce(
-            (acc, mat) => acc + (mat.pesoRestanteGramas > 0 ? 1 : 0) + mat.estoque,
+            (acumulador, mat) => acumulador + (mat.pesoRestanteGramas > 0 ? 1 : 0) + mat.estoque,
             0,
         );
-        const valorInvestido = materiaisAtivos.reduce((acc, mat) => {
-            return acc + (mat.precoCentavos * (mat.pesoRestanteGramas / mat.pesoGramas)) + (mat.precoCentavos * mat.estoque);
+        const valorInvestido = materiaisAtivos.reduce((acumulador, mat) => {
+            return acumulador + (mat.precoCentavos * (mat.pesoRestanteGramas / mat.pesoGramas)) + (mat.precoCentavos * mat.estoque);
         }, 0);
+
         const alertasBaixoEstoque = materiaisAtivos.filter(
-            (mat) => mat.pesoRestanteGramas / mat.pesoGramas < 0.2 && mat.estoque === 0,
+            (mat) => (mat.pesoRestanteGramas < ALERTA_ESTOQUE_FILAMENTO_GRAMAS) && mat.estoque === 0,
         ).length;
 
         return { totalEmbalagens, valorInvestido, alertasBaixoEstoque };
@@ -171,6 +180,7 @@ export function usarGerenciadorMateriais() {
     return {
         estado: {
             materiais,
+            carregando,
             materiaisFiltradosOrdenados,
             agrupadosPorTipoMaterial,
             // Modais
@@ -190,7 +200,7 @@ export function usarGerenciadorMateriais() {
             ordenacao,
             ordemInvertida,
             // KPIs
-            kpis
+            metricas: metricas
         },
         acoes: {
             // Abertores (A UI envia ID exceto em Editar)

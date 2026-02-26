@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { TemaInterface } from "@/compartilhado/tipos_globais/modelos";
 import type { CorPrimaria, ModoTema, TipoFonte } from "@/compartilhado/tipos_globais/modelos";
 
-const PALETA_PRIMARIA: Record<CorPrimaria, { hex: string; rgb: string }> = {
+const PALETA_CORES: Record<CorPrimaria, { hex: string; rgb: string }> = {
   sky: { hex: "#0ea5e9", rgb: "14 165 233" },
   emerald: { hex: "#10b981", rgb: "16 185 129" },
   violet: { hex: "#8b5cf6", rgb: "139 92 246" },
@@ -19,7 +19,7 @@ const PALETA_PRIMARIA: Record<CorPrimaria, { hex: string; rgb: string }> = {
   slate: { hex: "#64748b", rgb: "100 116 139" },
 };
 
-const MAPA_FONTES: Record<TipoFonte, string> = {
+const DICIONARIO_FONTES: Record<TipoFonte, string> = {
   inter: "Inter, sans-serif",
   roboto: "Roboto, sans-serif",
   montserrat: "Montserrat, sans-serif",
@@ -28,67 +28,76 @@ const MAPA_FONTES: Record<TipoFonte, string> = {
   "jetbrains-mono": "'JetBrains Mono', monospace",
 };
 
+const CHAVE_PERSISTENCIA = "printlog:tema";
+
+interface PreferenciasInterface {
+  modoTema: ModoTema;
+  corPrimaria: CorPrimaria;
+  fonte: TipoFonte;
+}
+
 export function usarTema() {
   // Inicializa o estado lendo diretamente do localStorage ou preferência do sistema
-  const [modoTema, definirModoTema] = useState<ModoTema>(() => {
+  const [preferencias, definirPreferencias] = useState<PreferenciasInterface>(() => {
     if (typeof window !== "undefined") {
-      const temaSalvo = localStorage.getItem("modo_tema") as ModoTema;
-      if (temaSalvo === TemaInterface.CLARO || temaSalvo === TemaInterface.ESCURO) {
-        return temaSalvo;
+      const salvo = localStorage.getItem(CHAVE_PERSISTENCIA);
+      if (salvo) {
+        try {
+          return JSON.parse(salvo);
+        } catch {
+          // Fallback para erro de parse
+        }
       }
-      if (
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
-      ) {
-        return TemaInterface.ESCURO;
-      }
+
+      const modoDefault = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ? TemaInterface.ESCURO
+        : TemaInterface.CLARO;
+
+      return {
+        modoTema: modoDefault,
+        corPrimaria: "sky",
+        fonte: "inter"
+      };
     }
-    return TemaInterface.CLARO;
+    return { modoTema: TemaInterface.CLARO, corPrimaria: "sky", fonte: "inter" };
   });
 
-  const [corPrimaria, definirCorPrimaria] = useState<CorPrimaria>(() => {
-    if (typeof window !== "undefined") {
-      const corSalva = localStorage.getItem("cor_primaria") as CorPrimaria | null;
-      if (corSalva && corSalva in PALETA_PRIMARIA) {
-        return corSalva;
-      }
-    }
-    return "sky";
-  });
-
-  const [fonte, definirFonte] = useState<TipoFonte>(() => {
-    if (typeof window !== "undefined") {
-      const fonteSalva = localStorage.getItem("fonte_usuario") as TipoFonte | null;
-      if (fonteSalva && fonteSalva in MAPA_FONTES) {
-        return fonteSalva;
-      }
-    }
-    return "inter";
-  });
+  const { modoTema, corPrimaria, fonte } = preferencias;
 
   useEffect(() => {
     // Persiste as escolhas e aplica variaveis globais de tema/cor
-    localStorage.setItem("modo_tema", modoTema);
-    localStorage.setItem("cor_primaria", corPrimaria);
-    localStorage.setItem("fonte_usuario", fonte);
+    localStorage.setItem(CHAVE_PERSISTENCIA, JSON.stringify(preferencias));
 
     const root = document.documentElement;
     root.setAttribute("data-tema", modoTema.toLowerCase());
-    root.style.setProperty("--cor-primaria", PALETA_PRIMARIA[corPrimaria].hex);
-    root.style.setProperty("--cor-primaria-rgb", PALETA_PRIMARIA[corPrimaria].rgb);
-    root.style.setProperty("--familia-fonte", MAPA_FONTES[fonte]);
+    root.style.setProperty("--cor-primaria", PALETA_CORES[corPrimaria].hex);
+    root.style.setProperty("--cor-primaria-rgb", PALETA_CORES[corPrimaria].rgb);
+    root.style.setProperty("--familia-fonte", DICIONARIO_FONTES[fonte]);
 
     if (modoTema === TemaInterface.ESCURO) {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
     }
-  }, [modoTema, corPrimaria, fonte]);
+  }, [preferencias]);
 
   function alternarTema() {
-    definirModoTema((temaAtual: ModoTema) =>
-      temaAtual === TemaInterface.CLARO ? TemaInterface.ESCURO : TemaInterface.CLARO,
-    );
+    definirPreferencias(prev => ({
+      ...prev,
+      modoTema: prev.modoTema === TemaInterface.CLARO ? TemaInterface.ESCURO : TemaInterface.CLARO
+    }));
+  }
+
+  function definirModoTema(novoModo: ModoTema) {
+    definirPreferencias(prev => ({ ...prev, modoTema: novoModo }));
+  }
+
+  function definirCorPrimaria(novaCor: CorPrimaria) {
+    definirPreferencias(prev => ({ ...prev, corPrimaria: novaCor }));
+  }
+
+  function definirFonte(novaFonte: TipoFonte) {
+    definirPreferencias(prev => ({ ...prev, fonte: novaFonte }));
   }
 
   return {
@@ -99,6 +108,6 @@ export function usarTema() {
     definirCorPrimaria,
     fonte,
     definirFonte,
-    paletaPrimaria: PALETA_PRIMARIA,
+    paletaCores: PALETA_CORES,
   };
 }

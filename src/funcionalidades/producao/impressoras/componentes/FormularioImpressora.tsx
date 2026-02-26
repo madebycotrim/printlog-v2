@@ -5,18 +5,21 @@ import { z } from "zod";
 import {
     Save,
     Zap,
-    DollarSign,
     Clock,
     Wrench,
-    AlertCircle,
     Tag,
     Building2,
     Layers,
+    Droplet,
 } from "lucide-react";
+import { registrar } from "@/compartilhado/utilitarios/registrador";
 import { Combobox } from "@/compartilhado/componentes_ui/Combobox";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
+import { CampoTexto } from "@/compartilhado/componentes_ui/CampoTexto";
+import { CampoMonetario } from "@/compartilhado/componentes_ui/CampoMonetario";
 import { Impressora, PerfilImpressoraCatalogo } from "@/funcionalidades/producao/impressoras/tipos";
 import { StatusImpressora } from "@/compartilhado/tipos_globais/modelos";
+import { SecaoFormulario, GradeCampos } from "@/compartilhado/componentes_ui/FormularioLayout";
 
 const esquemaImpressora = z.object({
     nome: z.string().min(2, "O apelido deve ter pelo menos 2 caracteres"),
@@ -34,20 +37,28 @@ const esquemaImpressora = z.object({
 
 type ImpressoraFormData = z.infer<typeof esquemaImpressora>;
 
-interface FormularioImpressoraProps {
+interface PropriedadesFormularioImpressora {
     aberto: boolean;
     impressoraEditando: Impressora | null;
-    aoSalvar: (impressora: Impressora) => void;
+    /**
+     * @param impressora Dados da impressora para salvar.
+     * @returns Promise (Justificativa: tipagem flexível para persistência mock)
+     */
+    aoSalvar: (impressora: Impressora) => Promise<any> | void;
     aoCancelar: () => void;
 }
 
+/**
+ * Formulário de Cadastro/Edição de Impressoras.
+ * @lgpd Base legal: Execução de contrato (Art. 7º, V) - Gerenciamento de ativos produtivos.
+ */
 export function FormularioImpressora({
     aberto,
     impressoraEditando,
     aoSalvar,
     aoCancelar,
-}: FormularioImpressoraProps) {
-    const isEditando = Boolean(impressoraEditando);
+}: PropriedadesFormularioImpressora) {
+    const estaEditando = Boolean(impressoraEditando);
     const [confirmarDescarte, definirConfirmarDescarte] = useState(false);
     const [catalogo, definirCatalogo] = useState<PerfilImpressoraCatalogo[]>([]);
 
@@ -60,6 +71,7 @@ export function FormularioImpressora({
         formState: { errors, isDirty },
     } = useForm<ImpressoraFormData>({
         resolver: zodResolver(esquemaImpressora) as any,
+        mode: "onChange",
         defaultValues: {
             nome: "",
             tecnologia: "FDM",
@@ -74,9 +86,9 @@ export function FormularioImpressora({
         },
     });
 
-    const tecnologiaSelecionada = watch("tecnologia");
-    const marcaSelecionada = watch("marca");
-    const modeloSelecionado = watch("modeloBase");
+    const tecnologiaAtiva = watch("tecnologia");
+    const marcaAtiva = watch("marca");
+    const modeloAtivo = watch("modeloBase");
 
     useEffect(() => {
         fetch("/impressoras.json")
@@ -92,7 +104,7 @@ export function FormularioImpressora({
                 }));
                 definirCatalogo(dadosMapeados);
             })
-            .catch(console.error);
+            .catch((erro) => registrar.error({ rastreioId: "sistema", servico: "FormularioImpressora" }, "Erro ao carregar catálogo", erro));
     }, []);
 
     useEffect(() => {
@@ -140,9 +152,9 @@ export function FormularioImpressora({
     const tiposSLA = ["Resina", "SLA", "DLP", "LCD"];
 
     const catalogoFiltrado = useMemo(() => {
-        const tiposPermitidos = tecnologiaSelecionada === "FDM" ? tiposFDM : tiposSLA;
+        const tiposPermitidos = tecnologiaAtiva === "FDM" ? tiposFDM : tiposSLA;
         return catalogo.filter((p) => tiposPermitidos.includes(p.tipo));
-    }, [catalogo, tecnologiaSelecionada]);
+    }, [catalogo, tecnologiaAtiva]);
 
     const opcoesFabricante = useMemo(() => {
         const marcas = [...new Set(catalogoFiltrado.map((p) => p.marca))].sort();
@@ -150,12 +162,12 @@ export function FormularioImpressora({
     }, [catalogoFiltrado]);
 
     const opcoesModelo = useMemo(() => {
-        const termoMarca = (marcaSelecionada || "").toLowerCase().trim();
+        const termoMarca = (marcaAtiva || "").toLowerCase().trim();
         const filtrados = termoMarca
             ? catalogoFiltrado.filter((p) => p.marca.toLowerCase() === termoMarca)
             : catalogoFiltrado;
         return filtrados.map((p) => ({ valor: p.modelo, rotulo: `${p.nome}` }));
-    }, [catalogoFiltrado, marcaSelecionada]);
+    }, [catalogoFiltrado, marcaAtiva]);
 
     /** Ao selecionar modelo, autopreenche imagem + consumo + apelido */
     const aoAlterarModelo = (modeloNome: string) => {
@@ -164,7 +176,7 @@ export function FormularioImpressora({
         if (perfil) {
             setValue("imagemUrl", perfil.imagem, { shouldDirty: true });
             setValue("consumoKw", perfil.consumoKw, { shouldDirty: true });
-            if (!marcaSelecionada) {
+            if (!marcaAtiva) {
                 setValue("marca", perfil.marca, { shouldValidate: true, shouldDirty: true });
             }
             const nomeAtual = watch("nome");
@@ -174,26 +186,31 @@ export function FormularioImpressora({
         }
     };
 
-    const lidarComEnvio = (dados: ImpressoraFormData) => {
-        const objFinal: Impressora = {
-            ...(impressoraEditando || {}),
-            nome: dados.nome,
-            tecnologia: dados.tecnologia,
-            status: impressoraEditando?.status || StatusImpressora.LIVRE,
-            marca: dados.marca,
-            modeloBase: dados.modeloBase,
-            imagemUrl: dados.imagemUrl,
-            consumoKw: dados.consumoKw,
-            potenciaWatts: dados.potenciaWatts,
-            valorCompraCentavos: Math.round((dados.valorCompraCentavos || 0) * 100),
-            taxaHoraCentavos: Math.round((dados.taxaHoraCentavos || 0) * 100),
-            horimetroTotalMinutos: (dados.horimetroTotalMinutos || 0) * 60,
-            intervaloRevisaoMinutos: (dados.intervaloRevisaoMinutos || 300) * 60,
-            id: impressoraEditando?.id || "",
-            dataCriacao: impressoraEditando?.dataCriacao || new Date(),
-            dataAtualizacao: new Date(),
-        };
-        aoSalvar(objFinal);
+    const lidarComEnvio = async (dados: ImpressoraFormData) => {
+        try {
+            const objetoFinal: Impressora = {
+                ...(impressoraEditando || {}),
+                nome: dados.nome,
+                tecnologia: dados.tecnologia,
+                status: impressoraEditando?.status || StatusImpressora.LIVRE,
+                marca: dados.marca,
+                modeloBase: dados.modeloBase,
+                imagemUrl: dados.imagemUrl,
+                consumoKw: dados.consumoKw,
+                potenciaWatts: dados.potenciaWatts,
+                valorCompraCentavos: Math.round((dados.valorCompraCentavos || 0) * 100),
+                taxaHoraCentavos: Math.round((dados.taxaHoraCentavos || 0) * 100),
+                horimetroTotalMinutos: (dados.horimetroTotalMinutos || 0) * 60,
+                intervaloRevisaoMinutos: (dados.intervaloRevisaoMinutos || 300) * 60,
+                id: impressoraEditando?.id || "",
+                dataCriacao: impressoraEditando?.dataCriacao || new Date(),
+                dataAtualizacao: new Date(),
+            };
+            await aoSalvar(objetoFinal);
+            fecharModalRealmente();
+        } catch (erro) {
+            registrar.error({ rastreioId: "sistema", servico: "FormularioImpressora" }, "Erro ao salvar impressora", erro);
+        }
     };
 
     const lidarComTentativaFechamento = () => {
@@ -212,312 +229,226 @@ export function FormularioImpressora({
         <Dialogo
             aberto={aberto}
             aoFechar={lidarComTentativaFechamento}
-            titulo={isEditando ? "Editar Impressora" : "Nova Impressora"}
+            titulo={estaEditando ? "Editar Impressora" : "Nova Impressora"}
             larguraMax="max-w-2xl"
         >
-            <form
-                onSubmit={handleSubmit(lidarComEnvio)}
-                className="flex flex-col h-full bg-white dark:bg-[#18181b]"
-            >
-                <div className="flex-1 p-6 md:p-8 space-y-8">
-
-                    {/* ═══════ SEÇÃO 1: IDENTIFICAÇÃO DE HARDWARE ═══════ */}
-                    <div className="space-y-5">
-                        <h4 className="text-[11px] font-black uppercase tracking-widest border-b border-gray-100 dark:border-white/5 pb-2">
-                            Identificação de Hardware
-                        </h4>
-
-                        {/* Toggle FDM / SLA (idêntico ao toggle do FormularioMaterial) */}
-                        <div className="flex bg-zinc-200/50 dark:bg-[#0e0e11] p-1 rounded-lg border border-zinc-200 dark:border-white/5">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setValue("tecnologia", "FDM", { shouldValidate: true, shouldDirty: true });
-                                    setValue("marca", "", { shouldDirty: true });
-                                    setValue("modeloBase", "", { shouldDirty: true });
-                                    setValue("imagemUrl", "", { shouldDirty: true });
-                                }}
-                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${tecnologiaSelecionada === "FDM"
-                                    ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-gray-200 dark:ring-white/10"
-                                    : "text-gray-500 hover:text-gray-700 dark:text-zinc-500 dark:hover:text-zinc-300"
-                                    }`}
-                            >
-                                FILAMENTO
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setValue("tecnologia", "SLA", { shouldValidate: true, shouldDirty: true });
-                                    setValue("marca", "", { shouldDirty: true });
-                                    setValue("modeloBase", "", { shouldDirty: true });
-                                    setValue("imagemUrl", "", { shouldDirty: true });
-                                }}
-                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${tecnologiaSelecionada === "SLA"
-                                    ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-gray-200 dark:ring-white/10"
-                                    : "text-gray-500 hover:text-gray-700 dark:text-zinc-500 dark:hover:text-zinc-300"
-                                    }`}
-                            >
-                                RESINA
-                            </button>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-5">
-                            {/* FABRICANTE (Combobox idêntico ao de Material) */}
-                            <div className="col-span-1">
-                                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                                    Fabricante / Marca
-                                </label>
-                                <Combobox
-                                    opcoes={opcoesFabricante}
-                                    valor={marcaSelecionada || ""}
-                                    aoAlterar={(val) => {
-                                        setValue("marca", val, { shouldValidate: true, shouldDirty: true });
+            <div className="bg-transparent">
+                <form
+                    onSubmit={handleSubmit(lidarComEnvio)}
+                    className="flex flex-col h-full"
+                >
+                    <div className="flex-1 p-6 space-y-10">
+                        {/* ═══════ SEÇÃO 1: IDENTIFICAÇÃO DE HARDWARE ═══════ */}
+                        <SecaoFormulario titulo="Identificação de Hardware">
+                            <div className="flex bg-gray-50 dark:bg-black/30 p-1.5 rounded-2xl border border-gray-100 dark:border-white/5 shadow-inner w-full md:w-max mx-auto overflow-hidden">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setValue("tecnologia", "FDM", { shouldValidate: true, shouldDirty: true });
+                                        setValue("marca", "", { shouldDirty: true });
                                         setValue("modeloBase", "", { shouldDirty: true });
                                         setValue("imagemUrl", "", { shouldDirty: true });
                                     }}
-                                    placeholder="Selecione ou digite..."
-                                    permitirNovo={true}
-                                    icone={Building2}
-                                />
-                                {errors.marca && (
-                                    <span className="text-[10px] font-bold text-red-500 mt-1 block">
-                                        {errors.marca.message}
-                                    </span>
-                                )}
+                                    className={`px-8 py-2.5 text-[10px] font-black rounded-xl transition-all duration-300 flex items-center gap-2 uppercase tracking-widest ${tecnologiaAtiva === "FDM" ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-xl ring-1 ring-black/5 dark:ring-white/10" : "text-gray-400 dark:text-zinc-600 hover:text-gray-900 dark:hover:text-white"}`}
+                                >
+                                    <Layers size={14} strokeWidth={3} />
+                                    FILAMENTO (FDM)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setValue("tecnologia", "SLA", { shouldValidate: true, shouldDirty: true });
+                                        setValue("marca", "", { shouldDirty: true });
+                                        setValue("modeloBase", "", { shouldDirty: true });
+                                        setValue("imagemUrl", "", { shouldDirty: true });
+                                    }}
+                                    className={`px-8 py-2.5 text-[10px] font-black rounded-xl transition-all duration-300 flex items-center gap-2 uppercase tracking-widest ${tecnologiaAtiva === "SLA" ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-xl ring-1 ring-black/5 dark:ring-white/10" : "text-gray-400 dark:text-zinc-600 hover:text-gray-900 dark:hover:text-white"}`}
+                                >
+                                    <Droplet size={14} strokeWidth={3} />
+                                    RESINA (SLA)
+                                </button>
                             </div>
 
-                            {/* MODELO (Combobox idêntico ao de Material) */}
-                            <div className="col-span-1">
-                                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                                    Modelo
-                                </label>
-                                <Combobox
-                                    opcoes={opcoesModelo}
-                                    valor={modeloSelecionado || ""}
-                                    aoAlterar={aoAlterarModelo}
-                                    placeholder="Selecione ou digite..."
-                                    permitirNovo={true}
-                                    icone={Layers}
-                                />
-                                {errors.modeloBase && (
-                                    <span className="text-[10px] font-bold text-red-500 mt-1 block">
-                                        {errors.modeloBase.message}
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* APELIDO */}
-                            <div className="col-span-2">
-                                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                    Apelido (Como aparecerá no sistema)
-                                </label>
-                                <div className="relative group">
-                                    <Tag
-                                        size={16}
-                                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500 transition-colors"
+                            <GradeCampos colunas={2}>
+                                {/* FABRICANTE */}
+                                <div className="space-y-2">
+                                    <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        Fabricante / Marca
+                                    </label>
+                                    <Combobox
+                                        opcoes={opcoesFabricante}
+                                        valor={marcaAtiva || ""}
+                                        aoAlterar={(val) => {
+                                            setValue("marca", val, { shouldValidate: true, shouldDirty: true });
+                                            setValue("modeloBase", "", { shouldDirty: true });
+                                            setValue("imagemUrl", "", { shouldDirty: true });
+                                        }}
+                                        placeholder="Selecione..."
+                                        permitirNovo={true}
+                                        icone={Building2}
                                     />
-                                    <input
-                                        type="text"
-                                        {...register("nome")}
-                                        placeholder={
-                                            modeloSelecionado && marcaSelecionada
-                                                ? `Padrão: ${modeloSelecionado} - Garagem`
-                                                : "Deixe em branco para auto-gerar o nome"
-                                        }
-                                        className="w-full h-11 pl-10 pr-4 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium"
-                                    />
+                                    {errors.marca && (
+                                        <span className="text-[10px] font-bold text-red-500 mt-1 block tracking-tight">
+                                            {errors.marca.message}
+                                        </span>
+                                    )}
                                 </div>
-                                {errors.nome && (
-                                    <span className="text-[10px] font-bold text-red-500 mt-1 block">
-                                        {errors.nome.message}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* ═══════ SEÇÃO 2: ESPECIFICAÇÕES TÉCNICAS ═══════ */}
-                    <div className="space-y-5">
-                        <h4 className="text-[11px] font-black uppercase tracking-widest border-b border-gray-100 dark:border-white/5 pb-2">
-                            Especificações Técnicas
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            {/* POTÊNCIA */}
-                            <div className="col-span-1">
-                                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                    Potência (Watts)
-                                </label>
-                                <div className="relative group">
-                                    <Zap
-                                        size={16}
-                                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-gray-900 dark:group-focus-within:text-white transition-colors"
+                                {/* MODELO */}
+                                <div className="space-y-2">
+                                    <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        Modelo Base
+                                    </label>
+                                    <Combobox
+                                        opcoes={opcoesModelo}
+                                        valor={modeloAtivo || ""}
+                                        aoAlterar={aoAlterarModelo}
+                                        placeholder="Selecione..."
+                                        permitirNovo={true}
+                                        icone={Layers}
                                     />
-                                    <input
+                                    {errors.modeloBase && (
+                                        <span className="text-[10px] font-bold text-red-500 mt-1 block tracking-tight">
+                                            {errors.modeloBase.message}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <CampoTexto
+                                    rotulo="Apelido da Máquina"
+                                    icone={Tag}
+                                    placeholder={
+                                        modeloAtivo && marcaAtiva
+                                            ? `Ex: ${modeloAtivo} #01`
+                                            : "Ex: Minha Ender 3"
+                                    }
+                                    erro={errors.nome?.message}
+                                    className="col-span-1 md:col-span-2"
+                                    {...register("nome")}
+                                />
+                            </GradeCampos>
+                        </SecaoFormulario>
+
+                        {/* ═══════ SEÇÃO 2: ESPECIFICAÇÕES TÉCNICAS 🎉 ═══════ */}
+                        <SecaoFormulario titulo="Especificações Técnicas">
+                            <GradeCampos colunas={3}>
+                                <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        Potência (W)
+                                    </label>
+                                    <CampoTexto
+                                        icone={Zap}
                                         type="number"
-                                        step="1"
+                                        placeholder="0"
+                                        erro={errors.potenciaWatts?.message}
                                         {...register("potenciaWatts")}
-                                        placeholder="0"
-                                        className="w-full h-11 pl-10 pr-12 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner"
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none">
-                                        W
-                                    </span>
                                 </div>
-                            </div>
 
-                            {/* VALOR DE COMPRA */}
-                            <div className="col-span-1">
-                                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                    Valor de Compra
-                                </label>
-                                <div className="relative group">
-                                    <DollarSign
-                                        size={16}
-                                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-gray-900 dark:group-focus-within:text-white transition-colors"
-                                    />
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        {...register("valorCompraCentavos")}
+                                <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        Aquisição
+                                    </label>
+                                    <CampoMonetario
                                         placeholder="0,00"
-                                        className="w-full h-11 pl-10 pr-12 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner"
+                                        erro={errors.valorCompraCentavos?.message}
+                                        {...register("valorCompraCentavos")}
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none">
-                                        BRL
-                                    </span>
                                 </div>
-                            </div>
 
-                            {/* TAXA HORA DA MÁQUINA */}
-                            <div className="col-span-1">
-                                <label className="flex items-center gap-1.5 block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2 truncate">
-                                    Taxa Base da Hora <span className="px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-400 text-[9px] uppercase tracking-wider font-extrabold" title="Cálculo de ROI">ROI</span>
-                                </label>
-                                <div className="relative group">
-                                    <DollarSign
-                                        size={16}
-                                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500 transition-colors"
-                                    />
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        {...register("taxaHoraCentavos")}
+                                <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        Taxa Hora (BRL/h)
+                                    </label>
+                                    <CampoMonetario
                                         placeholder="15,00"
-                                        title="Valor cobrado ou gerado estatisticamente por cada hora ligada."
-                                        className="w-full h-11 pl-10 pr-16 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner"
+                                        erro={errors.taxaHoraCentavos?.message}
+                                        {...register("taxaHoraCentavos")}
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none">
-                                        BRL/h
-                                    </span>
                                 </div>
-                            </div>
+                            </GradeCampos>
+                        </SecaoFormulario>
 
-                        </div>
-                    </div>
-
-                    {/* ═══════ SEÇÃO 3: MANUTENÇÃO PREVENTIVA ═══════ */}
-                    <div className="space-y-5">
-                        <h4 className="text-[11px] font-black uppercase tracking-widest border-b border-gray-100 dark:border-white/5 pb-2">
-                            Manutenção Preventiva
-                        </h4>
-                        <div className="grid grid-cols-2 gap-5">
-                            {/* HORÍMETRO TOTAL */}
-                            <div className="col-span-1">
-                                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                    Horímetro Total
-                                </label>
-                                <div className="relative group">
-                                    <Clock
-                                        size={16}
-                                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-gray-900 dark:group-focus-within:text-white transition-colors"
-                                    />
-                                    <input
+                        {/* ═══════ SEÇÃO 3: MANUTENÇÃO PREVENTIVA 🛠️ ═══════ */}
+                        <SecaoFormulario titulo="Manutenção Preventiva">
+                            <GradeCampos colunas={2}>
+                                <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        Horímetro Total (h)
+                                    </label>
+                                    <CampoTexto
+                                        icone={Clock}
                                         type="number"
-                                        step="1"
-                                        {...register("horimetroTotalMinutos")}
                                         placeholder="0"
-                                        className="w-full h-11 pl-10 pr-12 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner"
+                                        erro={errors.horimetroTotalMinutos?.message}
+                                        {...register("horimetroTotalMinutos")}
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none">
-                                        H
-                                    </span>
                                 </div>
-                            </div>
 
-                            {/* INTERVALO DE REVISÃO */}
-                            <div className="col-span-1">
-                                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                    Intervalo de Revisão
-                                </label>
-                                <div className="relative group">
-                                    <Wrench
-                                        size={16}
-                                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-gray-900 dark:group-focus-within:text-white transition-colors"
-                                    />
-                                    <input
+                                <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        Ciclo de Revisão (h)
+                                    </label>
+                                    <CampoTexto
+                                        icone={Wrench}
                                         type="number"
-                                        step="1"
-                                        {...register("intervaloRevisaoMinutos")}
                                         placeholder="300"
-                                        className="w-full h-11 pl-10 pr-12 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner"
+                                        erro={errors.intervaloRevisaoMinutos?.message}
+                                        {...register("intervaloRevisaoMinutos")}
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none">
-                                        H
-                                    </span>
                                 </div>
-                            </div>
-                        </div>
+                            </GradeCampos>
+                        </SecaoFormulario>
                     </div>
-                </div>
 
-                {/* ═══════ FOOTER (idêntico ao FormularioMaterial) ═══════ */}
-                <div className="p-5 md:p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50/80 dark:bg-[#0e0e11]/50 flex flex-col items-end gap-3 rounded-b-xl min-h-[88px] justify-center">
-                    {!confirmarDescarte ? (
-                        <div className="flex items-center gap-3 w-full justify-between md:justify-end">
-                            <button
-                                type="button"
-                                onClick={lidarComTentativaFechamento}
-                                className="px-4 py-2 flex-1 md:flex-none text-sm font-bold text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="submit"
-                                style={{ backgroundColor: "var(--cor-primaria)" }}
-                                className="px-6 py-2.5 flex-1 md:flex-none justify-center hover:brightness-95 text-white text-sm font-bold rounded-xl shadow-sm flex items-center gap-2 transition-all active:scale-95"
-                            >
-                                <Save size={18} strokeWidth={2.5} />
-                                {isEditando ? "Salvar Alterações" : "Cadastrar Impressora"}
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-end gap-3 w-full animate-in slide-in-from-right-4 fade-in duration-300">
-                            <div className="flex items-center gap-3 w-full justify-between md:justify-end">
+                    {/* ═══════ FOOTER ═══════ */}
+                    <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-[#0e0e11]/50 backdrop-blur-md flex flex-col items-end gap-3 rounded-b-2xl min-h-[80px] justify-center">
+                        {!confirmarDescarte ? (
+                            <div className="flex items-center gap-4 w-full justify-between md:justify-end">
                                 <button
                                     type="button"
-                                    onClick={fecharModalRealmente}
-                                    className="px-4 py-2.5 flex-1 md:flex-none text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-500/20"
+                                    onClick={lidarComTentativaFechamento}
+                                    className="px-6 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-gray-900 dark:text-zinc-500 dark:hover:text-white transition-all"
                                 >
-                                    Descartar
+                                    Cancelar
                                 </button>
                                 <button
-                                    type="button"
-                                    onClick={() => definirConfirmarDescarte(false)}
-                                    className="px-6 py-2.5 flex-1 md:flex-none justify-center bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95"
+                                    type="submit"
+                                    style={{ backgroundColor: "var(--cor-primaria)" }}
+                                    className="px-8 py-2.5 flex-1 md:flex-none justify-center hover:brightness-110 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-sky-500/20 flex items-center gap-2 transition-all active:scale-95"
                                 >
-                                    Continuar Editando
+                                    <Save size={16} strokeWidth={3} />
+                                    {estaEditando ? "Salvar Alterações" : "Cadastrar Máquina"}
                                 </button>
                             </div>
-                            <div className="flex items-center gap-2 text-red-600 dark:text-red-400/80 md:w-auto w-full justify-end">
-                                <AlertCircle size={14} strokeWidth={2.5} />
-                                <span className="text-[10px] uppercase font-bold tracking-widest">
-                                    Tem certeza que deseja descartar alterações?
-                                </span>
+                        ) : (
+                            <div className="flex flex-col items-end gap-2 w-full animate-in slide-in-from-bottom-2 fade-in duration-300">
+                                <div className="flex items-center gap-3 w-full justify-between md:justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={fecharModalRealmente}
+                                        className="px-4 py-2 text-[11px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
+                                    >
+                                        Descartar Alterações
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => definirConfirmarDescarte(false)}
+                                        className="px-8 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
+                                    >
+                                        Continuar Editando
+                                    </button>
+                                </div>
+                                {isDirty && (
+                                    <span className="text-[9px] font-black text-red-600/70 dark:text-red-500/50 uppercase tracking-[0.2em] mr-2">
+                                        Há alterações não salvas que serão perdidas
+                                    </span>
+                                )}
                             </div>
-                        </div>
-                    )}
-                </div>
-            </form>
-        </Dialogo>
+                        )}
+                    </div>
+                </form>
+            </div >
+        </Dialogo >
     );
 }

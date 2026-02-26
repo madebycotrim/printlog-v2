@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Scissors, History, PackagePlus, MoreVertical } from "lucide-react";
+import { Pencil, Trash2, History, MoreVertical } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
 import {
@@ -8,31 +8,27 @@ import {
 import { useState, useRef, useEffect } from "react";
 import { pluralizar } from "@/compartilhado/utilitarios/formatadores";
 
-interface CardMaterialProps {
+interface PropriedadesCardMaterial {
   material: Material;
   aoEditar: (material: Material) => void;
   aoExcluir: (id: string) => void;
-  aoAbater: (id: string) => void;
   aoHistorico: (id: string) => void;
-  aoRepor: (id: string) => void;
 }
 
 export function CardMaterial({
   material,
   aoEditar,
   aoExcluir,
-  aoAbater,
   aoHistorico,
-  aoRepor,
-}: CardMaterialProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+}: PropriedadesCardMaterial) {
+  const referenciaCard = useRef<HTMLDivElement>(null);
+  const referenciaMenu = useRef<HTMLDivElement>(null);
   const [estaVisivel, definirEstaVisivel] = useState(false);
   const [menuAberto, definirMenuAberto] = useState(false);
 
   useEffect(() => {
     const clicarFora = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (referenciaMenu.current && !referenciaMenu.current.contains(e.target as Node)) {
         definirMenuAberto(false);
       }
     };
@@ -41,16 +37,16 @@ export function CardMaterial({
   }, []);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        definirEstaVisivel(entry.isIntersecting);
+    const observador = new IntersectionObserver(
+      ([entrada]) => {
+        definirEstaVisivel(entrada.isIntersecting);
       },
       { rootMargin: "250px" }
     );
-    if (cardRef.current) {
-      observer.observe(cardRef.current);
+    if (referenciaCard.current) {
+      observador.observe(referenciaCard.current);
     }
-    return () => observer.disconnect();
+    return () => observador.disconnect();
   }, []);
 
   const porcentagem = Math.min(
@@ -70,7 +66,7 @@ export function CardMaterial({
   const unidade = material.tipo === "FDM" ? "g" : "ml";
 
   return (
-    <div ref={cardRef} className="group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-default bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/5">
+    <div ref={referenciaCard} className="group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-default bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/5">
       {/* Badge Superior Esquerdo (Tipo de Material) */}
       <div className="absolute top-4 left-4 z-20">
         <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 dark:text-[#a1a1aa] bg-gray-50/50 dark:bg-transparent border border-gray-200 dark:border-white/5 flex items-center justify-center shadow-sm dark:shadow-none">
@@ -111,7 +107,7 @@ export function CardMaterial({
       </div>
 
       {/* Ações Rápidas (Sempre visíveis) */}
-      <div className="absolute top-4 right-4 z-30" ref={menuRef}>
+      <div className="absolute top-4 right-4 z-30" ref={referenciaMenu}>
         <button
           onClick={(e) => { e.stopPropagation(); definirMenuAberto(!menuAberto); }}
           className={`p-2 rounded-xl transition-all ${menuAberto ? 'bg-zinc-100 dark:bg-white/10 text-zinc-900 dark:text-white' : 'text-zinc-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
@@ -129,27 +125,11 @@ export function CardMaterial({
             >
               <div className="p-1.5 space-y-0.5">
                 <button
-                  onClick={(e) => { e.stopPropagation(); aoAbater(material.id); definirMenuAberto(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-[var(--cor-primaria-opaca,rgba(0,0,0,0.05))] hover:text-gray-900 dark:hover:text-white rounded-xl transition-colors group/item uppercase tracking-widest"
-                >
-                  <Scissors size={14} className="text-gray-400 group-hover/item:text-[var(--cor-primaria)] transition-colors" />
-                  REGISTRAR USO
-                </button>
-
-                <button
-                  onClick={(e) => { e.stopPropagation(); aoRepor(material.id); definirMenuAberto(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-xl transition-colors group/item uppercase tracking-widest"
-                >
-                  <PackagePlus size={14} className="text-gray-400 group-hover/item:text-emerald-500 transition-colors" />
-                  REPOR ESTOQUE
-                </button>
-
-                <button
                   onClick={(e) => { e.stopPropagation(); aoHistorico(material.id); definirMenuAberto(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-colors group/item uppercase tracking-widest"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-primaria/10 hover:text-primaria rounded-xl transition-colors group/item uppercase tracking-widest"
                 >
-                  <History size={14} className="text-gray-400 group-hover/item:text-indigo-500 transition-colors" />
-                  VER HISTÓRICO
+                  <History size={14} className="text-gray-400 group-hover/item:text-primaria transition-colors" />
+                  GERENCIAR USO
                 </button>
 
                 <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
@@ -190,9 +170,12 @@ export function CardMaterial({
         </div>
 
         <div className="flex flex-col items-end shrink-0">
-          <span className={`text-[25px] font-black ${corProgressoTexto} leading-none tracking-tighter`}>
-            {material.pesoRestanteGramas}<span className="text-[14px] opacity-70 ml-[1px]">{unidade}</span>
-          </span>
+          <div className="flex items-center gap-2">
+            {material.pesoRestanteGramas < 200 && <History size={14} className="text-rose-500 animate-pulse" />}
+            <span className={`text-[25px] font-black ${corProgressoTexto} leading-none tracking-tighter`}>
+              {material.pesoRestanteGramas}<span className="text-[14px] opacity-70 ml-[1px]">{unidade}</span>
+            </span>
+          </div>
           <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400 dark:text-zinc-600 mt-2">
             Restantes
           </span>

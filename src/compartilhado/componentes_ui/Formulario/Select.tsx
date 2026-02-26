@@ -28,7 +28,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                         ref={ref}
                         value={valorSelecionado}
                         onChange={(e) => aoMudar(e.target.value)}
-                        className={`w-full h-11 px-4 pr-10 appearance-none bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border ${error ? "border-red-500" : "border-gray-200 dark:border-white/5 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"} focus:bg-white dark:focus:bg-[#0c0c0e] rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all font-medium ${className}`}
+                        className={`w-full h-11 px-4 pr-10 appearance-none bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border ${error ? "border-red-500" : "border-gray-200 dark:border-white/5 focus:border-zinc-800 focus:ring-1 focus:ring-zinc-800 dark:focus:border-white dark:focus:ring-white"} focus:bg-white dark:focus:bg-[#0c0c0e] rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all font-medium ${className}`}
                         {...props}
                     >
                         <option disabled value="">Selecione...</option>

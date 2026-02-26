@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
-import { Headphones, ExternalLink, X, Loader2 } from "lucide-react";
+import { Headphones, ExternalLink, X } from "lucide-react";
 
 interface Propriedades {
     aberto: boolean;
@@ -8,7 +7,6 @@ interface Propriedades {
 }
 
 export function ModalSuporte({ aberto, aoFechar }: Propriedades) {
-    const [carregado, definirCarregado] = useState(false);
 
     return (
         <Dialogo
@@ -60,22 +58,12 @@ export function ModalSuporte({ aberto, aoFechar }: Propriedades) {
 
                 {/* ÁREA DO FORMULÁRIO */}
                 <div className="flex-1 relative bg-white dark:bg-black/10">
-                    {!carregado && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white dark:bg-card-fundo z-10 gap-4">
-                            <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--cor-primaria)" }} />
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-zinc-500">
-                                Carregando Central...
-                            </p>
-                        </div>
-                    )}
-
                     <iframe
                         src="https://forms.gle/uUYofbGWXusVZSyG6"
-                        className={`w-full h-full border-0 transition-opacity duration-500 ${carregado ? 'opacity-100' : 'opacity-0'}`}
+                        className="w-full h-full border-0"
                         title="Formulário de Suporte Técnico"
-                        onLoad={() => definirCarregado(true)}
                     >
-                        Carregando formulário...
+                        Formulário de Suporte Técnico
                     </iframe>
                 </div>
             </div>

@@ -63,10 +63,11 @@ const obterIpUsuario = async (): Promise<string> => {
     const dados = await resposta.json();
     return dados.ip;
   } catch (erro) {
-    console.error("Erro ao obter IP:", erro);
+    registrar.error({ rastreioId: "sistema", servico: "Autenticacao" }, "Erro ao obter IP", erro);
     return "0.0.0.0";
   }
 };
+
 
 import { registrar } from "@/compartilhado/utilitarios/registrador";
 
@@ -99,7 +100,7 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
       try {
         await setPersistence(autenticacao, browserLocalPersistence);
       } catch (erro) {
-        console.error("Erro ao configurar persistência:", erro);
+        registrar.error({ rastreioId: "sistema", servico: "Autenticacao" }, "Erro ao configurar persistência", erro);
       }
     };
     configurarPersistencia();
@@ -127,7 +128,7 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
   }, []);
 
   const traduzirErroFirebase = (erro: AuthError) => {
-    console.error("Erro Firebase:", erro.code, erro.message);
+    registrar.error({ rastreioId: "sistema", servico: "Autenticacao" }, `Erro Firebase: ${erro.code}`, erro);
     switch (erro.code) {
       case "auth/email-already-in-use":
         throw new Error("Este email já está em uso.");
@@ -188,7 +189,7 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
     try {
       await signOut(autenticacao);
     } catch (erro: any) {
-      console.error("Erro ao sair:", erro);
+      registrar.error({ rastreioId: "sistema", servico: "Autenticacao" }, "Erro ao sair", erro);
     }
   };
 

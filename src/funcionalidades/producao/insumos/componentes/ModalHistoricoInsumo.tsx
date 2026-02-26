@@ -1,5 +1,6 @@
+import { useState, useMemo } from "react";
 import { History, DollarSign, Package, Box } from "lucide-react";
-import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
+import { ModalListagemPremium } from "@/compartilhado/componentes_ui/ModalListagemPremium";
 import { Insumo, RegistroMovimentacaoInsumo } from "@/funcionalidades/producao/insumos/tipos";
 
 interface ModalHistoricoInsumoProps {
@@ -13,21 +14,31 @@ export function ModalHistoricoInsumo({
     aoFechar,
     insumo,
 }: ModalHistoricoInsumoProps) {
+    const [busca, setBusca] = useState("");
+
+    const registrosRaw = useMemo(() => insumo?.historico || [], [insumo]);
+
+    const registrosFiltrados = useMemo(() => {
+        if (!busca) return registrosRaw;
+        const termo = busca.toLowerCase();
+        return registrosRaw.filter(r =>
+            (r.motivo || "").toLowerCase().includes(termo) ||
+            (r.observacao || "").toLowerCase().includes(termo)
+        );
+    }, [registrosRaw, busca]);
+
     if (!insumo) return null;
 
-    const registros = insumo.historico || [];
-
-    const totalSaidas = registros
+    const totalSaidas = registrosRaw
         .filter((r) => r.tipo === "Saída")
         .reduce((acc, r) => acc + r.quantidade, 0);
 
-    const valorTotalEntradas = registros
+    const valorTotalEntradas = registrosRaw
         .filter((r) => r.tipo === "Entrada" && r.valorTotal)
         .reduce((acc, r) => acc + (r.valorTotal || 0), 0);
 
     const formatarData = (dataISO: string) => {
-        const data = new Date(dataISO);
-        return data.toLocaleDateString("pt-BR", {
+        return new Date(dataISO).toLocaleDateString("pt-BR", {
             day: "2-digit",
             month: "short",
             year: "numeric",
@@ -37,61 +48,77 @@ export function ModalHistoricoInsumo({
     };
 
     return (
-        <Dialogo
+        <ModalListagemPremium
             aberto={aberto}
             aoFechar={aoFechar}
             titulo="Histórico de Movimentações"
-            larguraMax="max-w-2xl"
+            iconeTitulo={History}
+            corDestaque="amber"
+            termoBusca={busca}
+            aoMudarBusca={setBusca}
+            placeholderBusca="BUSCAR POR MOTIVO OU OBSERVAÇÃO..."
+            temResultados={registrosFiltrados.length > 0}
+            totalResultados={registrosFiltrados.length}
+            iconeVazio={Package}
+            mensagemVazio="Nenhuma movimentação de insumo encontrada para esta busca."
+            infoRodape="Movimentações registradas conforme auditoria de estoque em tempo real."
         >
-            <div className="flex flex-col h-[600px] max-h-[80vh] bg-white dark:bg-[#18181b]">
-                {/* Cabeçalho — Identificação do Insumo */}
-                <div className="p-6 border-b border-gray-100 dark:border-white/5">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-50 to-gray-200 dark:from-[#18181b] dark:to-[#121214] border border-gray-200/60 dark:border-white/5 flex items-center justify-center shrink-0 shadow-inner text-gray-500 dark:text-zinc-600">
-                            <Box size={28} strokeWidth={1.5} />
+            <div className="space-y-10">
+                {/* ═══════ CABEÇALHO DO INSUMO & DASHBOARD ═══════ */}
+                <div className="bg-gray-50/50 dark:bg-white/[0.02] p-8 rounded-3xl border border-gray-100 dark:border-white/5 space-y-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.07] pointer-events-none">
+                        <Box size={140} strokeWidth={1} />
+                    </div>
+
+                    <div className="flex flex-col md:flex-row md:items-center gap-6 relative z-10">
+                        <div className="w-16 h-16 rounded-2xl bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 flex items-center justify-center shrink-0 shadow-xl shadow-black/5">
+                            <Box size={32} strokeWidth={1.5} className="text-gray-400 dark:text-zinc-500" />
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                            <h3 className="text-lg font-black text-gray-900 dark:text-white truncate">
+                            <h3 className="text-2xl font-black text-gray-900 dark:text-white truncate tracking-tight uppercase mb-1">
                                 {insumo.nome}
                             </h3>
-                            <p className="text-sm font-medium text-gray-500 dark:text-zinc-400 truncate">
+                            <p className="text-xs font-bold text-gray-500 dark:text-zinc-500 truncate tracking-wide uppercase">
                                 {insumo.categoria} {insumo.marca ? `• ${insumo.marca}` : ""}
                             </p>
                         </div>
-                        <div className="text-right hidden sm:block">
-                            <span className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-widest block mb-1">
+                        <div className="text-right flex flex-col items-end">
+                            <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-[0.2em] block mb-1">
                                 Custo Médio
                             </span>
-                            <span className="text-sm font-black text-gray-900 dark:text-white">
-                                {insumo.custoMedioUnidade.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}/{insumo.unidadeMedida.toLowerCase()}
-                            </span>
+                            <div className="bg-white dark:bg-black/40 px-3 py-1 rounded-lg border border-gray-200 dark:border-white/10 shadow-sm">
+                                <span className="text-sm font-black text-gray-900 dark:text-white tracking-tight">
+                                    {insumo.custoMedioUnidade.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                    <small className="text-[10px] text-gray-400 dark:text-zinc-600 ml-1">/{insumo.unidadeMedida.toUpperCase()}</small>
+                                </span>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Mini Dashboard — 2 KPIs */}
-                    <div className="grid grid-cols-2 gap-4 mt-6">
-                        <div className="bg-white dark:bg-[#18181b] p-4 rounded-xl border border-gray-200 dark:border-white/5 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-                                <Package size={18} strokeWidth={2.5} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+                        <div className="bg-white dark:bg-black/40 border border-gray-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 shadow-sm group hover:border-gray-300 dark:hover:border-white/20 transition-all">
+                            <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                                <Package size={22} strokeWidth={2.5} />
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-widest block">
+                                <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-[0.2em] block mb-0.5">
                                     Consumo Total
                                 </span>
-                                <span className="text-lg font-black text-gray-900 dark:text-white">
-                                    {totalSaidas} <span className="text-sm font-bold text-gray-400">{insumo.unidadeMedida}</span>
+                                <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
+                                    {totalSaidas} <small className="text-xs text-gray-400 dark:text-zinc-600 font-bold uppercase ml-1">{insumo.unidadeMedida}</small>
                                 </span>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-[#18181b] p-4 rounded-xl border border-gray-200 dark:border-white/5 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-                                <DollarSign size={18} strokeWidth={2.5} />
+
+                        <div className="bg-white dark:bg-black/40 border border-gray-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 shadow-sm group hover:border-gray-300 dark:hover:border-white/20 transition-all">
+                            <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+                                <DollarSign size={22} strokeWidth={2.5} />
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-widest block">
+                                <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-[0.2em] block mb-0.5">
                                     Valor Investido
                                 </span>
-                                <span className="text-lg font-black text-gray-900 dark:text-white">
+                                <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
                                     {valorTotalEntradas.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                                 </span>
                             </div>
@@ -99,88 +126,77 @@ export function ModalHistoricoInsumo({
                     </div>
                 </div>
 
-                {/* Lista de Registros (Timeline) */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-1">
-                    <h4 className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest flex items-center gap-2 mb-4">
-                        <History size={14} className="text-gray-400" />
-                        Histórico de Movimentações
-                    </h4>
-
-                    {registros.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <Package size={32} strokeWidth={1.5} className="text-gray-300 dark:text-zinc-700 mb-3" />
-                            <span className="text-sm font-medium text-gray-400 dark:text-zinc-500">
-                                Nenhuma movimentação registrada até o momento.
-                            </span>
-                        </div>
-                    ) : (
-                        registros.map((registro: RegistroMovimentacaoInsumo) => {
-                            const ehEntrada = registro.tipo === "Entrada";
-                            return (
-                                <div
-                                    key={registro.id}
-                                    className="relative pl-6 pb-5 before:absolute before:left-[11px] before:top-2 before:bottom-0 before:w-[2px] before:bg-gray-100 dark:before:bg-white/5 last:before:hidden group"
+                {/* ═══════ LISTA DE MOVIMENTAÇÕES (TIMELINE) ═══════ */}
+                <div className="space-y-6 flex flex-col px-2">
+                    {registrosFiltrados.map((registro: RegistroMovimentacaoInsumo) => {
+                        const ehEntrada = registro.tipo === "Entrada";
+                        return (
+                            <div
+                                key={registro.id}
+                                className="relative pl-10 before:absolute before:left-[11px] before:top-8 before:bottom-[-24px] before:w-[2px] before:bg-gray-100 dark:before:bg-white/5 last:before:hidden group"
+                            >
+                                {/* Marcador de Tipo */}
+                                <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full border-4 border-white dark:border-[#18181b] flex items-center justify-center transition-all duration-300 z-10
+                                    shadow-[0_0_15px_rgba(0,0,0,0.1)] group-hover:scale-110
+                                    ${ehEntrada ? "bg-emerald-500 shadow-emerald-500/20" : "bg-amber-500 shadow-amber-500/20"}`}
                                 >
-                                    {/* Dot da Timeline */}
-                                    <div
-                                        className={`absolute left-0 top-1.5 w-6 h-6 rounded-full border-4 border-white dark:border-[#18181b] flex items-center justify-center ${ehEntrada ? "bg-emerald-500" : "bg-amber-500"}`}
-                                    />
+                                    <div className="w-1 h-1 rounded-full bg-white" />
+                                </div>
 
-                                    {/* Card do Registro */}
-                                    <div className="bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-white/5 rounded-xl p-4 transition-colors group-hover:border-gray-300 dark:group-hover:border-white/10 ml-4">
-                                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                                            <div className="space-y-1.5 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest leading-none ${ehEntrada
-                                                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400"
-                                                        : "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400"
-                                                        }`}>
-                                                        {ehEntrada ? "Entrada" : "Saída"}
-                                                    </span>
-                                                    {registro.motivo && (
-                                                        <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-400">
-                                                            {registro.motivo}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <span className="text-xs font-medium text-gray-500 dark:text-zinc-400 block">
-                                                    {formatarData(registro.data)}
+                                <div className="bg-white dark:bg-black/20 border border-gray-200 dark:border-white/5 rounded-2xl p-6 transition-all group-hover:bg-gray-50 dark:group-hover:bg-white/5 group-hover:-translate-y-1 shadow-sm hover:shadow-md">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div className="space-y-2 min-w-0">
+                                            <div className="flex items-center gap-3 flex-wrap">
+                                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest border
+                                                    ${ehEntrada
+                                                        ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
+                                                        : "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400"
+                                                    }`}>
+                                                    {ehEntrada ? "Entrada" : "Saída"}
                                                 </span>
-                                                {registro.observacao && (
-                                                    <p className="text-xs text-gray-500 dark:text-zinc-500 italic mt-1">
-                                                        "{registro.observacao}"
-                                                    </p>
+                                                {registro.motivo && (
+                                                    <h5 className="text-sm font-black text-gray-900 dark:text-white truncate tracking-tight uppercase">
+                                                        {registro.motivo}
+                                                    </h5>
                                                 )}
                                             </div>
+                                            <div className="flex items-center gap-2 text-gray-400 dark:text-zinc-500">
+                                                <History size={12} strokeWidth={2.5} />
+                                                <span className="text-[10px] font-bold uppercase tracking-widest">
+                                                    {formatarData(registro.data)}
+                                                </span>
+                                            </div>
+                                            {registro.observacao && (
+                                                <p className="text-xs text-gray-500 dark:text-zinc-500 italic mt-2 pl-4 border-l-2 border-gray-100 dark:border-white/5">
+                                                    "{registro.observacao}"
+                                                </p>
+                                            )}
+                                        </div>
 
-                                            <div className="flex items-center sm:items-end flex-col justify-center sm:justify-start bg-white dark:bg-[#18181b] sm:bg-transparent px-3 py-2 sm:p-0 rounded-lg sm:rounded-none border sm:border-transparent border-gray-200 dark:border-white/5 shrink-0">
-                                                <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-widest">
-                                                    Quantidade
+                                        <div className="text-right flex flex-col items-end">
+                                            <div className="bg-gray-100 dark:bg-white/5 px-4 py-2 rounded-xl border border-gray-200 dark:border-white/5 text-right">
+                                                <span className="text-[9px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest block mb-0.5">
+                                                    QUANTIDADE
                                                 </span>
-                                                <span className={`text-sm font-black mt-0.5 ${ehEntrada ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
-                                                    {ehEntrada ? "+" : "-"}{registro.quantidade} {insumo.unidadeMedida}
+                                                <span className={`text-sm font-black tracking-tight ${ehEntrada ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                                                    {ehEntrada ? "+" : "-"}{registro.quantidade} {insumo.unidadeMedida.toUpperCase()}
                                                 </span>
-                                                {registro.valorTotal && registro.valorTotal > 0 && (
-                                                    <span className="text-[10px] font-medium text-gray-500 dark:text-zinc-500 mt-0.5">
-                                                        {registro.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                                                    </span>
+                                                {registro.valorTotal && (
+                                                    <div className="mt-1 pt-1 border-t border-gray-100 dark:border-white/5">
+                                                        <span className="text-[10px] font-black text-gray-900 dark:text-white tracking-tight">
+                                                            {registro.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                                        </span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            );
-                        })
-                    )}
-                </div>
-
-                {/* Footer */}
-                <div className="p-4 border-t border-gray-100 dark:border-white/5 flex justify-center bg-gray-50/50 dark:bg-[#0e0e11]/50 rounded-b-xl">
-                    <span className="text-xs font-semibold text-gray-400 dark:text-zinc-500">
-                        Os registros são criados ao dar baixa ou repor estoque.
-                    </span>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
-        </Dialogo>
+        </ModalListagemPremium>
     );
 }

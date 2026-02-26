@@ -48,6 +48,39 @@ export function extrairApenasDigitos(valor: string): string {
 }
 
 /**
+ * Formata um objeto Date para o padrão brasileiro (dd/mm/aaaa)
+ */
+export function formatarData(data: Date | string | number): string {
+    const d = new Date(data);
+    return d.toLocaleDateString("pt-BR");
+}
+
+/**
+ * Formata um objeto Date para dd/mm (utilizado em cards/listas compactas)
+ */
+export function formatarDataCurta(data: Date | string | number): string {
+    const d = new Date(data);
+    return d.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+    });
+}
+
+/**
+ * Formata um objeto Date para o padrão brasileiro com hora (dd/mm/aaaa HH:mm)
+ */
+export function formatarDataHora(data: Date | string | number): string {
+    const d = new Date(data);
+    return d.toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+}
+
+/**
  * Retorna o termo correto (singular/plural) baseado na quantidade.
  * Ex: pluralizar(2, "unidade", "unidades") -> "2 unidades"
  */

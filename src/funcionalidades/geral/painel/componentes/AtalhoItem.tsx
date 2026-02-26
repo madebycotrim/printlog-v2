@@ -1,24 +1,45 @@
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
-interface AtalhoItemProps {
+interface PropriedadesAtalhoItem {
     titulo: string;
+    subtitulo?: string;
     icone: LucideIcon;
     cor: string;
     link: string;
 }
 
-export function AtalhoItem({ titulo, icone: Icone, cor, link }: AtalhoItemProps) {
+export function AtalhoItem({ titulo, subtitulo, icone: Icone, cor, link }: PropriedadesAtalhoItem) {
+    const navegar = useNavigate();
+
     return (
-        <button
-            onClick={() => window.location.href = link}
-            className="flex items-center gap-4 p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm hover:border-zinc-300 dark:hover:border-zinc-700 transition-all group w-full"
+        <motion.button
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navegar(link)}
+            className="flex items-center gap-5 p-5 rounded-[2rem] bg-white dark:bg-card border border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 transition-all group w-full shadow-sm hover:shadow-xl dark:shadow-none relative overflow-hidden"
         >
-            <div className={`p-3 rounded-xl ${cor} text-white shadow-lg shadow-current/20 group-hover:scale-110 transition-transform`}>
-                <Icone size={20} />
+            <div className={`absolute inset-0 bg-gradient-to-br from-white/20 to-transparent dark:from-white/[0.02] dark:to-transparent pointer-events-none`} />
+
+            <div className={`w-14 h-14 shrink-0 rounded-2xl ${cor} flex items-center justify-center text-white shadow-2xl shadow-current/20 group-hover:scale-110 transition-transform duration-500 relative z-10`}>
+                <Icone size={24} strokeWidth={2.5} />
             </div>
-            <span className="font-black text-xs uppercase tracking-tight text-zinc-900 dark:text-white leading-tight text-left">
-                {titulo}
-            </span>
-        </button>
+
+            <div className="flex flex-col items-start min-w-0 flex-1 relative z-10">
+                <span className="font-black text-[11px] uppercase tracking-[0.15em] text-gray-900 dark:text-white leading-tight mb-1">
+                    {titulo}
+                </span>
+                {subtitulo && (
+                    <span className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest truncate w-full text-left">
+                        {subtitulo}
+                    </span>
+                )}
+            </div>
+
+            <div className="hidden md:flex w-8 h-8 items-center justify-center rounded-full bg-gray-50 dark:bg-white/5 text-gray-300 dark:text-zinc-700 group-hover:text-gray-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all">
+                <ArrowRight size={14} strokeWidth={3} />
+            </div>
+        </motion.button>
     );
 }

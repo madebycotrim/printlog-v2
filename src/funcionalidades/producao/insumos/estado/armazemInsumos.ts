@@ -6,6 +6,7 @@ export type OrdenacaoInsumo = "nome" | "quantidade" | "atualizacao" | "custo";
 
 interface ArmazemInsumosState {
     insumos: Insumo[];
+    carregando: boolean;
 
     // Filtros e Ordenação
     filtroPesquisa: string;
@@ -33,6 +34,7 @@ interface ArmazemInsumosState {
     definirInsumos: (lista: Insumo[]) => void;
     adicionarOuAtualizarInsumo: (insumo: Insumo) => void;
     removerInsumo: (id: string) => void;
+    definirCarregando: (valor: boolean) => void;
 
     // Ações de UI (Filtros)
     definirFiltroPesquisa: (termo: string) => void;
@@ -57,6 +59,7 @@ export const usarArmazemInsumos = create<ArmazemInsumosState>()(
     persist(
         (set) => ({
             insumos: [],
+            carregando: false,
 
             filtroPesquisa: "",
             filtroCategoria: "Todas",
@@ -91,6 +94,8 @@ export const usarArmazemInsumos = create<ArmazemInsumosState>()(
             removerInsumo: (id) => set((state) => ({
                 insumos: state.insumos.filter((i) => i.id !== id)
             })),
+
+            definirCarregando: (valor) => set({ carregando: valor }),
 
             definirFiltroPesquisa: (termo: string) => set({ filtroPesquisa: termo }),
             definirFiltroCategoria: (cat: CategoriaInsumo | "Todas") => set({ filtroCategoria: cat }),

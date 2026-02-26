@@ -3,7 +3,7 @@ import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
 import { Carretel, GarrafaResina } from "@/compartilhado/componentes_ui/Icones3D";
 
-interface ModalRemocaoMaterialProps {
+interface PropriedadesModalArquivamentoMaterial {
     aberto: boolean;
     aoFechar: () => void;
     aoConfirmar: () => void;
@@ -15,7 +15,7 @@ export function ModalArquivamentoMaterial({
     aoFechar,
     aoConfirmar,
     material,
-}: ModalRemocaoMaterialProps) {
+}: PropriedadesModalArquivamentoMaterial) {
     if (!material) return null;
 
     return (
@@ -42,7 +42,7 @@ export function ModalArquivamentoMaterial({
                                 <strong className="text-gray-900 dark:text-zinc-300">
                                     referências passadas
                                 </strong>{" "}
-                                 serão preservados.
+                                serão preservados.
                             </p>
                         </div>
                     </div>

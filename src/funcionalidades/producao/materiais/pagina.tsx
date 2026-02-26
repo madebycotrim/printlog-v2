@@ -3,50 +3,43 @@ import { ResumoEstoque } from "./componentes/ResumoEstoque";
 import { FiltrosMaterial } from "./componentes/FiltrosMaterial";
 import { CardMaterial } from "./componentes/CardMaterial";
 import { PackageSearch, Search } from "lucide-react";
-import { ModalAbatimentoPeso } from "./componentes/ModalAbatimentoPeso";
-import { ModalHistoricoConsumo } from "./componentes/ModalHistoricoConsumo";
+import { ModalHistoricoUso } from "./componentes/ModalHistoricoUso";
 import { ModalArquivamentoMaterial } from "./componentes/ModalArquivamentoMaterial";
 import { ModalReposicaoEstoque } from "./componentes/ModalReposicaoEstoque";
 import { usarGerenciadorMateriais } from "./ganchos/usarGerenciadorMateriais";
 import { Material } from "./tipos";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { EstadoVazio } from "@/compartilhado/componentes_ui/EstadoVazio";
+import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
 
 export function PaginaMateriais() {
   const { estado, acoes } = usarGerenciadorMateriais();
 
   return (
-    <>
+    <div className="space-y-10">
       <motion.div
+        className="relative"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
+        {estado.carregando && estado.materiais.length > 0 && <Carregamento texto="Carregando materiais..." />}
         {estado.materiais.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 px-4 text-center mt-4 h-[60vh]">
-            <div className="text-gray-300 dark:text-zinc-700 mb-6">
-              <PackageSearch size={48} strokeWidth={1.5} />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-              Nenhum material encontrado
-            </h3>
-            <p className="text-gray-500 dark:text-zinc-400 max-w-sm mx-auto mb-8 text-sm">
-              Adicione o seu primeiro material para gerenciar o seu estoque de matéria prima.
-            </p>
-            <button
-              onClick={() => acoes.abrirEditar(null as unknown as Material)}
-              className="bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black font-semibold py-2.5 px-6 rounded-full shadow-sm transition-transform active:scale-95"
-            >
-              Cadastrar Material
-            </button>
-          </div>
+          <EstadoVazio
+            titulo="Nenhum material encontrado"
+            descricao="Adicione o seu primeiro material para gerenciar o seu estoque de matéria prima."
+            icone={PackageSearch}
+            textoBotao="Cadastrar Material"
+            aoClicarBotao={() => acoes.abrirEditar(null as unknown as Material)}
+          />
         ) : (
           <>
             <ResumoEstoque
               materiais={estado.materiais}
-              totalEmbalagens={estado.kpis.totalEmbalagens}
-              valorInvestido={estado.kpis.valorInvestido}
-              alertasBaixoEstoque={estado.kpis.alertasBaixoEstoque}
+              totalEmbalagens={estado.metricas.totalEmbalagens}
+              valorInvestido={estado.metricas.valorInvestido}
+              alertasBaixoEstoque={estado.metricas.alertasBaixoEstoque}
             />
 
             <div className="mt-8">
@@ -101,10 +94,8 @@ export function PaginaMateriais() {
                             key={mat.id}
                             material={mat}
                             aoEditar={acoes.abrirEditar}
-                            aoAbater={acoes.abrirAbater}
                             aoHistorico={acoes.abrirHistorico}
                             aoExcluir={acoes.abrirExcluir}
-                            aoRepor={acoes.abrirRepor}
                           />
                         ))}
                       </div>
@@ -125,20 +116,14 @@ export function PaginaMateriais() {
         materialEditando={estado.materialSendoEditado}
       />
 
-      {/* Modal de Abatimento Manual de Peso/Volume */}
-      <ModalAbatimentoPeso
-        aberto={estado.modalAbatimentoAberto}
-        material={estado.materialParaAbater}
-        aoFechar={acoes.fecharAbater}
-        aoConfirmar={acoes.confirmarAbatimentoPeso}
-      />
-
-      {/* Modal de Histórico de Consumo */}
-      <ModalHistoricoConsumo
-        aberto={estado.modalHistoricoAberto}
-        material={estado.materialParaHistorico}
-        aoFechar={acoes.fecharHistorico}
-      />
+      {/* Modal Unificado de Uso e Histórico (Fase 4) */}
+      {estado.modalHistoricoAberto && estado.materialParaHistorico && (
+        <ModalHistoricoUso
+          aberto={estado.modalHistoricoAberto}
+          material={estado.materialParaHistorico}
+          aoFechar={acoes.fecharHistorico}
+        />
+      )}
 
       {/* Modal de Arquivamento disfarçado de Remoção */}
       <ModalArquivamentoMaterial
@@ -155,6 +140,6 @@ export function PaginaMateriais() {
         aoFechar={acoes.fecharRepor}
         aoConfirmar={acoes.confirmarReposicaoMaterial}
       />
-    </>
+    </div>
   );
 }

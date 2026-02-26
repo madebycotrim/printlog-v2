@@ -13,6 +13,7 @@ import { PainelBranding } from "./componentes/PainelBranding";
 import { InputAuth } from "./componentes/InputAuth";
 import { usarAutenticacao } from "./contexto/ContextoAutenticacao";
 import { ComponenteTurnstile } from "./componentes/ComponenteTurnstile";
+import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
 
 export function PaginaAcesso() {
   const navegar = useNavigate();
@@ -82,7 +83,7 @@ export function PaginaAcesso() {
   };
 
   if (carregando || usuario) {
-    return null; // ou um componente de loading
+    return <Carregamento texto="Preparando sua Farm..." />;
   }
 
   return (

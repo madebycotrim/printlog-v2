@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
-import { AlertCircle, Plus, Settings, X, RotateCcw } from "lucide-react";
-import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
+import { useState, useEffect, useMemo } from "react";
+import { AlertCircle, Plus, Settings, X, RotateCcw, Activity, Box } from "lucide-react";
+import { ModalListagemPremium } from "@/compartilhado/componentes_ui/ModalListagemPremium";
 import { Impressora, PecaDesgaste } from "@/funcionalidades/producao/impressoras/tipos";
+import { CampoTexto } from "@/compartilhado/componentes_ui/CampoTexto";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ModalPecasDesgasteProps {
     aberto: boolean;
@@ -20,6 +22,7 @@ export function ModalPecasDesgaste({
     const [novaPecaNome, definirNovaPecaNome] = useState("");
     const [novaPecaVida, definirNovaPecaVida] = useState("");
     const [exibindoForm, definirExibindoForm] = useState(false);
+    const [busca, setBusca] = useState("");
 
     useEffect(() => {
         if (aberto && impressora) {
@@ -27,8 +30,15 @@ export function ModalPecasDesgaste({
             definirExibindoForm(false);
             definirNovaPecaNome("");
             definirNovaPecaVida("");
+            setBusca("");
         }
     }, [aberto, impressora]);
+
+    const pecasFiltradas = useMemo(() => {
+        if (!busca) return pecas;
+        const termo = busca.toLowerCase();
+        return pecas.filter(p => p.nome.toLowerCase().includes(termo));
+    }, [pecas, busca]);
 
     if (!impressora) return null;
 
@@ -42,7 +52,7 @@ export function ModalPecasDesgaste({
             id: crypto.randomUUID(),
             nome: novaPecaNome,
             vidaUtilEstimadaMinutos: Math.round(Number(novaPecaVida) * 60),
-            minutosTrocado: horimetroAtualMinutos, // Registra os minutos atuais no momento da troca
+            minutosTrocado: horimetroAtualMinutos,
             dataInclusao: new Date().toISOString(),
         };
 
@@ -78,159 +88,190 @@ export function ModalPecasDesgaste({
     };
 
     return (
-        <Dialogo
+        <ModalListagemPremium
             aberto={aberto}
             aoFechar={aoFechar}
             titulo="Peças de Desgaste"
-            larguraMax="max-w-xl"
+            iconeTitulo={Settings}
+            corDestaque="sky"
+            termoBusca={busca}
+            aoMudarBusca={setBusca}
+            placeholderBusca="BUSCAR PEÇA MONITORADA..."
+            temResultados={exibindoForm || pecasFiltradas.length > 0}
+            totalResultados={pecasFiltradas.length}
+            iconeVazio={Box}
+            mensagemVazio="Nenhuma peça monitorada encontrada para esta busca."
+            infoRodape="O horímetro da peça é zerado automaticamente após o registro de troca."
         >
-            <div className="flex flex-col bg-white dark:bg-[#18181b] min-h-[400px] max-h-[80vh] overflow-hidden">
-                <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-zinc-900/20">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#0d0d0f] border border-white/5 shadow-sm overflow-hidden flex-shrink-0">
+            <div className="space-y-8">
+                {/* ═══════ HEADER DA IMPRESSORA ═══════ */}
+                <div className="p-8 rounded-3xl bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 relative overflow-hidden group">
+                    <div className="flex items-center gap-6 relative z-10">
+                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 shadow-xl overflow-hidden group-hover:scale-105 transition-transform">
                             {impressora.imagemUrl ? (
                                 <img src={impressora.imagemUrl} alt={impressora.nome} className="w-[85%] h-[85%] object-contain" />
                             ) : (
-                                <Settings size={24} className="text-zinc-600" />
+                                <Settings size={32} className="text-zinc-600" />
                             )}
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                            <h3 className="text-lg font-black text-gray-900 dark:text-white truncate">
+                            <h3 className="text-2xl font-black text-gray-900 dark:text-white truncate tracking-tight uppercase">
                                 {impressora.nome}
                             </h3>
-                            <p className="text-xs font-medium text-gray-500 dark:text-zinc-400 truncate mt-0.5">
-                                Horímetro Atual:{" "}
-                                <strong className="text-sky-500">
-                                    {(horimetroAtualMinutos / 60).toFixed(1)}h
-                                </strong>
-                            </p>
+                            <div className="flex items-center gap-3 mt-1">
+                                <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest bg-white dark:bg-black/20 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-white/5">
+                                    HORÍMETRO: <strong className="text-gray-900 dark:text-white">{(horimetroAtualMinutos / 60).toFixed(1)}H</strong>
+                                </span>
+                            </div>
                         </div>
                         <button
                             onClick={() => definirExibindoForm(!exibindoForm)}
-                            className="bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-700 dark:text-zinc-300 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5"
+                            className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl hover:-translate-y-1 active:scale-95 flex items-center gap-2"
                         >
-                            {exibindoForm ? <X size={14} /> : <Plus size={14} />}
-                            {exibindoForm ? "Cancelar" : "Nova Peça"}
+                            {exibindoForm ? <X size={14} strokeWidth={3} /> : <Plus size={14} strokeWidth={3} />}
+                            {exibindoForm ? "CANCELAR" : "NOVA PEÇA"}
                         </button>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {/* ═══════ FORMULÁRIO DE INCLUSÃO ═══════ */}
+                <AnimatePresence>
                     {exibindoForm && (
-                        <form onSubmit={lidarComAdicionarPeca} className="bg-sky-50 dark:bg-sky-500/5 p-4 rounded-xl border border-sky-100 dark:border-sky-500/20 space-y-4 mb-6">
-                            <div className="grid grid-cols-[1fr_120px] gap-3">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-1.5">
-                                        Nome da Peça (Bico, FEP...)
-                                    </label>
-                                    <input
-                                        autoFocus
-                                        type="text"
-                                        value={novaPecaNome}
-                                        onChange={(e) => definirNovaPecaNome(e.target.value)}
-                                        placeholder="Ex: Bico 0.4 Hardened"
-                                        className="w-full h-10 px-3 text-sm bg-white dark:bg-[#0c0c0e] border border-gray-200 dark:border-white/10 rounded-lg outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 text-gray-900 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-1.5">
-                                        Vida Útil (h)
-                                    </label>
-                                    <input
+                        <motion.form
+                            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                            animate={{ opacity: 1, height: "auto", marginBottom: 32 }}
+                            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                            onSubmit={lidarComAdicionarPeca}
+                            className="bg-sky-500/[0.03] dark:bg-sky-400/[0.03] p-8 rounded-3xl border border-sky-500/10 dark:border-sky-400/10 space-y-6 overflow-hidden"
+                        >
+                            <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-6">
+                                <CampoTexto
+                                    autoFocus
+                                    rotulo="Nome da Peça"
+                                    icone={Settings}
+                                    value={novaPecaNome}
+                                    onChange={(e) => definirNovaPecaNome(e.target.value)}
+                                    placeholder="Ex: Bico 0.4mm Hardened"
+                                />
+                                <div className="relative">
+                                    <CampoTexto
+                                        rotulo="Vida Útil"
+                                        icone={Activity}
                                         type="number"
                                         value={novaPecaVida}
                                         onChange={(e) => definirNovaPecaVida(e.target.value)}
                                         placeholder="Ex: 500"
-                                        className="w-full h-10 px-3 text-sm bg-white dark:bg-[#0c0c0e] border border-gray-200 dark:border-white/10 rounded-lg outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 text-gray-900 dark:text-white"
                                     />
+                                    <span className="absolute right-4 top-[42px] text-[9px] uppercase font-black text-gray-400 dark:text-zinc-600">
+                                        Horas
+                                    </span>
                                 </div>
                             </div>
-                            <div className="flex justify-end pt-1">
+                            <div className="flex justify-end">
                                 <button
                                     type="submit"
-                                    style={{ backgroundColor: "var(--cor-primaria)" }}
-                                    className="px-4 py-2 hover:brightness-95 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
+                                    className="px-8 py-3 bg-sky-500 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-sky-500/20 hover:brightness-110 hover:-translate-y-1 transition-all active:scale-95"
                                 >
-                                    Adicionar ao Rastreio
+                                    ADICIONAR AO RASTREIO
                                 </button>
                             </div>
-                        </form>
+                        </motion.form>
                     )}
+                </AnimatePresence>
 
-                    {pecas.length === 0 ? (
-                        <div className="text-center py-10 flex flex-col items-center gap-3 text-gray-400 dark:text-zinc-600">
-                            <Settings size={32} className="opacity-50" />
-                            <p className="text-sm font-medium max-w-[260px]">
-                                Nenhuma peça sendo monitorada. Adicione Bicos, FEPs ou Correias para rastrear o desgaste.
+                {/* ═══════ LISTA DE PEÇAS MONITORADAS ═══════ */}
+                <div className="space-y-4">
+                    {pecasFiltradas.length === 0 && !exibindoForm ? (
+                        <div className="text-center py-20 flex flex-col items-center gap-6 text-gray-300 dark:text-zinc-800 border-2 border-dashed border-gray-100 dark:border-white/5 rounded-3xl">
+                            <Settings size={48} strokeWidth={1} />
+                            <p className="text-xs font-black uppercase tracking-[0.2em] max-w-[280px] leading-relaxed">
+                                Nenhuma peça monitorada. Comece a rastrear o desgaste de Bicos e FEPs.
                             </p>
                         </div>
                     ) : (
-                        <div className="space-y-3">
-                            {pecas.map((peca) => {
-                                const minutosTrabalhadasNaPeca = Math.max(0, horimetroAtualMinutos - peca.minutosTrocado);
-                                const porcentagemDesgaste = Math.min(100, (minutosTrabalhadasNaPeca / peca.vidaUtilEstimadaMinutos) * 100);
-                                const estourouVida = porcentagemDesgaste >= 100;
+                        pecasFiltradas.map((peca) => {
+                            const minutosTrabalhadasNaPeca = Math.max(0, horimetroAtualMinutos - peca.minutosTrocado);
+                            const porcentagemDesgaste = Math.min(100, (minutosTrabalhadasNaPeca / peca.vidaUtilEstimadaMinutos) * 100);
+                            const estourouVida = porcentagemDesgaste >= 100;
 
-                                const corBarra = estourouVida
-                                    ? "bg-red-500"
-                                    : porcentagemDesgaste > 80
-                                        ? "bg-orange-500"
-                                        : "bg-emerald-500";
+                            const corBarra = estourouVida
+                                ? "bg-rose-500"
+                                : porcentagemDesgaste > 80
+                                    ? "bg-amber-500"
+                                    : "bg-sky-500";
 
-                                return (
-                                    <div key={peca.id} className="bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-white/5 rounded-xl p-4 flex flex-col gap-3 group relative overflow-hidden">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <h5 className="text-sm font-black text-gray-900 dark:text-white">
+                            return (
+                                <motion.div
+                                    layout
+                                    key={peca.id}
+                                    className="bg-white dark:bg-black/20 border border-gray-100 dark:border-white/5 rounded-2xl p-6 transition-all group hover:bg-gray-50 dark:hover:bg-white/5 hover:-translate-y-1 shadow-sm hover:shadow-md"
+                                >
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-3 h-3 rounded-full ${corBarra} shadow-[0_0_12px] ${estourouVida ? 'shadow-rose-500/50' : 'shadow-sky-500/30'} animate-pulse`} />
+                                            <div>
+                                                <h5 className="text-base font-black text-gray-900 dark:text-white tracking-tight uppercase">
                                                     {peca.nome}
                                                 </h5>
-                                                {estourouVida && (
-                                                    <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 px-1.5 py-0.5 rounded">
-                                                        <AlertCircle size={10} /> Troca Recomendada
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={() => lidarComResetarPeca(peca.id)}
-                                                    title="Registrar Troca da Peça"
-                                                    className="p-1.5 text-gray-400 hover:text-sky-600 dark:text-zinc-500 dark:hover:text-sky-400 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 rounded-md transition-colors"
-                                                >
-                                                    <RotateCcw size={14} />
-                                                </button>
-                                                <button
-                                                    onClick={() => lidarComRemoverPeca(peca.id)}
-                                                    title="Parar de Monitorar"
-                                                    className="p-1.5 text-gray-400 hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 rounded-md transition-colors"
-                                                >
-                                                    <X size={14} />
-                                                </button>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    {estourouVida ? (
+                                                        <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
+                                                            <AlertCircle size={10} strokeWidth={3} /> TROCA CRÍTICA
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[9px] font-bold text-gray-400 dark:text-zinc-600 uppercase tracking-widest">
+                                                            Monitoramento Ativo
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <div className="flex items-end justify-between mb-1.5">
-                                                <span className="text-xs font-bold text-gray-500 dark:text-zinc-400">
-                                                    {(minutosTrabalhadasNaPeca / 60).toFixed(1)}h / {(peca.vidaUtilEstimadaMinutos / 60).toFixed(0)}h
-                                                </span>
-                                                <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500">
-                                                    {Math.round(porcentagemDesgaste)}% Desgastado
-                                                </span>
-                                            </div>
-                                            <div className="h-2 w-full bg-gray-200 dark:bg-white/5 rounded-full overflow-hidden">
-                                                <div
-                                                    className={`h-full rounded-full transition-all duration-700 ${corBarra}`}
-                                                    style={{ width: `${porcentagemDesgaste}%` }}
-                                                />
-                                            </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => lidarComResetarPeca(peca.id)}
+                                                className="p-3 text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400 bg-gray-100 dark:bg-white/5 rounded-xl transition-all hover:scale-110 active:scale-95 group/btn"
+                                                title="Zerar Horímetro (Troca Realizada)"
+                                            >
+                                                <RotateCcw size={16} strokeWidth={2.5} className="group-hover/btn:rotate-[-45deg] transition-transform" />
+                                            </button>
+                                            <button
+                                                onClick={() => lidarComRemoverPeca(peca.id)}
+                                                className="p-3 text-gray-400 hover:text-rose-500 bg-gray-100 dark:bg-white/5 rounded-xl transition-all hover:scale-110 active:scale-95"
+                                                title="Parar de Monitorar"
+                                            >
+                                                <X size={16} strokeWidth={2.5} />
+                                            </button>
                                         </div>
                                     </div>
-                                );
-                            })}
-                        </div>
+
+                                    <div className="space-y-3">
+                                        <div className="flex items-end justify-between">
+                                            <div className="flex flex-col">
+                                                <span className="text-[9px] font-black text-gray-400 dark:text-zinc-600 uppercase tracking-widest">PROGRESSO DE DESGASTE</span>
+                                                <div className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">
+                                                    {(minutosTrabalhadasNaPeca / 60).toFixed(1)}H <small className="text-[10px] opacity-40 mx-1">/</small> {(peca.vidaUtilEstimadaMinutos / 60).toFixed(0)}H
+                                                </div>
+                                            </div>
+                                            <div className={`text-2xl font-black ${estourouVida ? 'text-rose-500' : 'text-gray-900 dark:text-white'} tracking-tighter`}>
+                                                {Math.round(porcentagemDesgaste)}%
+                                            </div>
+                                        </div>
+                                        <div className="h-2 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden p-[1px]">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${porcentagemDesgaste}%` }}
+                                                transition={{ duration: 1.5, ease: "circOut" }}
+                                                className={`h-full rounded-full ${corBarra} shadow-sm`}
+                                            />
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            );
+                        })
                     )}
                 </div>
             </div>
-        </Dialogo>
+        </ModalListagemPremium>
     );
 }

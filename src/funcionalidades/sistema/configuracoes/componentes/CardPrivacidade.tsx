@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, AlertTriangle, Trash2, Loader2, Download } from "lucide-react";
+import { Shield, AlertTriangle, Trash2, Download } from "lucide-react";
 import { motion } from "framer-motion";
 import { CabecalhoCard } from "./Compartilhados";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
@@ -17,17 +17,13 @@ export function CardPrivacidade({ destaque }: PropsCardPrivacidade) {
     const [confirmouEliminacao, definirConfirmouEliminacao] = useState(false);
     const [modalAberto, definirModalAberto] = useState(false);
     const [passo, definirPasso] = useState(1);
-    const [eliminando, definirEliminando] = useState(false);
 
     const lidarComEliminacao = async () => {
-        definirEliminando(true);
         try {
             navegar("/", { replace: true });
             await excluirConta();
         } catch (erro: any) {
             alert(erro.message || "Erro ao excluir conta. Faça login novamente e tente de novo.");
-        } finally {
-            definirEliminando(false);
         }
     };
 
@@ -149,7 +145,7 @@ export function CardPrivacidade({ destaque }: PropsCardPrivacidade) {
                                     type="checkbox"
                                     checked={confirmouEliminacao}
                                     onChange={(e) => definirConfirmouEliminacao(e.target.checked)}
-                                    className="mt-0.5 h-4.5 w-4.5 rounded text-rose-600 focus:ring-rose-500 border-gray-300 bg-white dark:border-white/20 dark:bg-zinc-800 cursor-pointer transition-all"
+                                    className="mt-0.5 h-4.5 w-4.5 rounded text-zinc-900 dark:text-white focus:ring-zinc-800 dark:focus:ring-white border-gray-300 bg-white dark:border-white/20 dark:bg-zinc-800 cursor-pointer transition-all"
                                 />
                                 <span className="text-xs text-gray-700 dark:text-zinc-300 leading-relaxed">
                                     <strong>Concordo:</strong> Entendo que meus dados serão apagados permanentemente (salvo retenções legais) e quero excluir minha conta.
@@ -165,20 +161,13 @@ export function CardPrivacidade({ destaque }: PropsCardPrivacidade) {
                                 </button>
                                 <button
                                     onClick={lidarComEliminacao}
-                                    disabled={!confirmouEliminacao || eliminando}
-                                    className={`h-11 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all uppercase tracking-wider ${confirmouEliminacao && !eliminando
+                                    disabled={!confirmouEliminacao}
+                                    className={`h-11 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all uppercase tracking-wider ${confirmouEliminacao
                                         ? "bg-gradient-to-r from-rose-600 to-rose-700 text-white hover:brightness-110 shadow-lg shadow-rose-500/20 active:scale-[0.98]"
                                         : "bg-gray-100 dark:bg-zinc-800/50 text-gray-400 dark:text-zinc-600 cursor-not-allowed"
                                         }`}
                                 >
-                                    {eliminando ? (
-                                        <>
-                                            <Loader2 size={14} className="animate-spin" />
-                                            Excluindo...
-                                        </>
-                                    ) : (
-                                        "Excluir"
-                                    )}
+                                    Excluir
                                 </button>
                             </div>
                         </div>

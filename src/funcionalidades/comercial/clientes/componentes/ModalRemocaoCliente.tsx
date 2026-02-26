@@ -2,7 +2,7 @@ import { Trash2, AlertTriangle, User } from "lucide-react";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
 import { Cliente } from "../tipos";
 
-interface ModalRemocaoClienteProps {
+interface PropriedadesModalRemocaoCliente {
     aberto: boolean;
     aoFechar: () => void;
     aoConfirmar: () => void;
@@ -14,7 +14,7 @@ export function ModalRemocaoCliente({
     aoFechar,
     aoConfirmar,
     cliente,
-}: ModalRemocaoClienteProps) {
+}: PropriedadesModalRemocaoCliente) {
     if (!cliente) return null;
 
     return (

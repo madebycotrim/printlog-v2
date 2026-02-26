@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
-import { Input, Select } from "@/compartilhado/componentes_ui/Formulario";
+import { CampoTexto } from "@/compartilhado/componentes_ui/CampoTexto";
+import { Combobox } from "@/compartilhado/componentes_ui/Combobox";
 import { MotivoBaixaInsumo, Insumo } from "@/funcionalidades/producao/insumos/tipos";
-import { ArrowDownCircle } from "lucide-react";
+import { ArrowDownCircle, Package, Tag, FileText } from "lucide-react";
 
 interface ModalBaixaInsumoProps {
     aberto: boolean;
@@ -11,13 +13,23 @@ interface ModalBaixaInsumoProps {
     aoConfirmar: (idInsumo: string, quantidade: number, motivo: MotivoBaixaInsumo, observacao?: string) => void;
 }
 
+const OPCOES_MOTIVO = [
+    { valor: "Consumo", rotulo: "Consumo / Uso Base" },
+    { valor: "Descarte", rotulo: "Descarte Validade" },
+    { valor: "Avaria", rotulo: "Quebra / Avaria" },
+    { valor: "Outro", rotulo: "Outro" },
+];
+
 export function ModalBaixaInsumo({
     aberto,
     insumo,
     aoFechar,
     aoConfirmar
 }: ModalBaixaInsumoProps) {
-    const { register, handleSubmit, reset, control, formState: { errors } } = useForm({
+    const [confirmarDescarte, setConfirmarDescarte] = useState(false);
+
+    const { register, handleSubmit, reset, control, formState: { errors, isDirty } } = useForm({
+        mode: "onChange",
         defaultValues: {
             quantidade: 1,
             motivo: "Consumo" as MotivoBaixaInsumo,
@@ -27,21 +39,36 @@ export function ModalBaixaInsumo({
 
     if (!aberto || !insumo) return null;
 
+    const fecharModalRealmente = () => {
+        setConfirmarDescarte(false);
+        aoFechar();
+    };
+
+    const lidarComTentativaFechamento = () => {
+        if (isDirty && !confirmarDescarte) {
+            setConfirmarDescarte(true);
+        } else {
+            fecharModalRealmente();
+        }
+    };
+
     const onSubmit = (data: any) => {
         const qtdNumerica = Number(data.quantidade);
         if (qtdNumerica > 0) {
             aoConfirmar(insumo.id, qtdNumerica, data.motivo, data.observacao);
             reset();
+            fecharModalRealmente();
         }
     };
 
     return (
         <Dialogo
             aberto={aberto}
-            aoFechar={aoFechar}
+            aoFechar={lidarComTentativaFechamento}
             titulo="Dar Baixa em Estoque"
+            larguraMax="max-w-md"
         >
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6 bg-white dark:bg-[#18181b]">
 
                 <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 rounded-xl p-4 flex gap-4 text-sm items-start">
                     <ArrowDownCircle className="text-rose-500 flex-shrink-0" size={24} />
@@ -58,56 +85,84 @@ export function ModalBaixaInsumo({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <Input
+                <div className="grid grid-cols-2 gap-5">
+                    <CampoTexto
                         type="number"
-                        label={`Quantidade a baixar (${insumo.unidadeMedida})`}
+                        rotulo="Quantidade"
+                        icone={Package}
                         max={insumo.quantidadeAtual}
                         min={1}
                         {...register("quantidade", { required: "Obrigatório" })}
-                        error={errors.quantidade?.message}
+                        erro={(errors.quantidade as any)?.message}
                     />
 
                     <Controller
                         name="motivo"
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                label="Motivo da Saída"
-                                opcoes={[
-                                    { valor: "Consumo", formatado: "Consumo/Uso Base" },
-                                    { valor: "Descarte", formatado: "Descarte Validade" },
-                                    { valor: "Avaria", formatado: "Quebra/Avaria" },
-                                    { valor: "Outro", formatado: "Outro" },
-                                ]}
-                                valorSelecionado={field.value}
-                                aoMudar={field.onChange}
+                            <Combobox
+                                titulo="Motivo da Saída"
+                                icone={Tag}
+                                opcoes={OPCOES_MOTIVO}
+                                valor={field.value}
+                                aoAlterar={field.onChange}
+                                permitirNovo={false}
                             />
                         )}
                     />
                 </div>
 
-                <Input
-                    label="Observação (Opcional)"
-                    placeholder="Ex: Troca do filme FEP furado após impressão..."
+                <CampoTexto
+                    rotulo="Observação (Opcional)"
+                    icone={FileText}
+                    placeholder="Ex: Troca do filme FEP furado..."
                     {...register("observacao")}
                 />
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
-                    <button
-                        type="button"
-                        onClick={aoFechar}
-                        className="px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        type="submit"
-                        className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-lg shadow-sm transition-transform active:scale-95 flex items-center gap-2"
-                    >
-                        <ArrowDownCircle size={18} strokeWidth={2.5} />
-                        Confirmar Baixa
-                    </button>
+                {/* RODAPÉ PADRONIZADO v9.0 */}
+                <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-[#0e0e11]/50 backdrop-blur-md flex flex-col items-end gap-3 rounded-b-2xl min-h-[80px] justify-center">
+                    {!confirmarDescarte ? (
+                        <div className="flex items-center gap-3 w-full justify-between md:justify-end">
+                            <button
+                                type="button"
+                                onClick={lidarComTentativaFechamento}
+                                className="px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-gray-900 dark:text-zinc-500 dark:hover:text-white transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-6 py-2.5 flex-1 md:flex-none justify-center bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-rose-500/20 transition-all active:scale-95 flex items-center gap-2"
+                            >
+                                <ArrowDownCircle size={18} strokeWidth={2.5} />
+                                Confirmar Baixa
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-end gap-2 w-full animate-in slide-in-from-bottom-2 fade-in duration-300">
+                            <div className="flex items-center gap-3 w-full justify-between md:justify-end">
+                                <button
+                                    type="button"
+                                    onClick={fecharModalRealmente}
+                                    className="px-4 py-2 text-[11px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
+                                >
+                                    Descartar Alterações
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setConfirmarDescarte(false)}
+                                    className="px-8 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
+                                >
+                                    Continuar Editando
+                                </button>
+                            </div>
+                            {isDirty && (
+                                <span className="text-[9px] font-black text-red-600/70 dark:text-red-500/50 uppercase tracking-[0.2em] mr-2">
+                                    Há alterações não salvas que serão perdidas
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
             </form>
         </Dialogo>

@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
-import { Save, AlertCircle, Wrench, DollarSign, Clock, FileText, Settings, User } from "lucide-react";
+import { Save, Wrench, Clock, FileText, Settings, User, Activity, AlertCircle } from "lucide-react";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
 import { Impressora, RegistroManutencao } from "@/funcionalidades/producao/impressoras/tipos";
+import { CampoTexto } from "@/compartilhado/componentes_ui/CampoTexto";
+import { CampoMonetario } from "@/compartilhado/componentes_ui/CampoMonetario";
+import { CampoAreaTexto } from "@/compartilhado/componentes_ui/CampoAreaTexto";
 
 interface ModalRegistrarManutencaoProps {
     aberto: boolean;
@@ -25,6 +28,16 @@ export function ModalRegistrarManutencao({
     const [horasMaquinaNoMomento, definirHorasMaquinaNoMomento] = useState("");
 
     const [erro, definirErro] = useState<string | null>(null);
+    const [confirmarDescarte, definirConfirmarDescarte] = useState(false);
+
+    const temAlteracoes =
+        tipo !== "Preventiva" ||
+        descricao !== "" ||
+        pecasTrocadas !== "" ||
+        custo !== "" ||
+        responsavel !== "" ||
+        tempoParadaHoras !== "" ||
+        horasMaquinaNoMomento !== (impressora?.horimetroTotalMinutos ? (impressora.horimetroTotalMinutos / 60).toFixed(1) : "");
 
     useEffect(() => {
         if (aberto && impressora) {
@@ -34,15 +47,28 @@ export function ModalRegistrarManutencao({
             definirCusto("");
             definirResponsavel("");
             definirTempoParadaHoras("");
-            // Mostra o horímetro atual convertido em horas para o usuário
             definirHorasMaquinaNoMomento(
                 impressora.horimetroTotalMinutos
                     ? (impressora.horimetroTotalMinutos / 60).toFixed(1)
                     : ""
             );
             definirErro(null);
+            definirConfirmarDescarte(false);
         }
     }, [aberto, impressora]);
+
+    const fecharModalRealmente = () => {
+        definirConfirmarDescarte(false);
+        aoFechar();
+    };
+
+    const lidarComTentativaFechamento = () => {
+        if (temAlteracoes && !confirmarDescarte) {
+            definirConfirmarDescarte(true);
+        } else {
+            fecharModalRealmente();
+        }
+    };
 
     if (!impressora) return null;
 
@@ -81,192 +107,226 @@ export function ModalRegistrarManutencao({
     return (
         <Dialogo
             aberto={aberto}
-            aoFechar={aoFechar}
+            aoFechar={lidarComTentativaFechamento}
             titulo="Registrar Manutenção"
-            larguraMax="max-w-xl"
+            larguraMax="max-w-4xl"
         >
-            <form onSubmit={lidarComEnvio} className="flex flex-col bg-white dark:bg-[#18181b]">
-                <div className="p-6 md:p-8 space-y-6 relative z-10 max-h-[75vh] overflow-y-auto">
-                    {/* Cabeçalho */}
-                    <div className="flex items-center gap-4 bg-gray-50 dark:bg-zinc-900/50 p-4 rounded-xl border border-gray-200 dark:border-white/5">
-                        <div className="w-10 h-10 rounded-xl bg-[#0d0d0f] border border-white/5 shadow-sm flex items-center justify-center flex-shrink-0">
-                            {impressora.imagemUrl ? (
-                                <img src={impressora.imagemUrl} alt={impressora.nome} className="w-[85%] h-[85%] object-contain" />
-                            ) : (
-                                <Wrench size={20} className="text-zinc-600" />
-                            )}
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                            <span className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                {impressora.nome}
+            <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] min-h-[500px]">
+                {/* --- COLUNA ESQUERDA: CONTEXTO --- */}
+                <div className="bg-gray-50 dark:bg-[#18181b] border-r border-gray-200 dark:border-white/5 p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <div
+                        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.07] pointer-events-none"
+                        style={{
+                            backgroundImage:
+                                "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
+                            backgroundSize: "32px 32px",
+                            backgroundPosition: "center center",
+                            maskImage:
+                                "radial-gradient(ellipse at center, black 40%, transparent 75%)",
+                            WebkitMaskImage:
+                                "radial-gradient(ellipse at center, black 40%, transparent 75%)",
+                        }}
+                    />
+
+                    <div className="relative z-10 w-24 h-24 rounded-2xl bg-white dark:bg-card border border-gray-200 dark:border-white/5 shadow-sm overflow-hidden flex items-center justify-center p-2 group-hover:shadow-md transition-shadow duration-500">
+                        {impressora.imagemUrl ? (
+                            <img src={impressora.imagemUrl} alt={impressora.nome} className="w-full h-full object-contain" />
+                        ) : (
+                            <Wrench size={32} strokeWidth={1.5} className="text-gray-300 dark:text-zinc-700" />
+                        )}
+                    </div>
+
+                    <div className="mt-8 relative z-10 text-center">
+                        <h5 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight mb-1 truncate px-4 w-full">
+                            {impressora.nome}
+                        </h5>
+                        <div className="flex flex-col items-center gap-1">
+                            <span className="text-[10px] font-bold text-sky-500 uppercase tracking-widest">
+                                Horímetro Atual
                             </span>
-                            <span className="text-xs text-gray-500 dark:text-zinc-400 font-medium truncate">
-                                Horímetro Atual:{" "}
-                                <strong className="text-sky-500">
-                                    {impressora.horimetroTotalMinutos ? (impressora.horimetroTotalMinutos / 60).toFixed(1) : 0}h
-                                </strong>
+                            <span className="text-sm font-black text-gray-900 dark:text-white tabular-nums">
+                                {impressora.horimetroTotalMinutos ? (impressora.horimetroTotalMinutos / 60).toFixed(1) : 0}h
                             </span>
                         </div>
                     </div>
 
-                    {erro && (
-                        <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-4 flex items-center gap-3">
-                            <AlertCircle className="text-red-500 flex-shrink-0" size={18} />
-                            <span className="text-sm font-bold text-red-600 dark:text-red-400">{erro}</span>
-                        </div>
-                    )}
+                    <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-gray-200/30 dark:from-black/40 to-transparent pointer-events-none" />
+                </div>
 
-                    <div className="space-y-4">
-                        {/* Tipo de Manutenção */}
-                        <div>
-                            <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                Tipo de Manutenção
-                            </label>
-                            <div className="grid grid-cols-3 gap-2">
+                {/* --- COLUNA DIREITA: FORMULÁRIO --- */}
+                <form onSubmit={lidarComEnvio} className="flex flex-col h-full bg-white dark:bg-[#18181b]">
+                    <div className="flex-1 p-6 md:p-10 space-y-10 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50">
+
+                        {/* CATEGORIA DO SERVIÇO */}
+                        <div className="space-y-6">
+                            <h4 className="text-[11px] font-black uppercase tracking-widest border-b border-gray-100 dark:border-white/5 pb-2 text-gray-400 dark:text-zinc-500">
+                                Categoria do Serviço
+                            </h4>
+                            <div className="flex bg-gray-50 dark:bg-[#0e0e11] p-1.5 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm w-full">
                                 {["Preventiva", "Corretiva", "Melhoria"].map((t) => (
                                     <button
                                         key={t}
                                         type="button"
                                         onClick={() => definirTipo(t as any)}
-                                        className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${tipo === t
-                                            ? t === "Preventiva" ? "bg-sky-50 dark:bg-sky-500/10 border-sky-500 text-sky-700 dark:text-sky-400 ring-1 ring-sky-500" :
-                                                t === "Corretiva" ? "bg-red-50 dark:bg-red-500/10 border-red-500 text-red-700 dark:text-red-400 ring-1 ring-red-500" :
-                                                    "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500"
-                                            : "bg-gray-50 dark:bg-zinc-900/50 border-gray-200 dark:border-zinc-800 text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
-                                            }`}
+                                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${tipo === t
+                                            ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-gray-200 dark:ring-white/10"
+                                            : "text-gray-500 hover:text-gray-700 dark:text-zinc-500 dark:hover:text-zinc-300"}`}
                                     >
+                                        {t === "Preventiva" && <Activity size={14} />}
+                                        {t === "Corretiva" && <Wrench size={14} />}
+                                        {t === "Melhoria" && <Settings size={14} />}
                                         {t}
                                     </button>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Descrição */}
-                        <div>
-                            <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                Descrição do Serviço
-                            </label>
-                            <div className="relative group">
-                                <FileText size={18} className="absolute left-3.5 top-3.5 text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500 transition-colors" />
-                                <textarea
-                                    autoFocus
-                                    value={descricao}
-                                    onChange={(e) => definirDescricao(e.target.value)}
-                                    placeholder="Descreva o que foi feito na máquina..."
-                                    className="w-full pl-11 pr-4 py-3 text-sm font-medium bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:border-sky-500 focus:ring-sky-500/20 focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-4 rounded-xl text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 resize-y min-h-[100px]"
+                        {/* DETALHES TÉCNICOS */}
+                        <div className="space-y-6">
+                            <h4 className="text-[11px] font-black uppercase tracking-widest border-b border-gray-100 dark:border-white/5 pb-2 text-gray-400 dark:text-zinc-500">
+                                Detalhes do Registro
+                            </h4>
+                            <CampoAreaTexto
+                                rotulo="Descrição do Serviço"
+                                icone={FileText}
+                                value={descricao}
+                                onChange={(e) => {
+                                    definirDescricao(e.target.value);
+                                    if (erro?.includes("descrição")) definirErro(null);
+                                }}
+                                placeholder="O que foi realizado? Limpeza de bico, tensionamento de correias..."
+                                erro={erro?.includes("descrição") ? erro : undefined}
+                                className="min-h-[100px]"
+                            />
+
+                            <CampoTexto
+                                rotulo="Componentes Afetados / Substituídos"
+                                icone={Settings}
+                                value={pecasTrocadas}
+                                onChange={(e) => definirPecasTrocadas(e.target.value)}
+                                placeholder="Peças novas ou recuperadas"
+                            />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <CampoTexto
+                                    rotulo="Responsável Técnico"
+                                    icone={User}
+                                    value={responsavel}
+                                    onChange={(e) => {
+                                        definirResponsavel(e.target.value);
+                                        if (erro?.includes("responsável")) definirErro(null);
+                                    }}
+                                    placeholder="Quem executou?"
+                                    erro={erro?.includes("responsável") ? erro : undefined}
+                                />
+                                <CampoMonetario
+                                    rotulo="Custo do Serviço (Opcional)"
+                                    value={custo}
+                                    onChange={(e: any) => {
+                                        definirCusto(e.target.value);
+                                        if (erro?.includes("custo")) definirErro(null);
+                                    }}
+                                    placeholder="0,00"
+                                    erro={erro?.includes("custo") ? erro : undefined}
                                 />
                             </div>
                         </div>
 
-                        {/* Peças Trocadas (Opcional) */}
-                        <div>
-                            <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                Peças Trocadas/Novas (Opcional)
-                            </label>
-                            <div className="relative group">
-                                <Settings size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500 transition-colors" />
-                                <input
-                                    type="text"
-                                    value={pecasTrocadas}
-                                    onChange={(e) => definirPecasTrocadas(e.target.value)}
-                                    placeholder="Ex: Bico 0.4mm, Tubo PTFE..."
-                                    className="w-full h-12 pl-11 pr-4 text-sm font-medium bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:border-sky-500 focus:ring-sky-500/20 focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-4 rounded-xl text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Duas Colunas: Responsável e Custo */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                    Responsável
-                                </label>
-                                <div className="relative group">
-                                    <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500 transition-colors" />
-                                    <input
-                                        type="text"
-                                        value={responsavel}
-                                        onChange={(e) => definirResponsavel(e.target.value)}
-                                        placeholder="Nome..."
-                                        className="w-full h-12 pl-11 pr-4 text-sm font-medium bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:border-sky-500 focus:ring-sky-500/20 focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-4 rounded-xl text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                    Custo Estimado (R$)
-                                </label>
-                                <div className="relative group">
-                                    <DollarSign size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500 transition-colors" />
-                                    <input
+                        {/* MÉTRICAS DE OPERAÇÃO */}
+                        <div className="space-y-6">
+                            <h4 className="text-[11px] font-black uppercase tracking-widest border-b border-gray-100 dark:border-white/5 pb-2 text-gray-400 dark:text-zinc-500">
+                                Métricas de Operação
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="relative">
+                                    <CampoTexto
+                                        rotulo="Horímetro no Momento (h)"
+                                        icone={Activity}
                                         type="number"
-                                        step="any"
-                                        value={custo}
-                                        onChange={(e) => definirCusto(e.target.value)}
-                                        placeholder="0,00"
-                                        className="w-full h-12 pl-11 pr-4 text-sm font-medium bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:border-sky-500 focus:ring-sky-500/20 focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-4 rounded-xl text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Duas Colunas: Horas da Máquina e Tempo de Parada */}
-                        <div className="grid grid-cols-2 gap-4 mt-2">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                    Horímetro Atual (h)
-                                </label>
-                                <div className="relative group">
-                                    <Clock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500 transition-colors" />
-                                    <input
-                                        type="number"
+                                        step="0.1"
                                         value={horasMaquinaNoMomento}
                                         onChange={(e) => definirHorasMaquinaNoMomento(e.target.value)}
-                                        placeholder="Leitura..."
-                                        className="w-full h-12 pl-11 pr-4 text-sm font-medium bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:border-sky-500 focus:ring-sky-500/20 focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-4 rounded-xl text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600"
+                                        placeholder="Horas na máquina..."
                                     />
+                                    <span className="absolute right-4 top-[42px] text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none tracking-widest uppercase">
+                                        h
+                                    </span>
                                 </div>
-                                <span className="text-[9px] text-gray-400 mt-1 block">
-                                    Se maior que o atual, atualizará a máquina.
-                                </span>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                                    Tempo de Parada (h)
-                                </label>
-                                <div className="relative group">
-                                    <Clock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500 transition-colors" />
-                                    <input
+                                <div className="relative">
+                                    <CampoTexto
+                                        rotulo="Tempo Offline (h)"
+                                        icone={Clock}
                                         type="number"
+                                        step="0.1"
                                         value={tempoParadaHoras}
                                         onChange={(e) => definirTempoParadaHoras(e.target.value)}
-                                        placeholder="Quanto tempo ficou parada..."
-                                        className="w-full h-12 pl-11 pr-4 text-sm font-medium bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border border-gray-200 dark:border-white/5 focus:border-sky-500 focus:ring-sky-500/20 focus:bg-white dark:focus:bg-[#0c0c0e] focus:ring-4 rounded-xl text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600"
+                                        placeholder="Duração da parada"
                                     />
+                                    <span className="absolute right-4 top-[42px] text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none tracking-widest uppercase">
+                                        horas
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="p-5 md:p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50/80 dark:bg-[#0e0e11]/50 flex items-center justify-end gap-3 rounded-br-xl">
-                    <button
-                        type="button"
-                        onClick={aoFechar}
-                        className="px-4 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        type="submit"
-                        style={{ backgroundColor: "var(--cor-primaria)" }}
-                        className="px-6 py-2.5 hover:brightness-95 text-white text-sm font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95"
-                    >
-                        <Save size={18} strokeWidth={2.5} />
-                        Registrar no Histórico
-                    </button>
-                </div>
-            </form>
+                    {/* RODAPÉ */}
+                    {/* RODAPÉ PADRONIZADO v9.0 */}
+                    <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-[#0e0e11]/50 backdrop-blur-md flex flex-col items-end gap-3 rounded-b-xl min-h-[100px] justify-center">
+                        {!confirmarDescarte ? (
+                            <div className="flex items-center gap-3 w-full justify-between md:justify-end">
+                                <div className="hidden md:block flex-1">
+                                    {erro && (
+                                        <div className="flex items-center gap-2 text-red-600 dark:text-red-500 animate-in fade-in slide-in-from-left-2">
+                                            <AlertCircle size={14} />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">{erro}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={lidarComTentativaFechamento}
+                                    className="px-6 py-2.5 flex-1 md:flex-none text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-gray-900 dark:text-zinc-500 dark:hover:text-white transition-all"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    style={{ backgroundColor: "var(--cor-primaria)" }}
+                                    className="px-8 py-3 flex-1 md:flex-none justify-center hover:brightness-110 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-sky-500/20 flex items-center gap-2 transition-all active:scale-95"
+                                >
+                                    <Save size={16} strokeWidth={3} />
+                                    Confirmar Registro
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-end gap-2 w-full animate-in slide-in-from-bottom-2 fade-in duration-300">
+                                <div className="flex items-center gap-3 w-full justify-between md:justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={fecharModalRealmente}
+                                        className="px-4 py-2 text-[11px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
+                                    >
+                                        Descartar Alterações
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => definirConfirmarDescarte(false)}
+                                        className="px-8 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
+                                    >
+                                        Continuar Editando
+                                    </button>
+                                </div>
+                                {temAlteracoes && (
+                                    <span className="text-[9px] font-black text-red-600/70 dark:text-red-500/50 uppercase tracking-[0.2em] mr-2">
+                                        Há alterações não salvas que serão perdidas
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </form>
+            </div>
         </Dialogo>
     );
 }

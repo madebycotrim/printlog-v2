@@ -5,13 +5,12 @@ interface PropsCardPerfil {
     usuario: any;
     nome: string;
     definirNome: (n: string) => void;
-    enviandoEmail: boolean;
     sucessoEmail: boolean;
     lidarComTrocaSenha: () => void;
     pendente?: boolean;
 }
 
-export function CardPerfil({ usuario, nome, definirNome, enviandoEmail, sucessoEmail, lidarComTrocaSenha, pendente }: PropsCardPerfil) {
+export function CardPerfil({ usuario, nome, definirNome, sucessoEmail, lidarComTrocaSenha, pendente }: PropsCardPerfil) {
     return (
         <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#141417] p-5 md:p-6 flex flex-col gap-5 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/[0.03] to-zinc-500/[0.01] dark:from-zinc-500/[0.05] dark:to-zinc-500/[0.02] pointer-events-none" />
@@ -51,7 +50,7 @@ export function CardPerfil({ usuario, nome, definirNome, enviandoEmail, sucessoE
                 </div>
             </div>
 
-            {!usuario?.ehAnonimo && !enviandoEmail && !sucessoEmail && (
+            {!usuario?.ehAnonimo && !sucessoEmail && (
                 <button
                     onClick={lidarComTrocaSenha}
                     className="mt-auto h-11 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.02] text-gray-700 dark:text-zinc-300 hover:border-gray-300 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-[0.12em] transition-all shadow-sm active:scale-[0.98]"
@@ -59,13 +58,6 @@ export function CardPerfil({ usuario, nome, definirNome, enviandoEmail, sucessoE
                     <Lock size={14} className="text-[var(--cor-primaria)]" />
                     Gerar Link de Redefinição
                 </button>
-            )}
-
-            {enviandoEmail && (
-                <div className="mt-auto h-11 w-full rounded-xl border border-[var(--cor-primaria)]/20 bg-[var(--cor-primaria)]/5 flex items-center justify-center gap-3">
-                    <div className="w-4 h-4 border-2 border-[var(--cor-primaria)] border-t-transparent rounded-full animate-spin" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--cor-primaria)]">Processando Solicitação...</span>
-                </div>
             )}
 
             {sucessoEmail && (
@@ -80,8 +72,8 @@ export function CardPerfil({ usuario, nome, definirNome, enviandoEmail, sucessoE
                 </div>
             )}
 
-            <p className="mt-2 text-[11px] leading-relaxed text-gray-400 dark:text-zinc-500 text-center px-4">
-                <strong>Finalidade:</strong> Seus dados de perfil são utilizados para identificação e acesso à plataforma, conforme Art. 7º, V da LGPD.
+            <p className="mt-4 text-[9px] text-zinc-400/50 dark:text-zinc-500/30 text-center px-6 leading-tight italic uppercase tracking-wider">
+                Finalidade: Seus dados de perfil são utilizados para identificação e acesso à plataforma, conforme Art. 7º, V da LGPD.
             </p>
         </div>
     );

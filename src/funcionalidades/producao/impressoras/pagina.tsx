@@ -7,12 +7,12 @@ import { ResumoImpressoras } from "./componentes/ResumoImpressoras";
 import { FiltrosImpressora } from "./componentes/FiltrosImpressora";
 import { ModalDetalhesImpressora } from "./componentes/ModalDetalhesImpressora";
 import { ModalAposentarImpressora } from "./componentes/ModalAposentarImpressora";
-import { ModalHistoricoManutencao } from "./componentes/ModalHistoricoManutencao";
-import { ModalRegistrarManutencao } from "./componentes/ModalRegistrarManutencao";
-import { ModalPecasDesgaste } from "./componentes/ModalPecasDesgaste";
+import { ModalManutencao } from "./manutencao/componentes/ModalManutencao";
 import { ModalHistoricoProducao } from "./componentes/ModalHistoricoProducao";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { EstadoVazio } from "@/compartilhado/componentes_ui/EstadoVazio";
+import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
 
 export function PaginaImpressoras() {
   const { estado, acoes } = usarGerenciadorImpressoras();
@@ -30,36 +30,28 @@ export function PaginaImpressoras() {
   });
 
   return (
-    <>
+    <div className="space-y-10">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
+        {estado.carregando && estado.impressoras.length > 0 && <Carregamento tipo="global" mensagem="Carregando impressoras..." />}
         {estado.impressoras.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 px-4 text-center mt-4 h-[60vh]">
-            <div className="text-gray-300 dark:text-zinc-700 mb-6">
-              <Printer size={48} strokeWidth={1.5} />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-              Nenhuma impressora encontrada
-            </h3>
-            <p className="text-gray-500 dark:text-zinc-400 max-w-sm mx-auto mb-8 text-sm">
-              Adicione sua primeira impressora 3D para expandir sua capacidade de produção.
-            </p>
-            <button
-              onClick={() => acoes.abrirEditar()}
-              className="bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black font-semibold py-2.5 px-6 rounded-full shadow-sm transition-transform active:scale-95"
-            >
-              Cadastrar Máquina
-            </button>
-          </div>
+          <EstadoVazio
+            titulo="Nenhuma impressora encontrada"
+            descricao="Adicione sua primeira impressora 3D para expandir sua capacidade de produção."
+            icone={Printer}
+            textoBotao="Cadastrar Máquina"
+            aoClicarBotao={() => acoes.abrirEditar()}
+          />
         ) : (
           <>
             <ResumoImpressoras
               totalMaquinas={estado.totais.total}
               horasImpressao={estado.totais.horasImpressao}
               emManutencao={estado.totais.manutencao}
+              requerAtencao={estado.totais.requerAtencao}
               valorInvestido={estado.totais.valorInvestido}
             />
 
@@ -117,9 +109,7 @@ export function PaginaImpressoras() {
                             aoEditar={acoes.abrirEditar}
                             aoAposentar={acoes.abrirAposentar}
                             aoDetalhes={acoes.abrirDetalhes}
-                            aoHistorico={acoes.abrirHistorico}
                             aoManutencoes={acoes.abrirManutencao}
-                            aoPecas={acoes.abrirPecas}
                           />
                         ))}
                       </div>
@@ -153,31 +143,21 @@ export function PaginaImpressoras() {
         aoConfirmar={acoes.confirmarAposentadoria}
       />
 
-      <ModalHistoricoManutencao
-        aberto={estado.modalHistoricoAberto}
-        impressora={estado.impressoraHistorico}
-        aoFechar={acoes.fecharHistorico}
-      />
 
-      <ModalRegistrarManutencao
-        aberto={estado.modalManutencaoAberto}
-        impressora={estado.impressoraManutencao}
-        aoFechar={acoes.fecharManutencao}
-        aoConfirmar={acoes.registrarManutencao}
-      />
 
-      <ModalPecasDesgaste
-        aberto={estado.modalPecasAberto}
-        impressora={estado.impressoraPecas}
-        aoFechar={acoes.fecharPecas}
-        aoSalvar={acoes.salvarPecasDesgaste}
-      />
+      {estado.modalManutencaoAberto && estado.impressoraManutencao && (
+        <ModalManutencao
+          aberto={estado.modalManutencaoAberto}
+          impressora={estado.impressoraManutencao}
+          aoFechar={acoes.fecharManutencao}
+        />
+      )}
 
       <ModalHistoricoProducao
         aberto={estado.modalProducaoAberto}
         impressora={estado.impressoraProducao}
         aoFechar={acoes.fecharProducao}
       />
-    </>
+    </div>
   );
 }

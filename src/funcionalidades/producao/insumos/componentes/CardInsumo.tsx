@@ -14,7 +14,7 @@ const CORES_CATEGORIA: Record<CategoriaInsumo, string> = {
     "Outros": "bg-gray-400 dark:bg-zinc-500",
 };
 
-interface ItemInsumoProps {
+interface PropriedadesCardInsumo {
     insumo: Insumo;
     ultimo?: boolean;
     aoEditar: (insumo: Insumo) => void;
@@ -24,22 +24,22 @@ interface ItemInsumoProps {
     aoVerHistorico: (insumo: Insumo) => void;
 }
 
-export function ItemInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcluir, aoVerHistorico }: ItemInsumoProps) {
-    const estoqueBaixo = insumo.quantidadeAtual <= insumo.quantidadeMinima;
-    const corCategoria = CORES_CATEGORIA[insumo.categoria] || "bg-gray-400 dark:bg-zinc-500";
+export function CardInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcluir, aoVerHistorico }: PropriedadesCardInsumo) {
+    const estaComEstoqueBaixo = insumo.quantidadeAtual <= insumo.quantidadeMinima;
+    const corDaCategoria = CORES_CATEGORIA[insumo.categoria] || "bg-gray-400 dark:bg-zinc-500";
 
     return (
-        <div className={`py-4 px-4 flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/40 relative group ${!ultimo ? 'border-b border-gray-100 dark:border-white/5' : ''}`}>
+        <div className={`py-4 px-4 flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors hover:bg-gray-50 dark:hover:bg-card/40 relative group ${!ultimo ? 'border-b border-gray-100 dark:border-white/5' : ''}`}>
 
             {/* SEÇÃO 1: Identificação */}
             <div className="flex-1 min-w-[200px] flex items-center gap-3">
-                <div className={`h-8 w-1 rounded-full ${corCategoria}`} />
+                <div className={`h-8 w-1 rounded-full ${corDaCategoria}`} />
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-gray-900 dark:text-white truncate">
                             {insumo.nome}
                         </span>
-                        {estoqueBaixo && (
+                        {estaComEstoqueBaixo && (
                             <div title="Estoque Crítico" className="flex items-center justify-center bg-rose-500/10 text-rose-600 dark:text-rose-400 p-0.5 px-1 rounded-md">
                                 <AlertTriangle size={12} strokeWidth={2.5} />
                             </div>
@@ -111,7 +111,7 @@ export function ItemInsumo({ insumo, ultimo, aoEditar, aoBaixar, aoRepor, aoExcl
                             {pluralizar(insumo.quantidadeAtual, insumo.unidadeMedida.toLowerCase(), insumo.unidadeMedida.toLowerCase() + "s").split(" ")[1]}
                         </span>
                     </div>
-                    {estoqueBaixo ? (
+                    {estaComEstoqueBaixo ? (
                         <div className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border border-rose-200 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/5 text-rose-600 dark:text-rose-400 leading-none">
                             Estoque Baixo
                         </div>

@@ -11,8 +11,36 @@ const CAMPOS_SENSIVEIS = [
     "email",
     "telefone",
     "celular",
-    "endereco"
+    "endereco",
+    "cartao"
 ];
+
+/**
+ * 🔐 Mascara dados pessoais para exibição segura ou logs (LGPD Art. 13)
+ * Regra v9.0: CPF: ***.456.789-** | E-mail: jo***@***.com
+ */
+export function mascararDadoPessoal(valor: string, tipo: 'cpf' | 'email' | 'cartao' | 'token'): string {
+    if (!valor) return "";
+
+    switch (tipo) {
+        case 'cpf':
+            // 123.456.789-01 -> ***.456.789-**
+            return valor.replace(/^(\d{3})\.(\d{3})\.(\d{3})-(\d{2})$/, "***.$2.$3-**");
+        case 'email':
+            // joao@exemplo.com -> jo***@***.com
+            const [local, dominio] = valor.split('@');
+            if (!dominio) return valor;
+            return `${local.slice(0, 2)}***@***.${dominio.split('.').pop()}`;
+        case 'token':
+            // tok_12345678 -> tok_****5678
+            return valor.slice(0, 4) + "****" + valor.slice(-4);
+        case 'cartao':
+            return "**** **** **** " + valor.slice(-4);
+        default:
+            return "[REDACTED]";
+    }
+}
+
 
 /**
  * Remove ou mascara dados sensíveis de um objeto (PII).
@@ -29,8 +57,13 @@ export function higienizarPII(dados: any): any {
     if (typeof dados === "object") {
         const resultado: any = { ...dados };
         for (const chave in resultado) {
-            if (CAMPOS_SENSIVEIS.includes(chave.toLowerCase())) {
-                resultado[chave] = "[CONFIDENCIAL]";
+            const chaveMinuscula = chave.toLowerCase();
+            if (CAMPOS_SENSIVEIS.includes(chaveMinuscula)) {
+                const valor = String(resultado[chave]);
+                if (chaveMinuscula.includes('email')) resultado[chave] = mascararDadoPessoal(valor, 'email');
+                else if (chaveMinuscula.includes('cpf')) resultado[chave] = mascararDadoPessoal(valor, 'cpf');
+                else if (chaveMinuscula.includes('token')) resultado[chave] = mascararDadoPessoal(valor, 'token');
+                else resultado[chave] = "[CONFIDENCIAL]";
             } else if (typeof resultado[chave] === "object") {
                 resultado[chave] = higienizarPII(resultado[chave]);
             }

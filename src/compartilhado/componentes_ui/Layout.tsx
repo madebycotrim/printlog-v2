@@ -28,8 +28,8 @@ export function Layout({ children }: PropriedadesLayout) {
 
           <Cabecalho aoAbrirBarraLateral={() => definirSidebarAberta(true)} />
 
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
-            <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-2">
+          <main className="flex-1 min-h-0 flex flex-col relative scroll-smooth overflow-y-auto">
+            <div className="flex-1 w-full max-w-[1600px] mx-auto p-6 md:p-10 flex flex-col animate-in fade-in duration-500 slide-in-from-bottom-2">
               {children}
             </div>
           </main>

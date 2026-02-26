@@ -1,6 +1,8 @@
+import { useState, useMemo } from "react";
 import { History, Package, DollarSign, User, TrendingUp } from "lucide-react";
-import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
+import { ModalListagemPremium } from "@/compartilhado/componentes_ui/ModalListagemPremium";
 import { Cliente, RegistroHistoricoCliente } from "../tipos";
+import { StatusPedido } from "@/compartilhado/tipos_globais/modelos";
 import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
 
 interface ModalHistoricoClienteProps {
@@ -14,163 +16,176 @@ export function ModalHistoricoCliente({
     aoFechar,
     cliente,
 }: ModalHistoricoClienteProps) {
+    const [busca, setBusca] = useState("");
+
+    const registrosRaw: RegistroHistoricoCliente[] = useMemo(() => {
+        if (!cliente) return [];
+        return cliente.historico || [
+            {
+                id: "1",
+                data: new Date(new Date().setDate(new Date().getDate() - 5)),
+                descricao: "Impressão: Protótipo Industrial V2",
+                valorCentavos: 15000,
+                status: StatusPedido.CONCLUIDO
+            },
+            {
+                id: "2",
+                data: new Date(new Date().setDate(new Date().getDate() - 12)),
+                descricao: "Impressão: Action Figure Batman (Resina)",
+                valorCentavos: 8500,
+                status: StatusPedido.CONCLUIDO
+            }
+        ];
+    }, [cliente]);
+
+    const registrosFiltrados = useMemo(() => {
+        if (!busca) return registrosRaw;
+        const termo = busca.toLowerCase();
+        return registrosRaw.filter(r =>
+            r.descricao.toLowerCase().includes(termo)
+        );
+    }, [registrosRaw, busca]);
+
     if (!cliente) return null;
 
-    // Simulação de histórico caso não exista (Rule 11/12/13/15 - Evitar código morto/placeholders exagerados)
-    const registros: RegistroHistoricoCliente[] = cliente.historico || [
-        {
-            id: "1",
-            data: new Date(new Date().setDate(new Date().getDate() - 5)),
-            descricao: "Impressão: Protótipo Industrial V2",
-            valorCentavos: 15000,
-            status: "CONCLUIDO"
-        },
-        {
-            id: "2",
-            data: new Date(new Date().setDate(new Date().getDate() - 12)),
-            descricao: "Impressão: Action Figure Batman (Resina)",
-            valorCentavos: 8500,
-            status: "CONCLUIDO"
-        }
-    ];
-
     return (
-        <Dialogo
+        <ModalListagemPremium
             aberto={aberto}
             aoFechar={aoFechar}
             titulo="Histórico do Cliente"
-            larguraMax="max-w-2xl"
+            iconeTitulo={History}
+            corDestaque="indigo"
+            termoBusca={busca}
+            aoMudarBusca={setBusca}
+            placeholderBusca="BUSCAR NOS PEDIDOS DO CLIENTE..."
+            temResultados={registrosFiltrados.length > 0}
+            totalResultados={registrosFiltrados.length}
+            iconeVazio={Package}
+            mensagemVazio="Nenhum registro encontrado para este critério de busca."
+            infoRodape="Histórico sincronizado em tempo real com o módulo comercial."
         >
-            <div className="flex flex-col h-[600px] max-h-[80vh] bg-white dark:bg-[#18181b]">
-                {/* Cabeçalho do Cliente */}
-                <div className="p-6 border-b border-zinc-100 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/20">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/5 flex items-center justify-center shrink-0 shadow-sm">
-                            <User size={28} className="text-zinc-400" />
+            <div className="space-y-10">
+                {/* ═══════ CABEÇALHO DO CLIENTE & DASHBOARD ═══════ */}
+                <div className="bg-gray-50/50 dark:bg-white/[0.02] p-8 rounded-3xl border border-gray-100 dark:border-white/5 space-y-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.07] pointer-events-none">
+                        <User size={140} strokeWidth={1} />
+                    </div>
+
+                    <div className="flex flex-col md:flex-row md:items-center gap-6 relative z-10">
+                        <div className="w-16 h-16 rounded-2xl bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 flex items-center justify-center shrink-0 shadow-xl shadow-black/5">
+                            <User size={32} strokeWidth={1.5} className="text-gray-400 dark:text-zinc-500" />
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                            <h3 className="text-xl font-bold text-zinc-900 dark:text-white truncate tracking-tight">
-                                {cliente.nome}
-                            </h3>
-                            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 truncate">
+                            <div className="flex items-center gap-3 mb-1">
+                                <h3 className="text-2xl font-black text-gray-900 dark:text-white truncate tracking-tight uppercase">
+                                    {cliente.nome}
+                                </h3>
+                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                                    <TrendingUp size={12} className="text-emerald-600 dark:text-emerald-400" />
+                                    <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">
+                                        CLIENTE VIP
+                                    </span>
+                                </div>
+                            </div>
+                            <p className="text-xs font-bold text-gray-500 dark:text-zinc-500 truncate tracking-wide">
                                 {cliente.email} • {cliente.telefone}
                             </p>
                         </div>
-                        <div className="text-right hidden sm:block">
-                            <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest block mb-1">
-                                Fidelidade
-                            </span>
-                            <div className="flex items-center gap-1.5 justify-end">
-                                <TrendingUp size={14} className="text-emerald-500" />
-                                <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
-                                    Cliente VIP
-                                </span>
-                            </div>
-                        </div>
                     </div>
 
-                    {/* Mini Dashboard do Histórico */}
-                    <div className="grid grid-cols-2 gap-4 mt-6">
-                        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/5 p-4 rounded-xl flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center text-sky-600 dark:text-sky-400">
-                                <DollarSign size={18} strokeWidth={2.5} />
+                    {/* ═══ MÉTRICAS RÁPIDAS ═══ */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+                        <div className="bg-white dark:bg-black/40 border border-gray-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 shadow-sm group hover:border-gray-300 dark:hover:border-white/20 transition-all">
+                            <div className="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:scale-110 transition-transform">
+                                <DollarSign size={22} strokeWidth={2.5} />
                             </div>
                             <div>
-                                <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest block">
+                                <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-[0.2em] block mb-0.5">
                                     Total Investido (LTV)
                                 </span>
-                                <span className="text-lg font-black text-zinc-900 dark:text-white">
+                                <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
                                     {centavosParaReais(cliente.ltvCentavos)}
                                 </span>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/5 p-4 rounded-xl flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                                <Package size={18} strokeWidth={2.5} />
+
+                        <div className="bg-white dark:bg-black/40 border border-gray-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 shadow-sm group hover:border-gray-300 dark:hover:border-white/20 transition-all">
+                            <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                                <Package size={22} strokeWidth={2.5} />
                             </div>
                             <div>
-                                <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest block">
+                                <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-[0.2em] block mb-0.5">
                                     Total de Peças
                                 </span>
-                                <span className="text-lg font-black text-zinc-900 dark:text-white">
-                                    {cliente.totalProdutos} unidades
+                                <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
+                                    {cliente.totalProdutos} <small className="text-xs text-gray-400 dark:text-zinc-600 font-bold uppercase ml-1">UNIDADES</small>
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Lista de Registros */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                    <h4 className="text-[11px] font-black text-zinc-900 dark:text-white uppercase tracking-widest flex items-center gap-2 mb-4">
-                        <History size={14} className="text-zinc-400" />
-                        Timeline de Pedidos
-                    </h4>
-
-                    {registros.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <Package size={48} className="text-zinc-200 dark:text-zinc-800 mb-4" />
-                            <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Nenhum pedido registrado</p>
-                        </div>
-                    ) : (
-                        registros.map((registro) => (
-                            <div
-                                key={registro.id}
-                                className="relative pl-6 pb-6 before:absolute before:left-[11px] before:top-2 before:bottom-0 before:w-[2px] before:bg-zinc-100 dark:before:bg-white/5 last:before:hidden group"
+                {/* ═══════ LINHA DO TEMPO DE PEDIDOS ═══════ */}
+                <div className="space-y-6 flex flex-col px-2">
+                    {registrosFiltrados.map((registro) => (
+                        <div
+                            key={registro.id}
+                            className="relative pl-10 before:absolute before:left-[11px] before:top-8 before:bottom-[-24px] before:w-[2px] before:bg-gray-100 dark:before:bg-white/5 last:before:hidden group"
+                        >
+                            {/* Marcador de Status */}
+                            <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full border-4 border-white dark:border-[#18181b] flex items-center justify-center transition-all duration-300 z-10
+                                shadow-[0_0_15px_rgba(0,0,0,0.1)] group-hover:scale-110
+                                ${registro.status === StatusPedido.CONCLUIDO
+                                    ? "bg-emerald-500 shadow-emerald-500/20"
+                                    : registro.status === StatusPedido.EM_PRODUCAO
+                                        ? "bg-sky-500 shadow-sky-500/20"
+                                        : "bg-rose-500 shadow-rose-500/20"
+                                }`}
                             >
-                                <div
-                                    className={`absolute left-0 top-1 w-6 h-6 rounded-full border-4 border-white dark:border-[#18181b] flex items-center justify-center
-                                    ${registro.status === "CONCLUIDO"
-                                            ? "bg-emerald-500"
-                                            : registro.status === "EM_PRODUCAO"
-                                                ? "bg-sky-500"
-                                                : "bg-rose-500"
-                                        }`}
-                                />
+                                <div className="w-1 h-1 rounded-full bg-white" />
+                            </div>
 
-                                <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-white/5 rounded-xl p-4 transition-colors group-hover:border-zinc-300 dark:group-hover:border-white/10 ml-4">
-                                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                                        <div className="space-y-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <h5 className="text-sm font-bold text-zinc-900 dark:text-white truncate">
-                                                    {registro.descricao}
-                                                </h5>
-                                                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${registro.status === "CONCLUIDO"
-                                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400"
-                                                    : registro.status === "EM_PRODUCAO"
-                                                        ? "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-400"
-                                                        : "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400"
-                                                    }`}>
-                                                    {registro.status}
-                                                </span>
-                                            </div>
-                                            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 block">
-                                                {registro.data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                            <div className="bg-white dark:bg-black/20 border border-gray-200 dark:border-white/5 rounded-2xl p-6 transition-all group-hover:bg-gray-50 dark:group-hover:bg-white/5 group-hover:-translate-y-1 shadow-sm hover:shadow-md">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="space-y-2 min-w-0">
+                                        <div className="flex items-center gap-3 flex-wrap">
+                                            <h5 className="text-sm font-black text-gray-900 dark:text-white truncate tracking-tight uppercase">
+                                                {registro.descricao}
+                                            </h5>
+                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest border
+                                                ${registro.status === StatusPedido.CONCLUIDO
+                                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
+                                                    : registro.status === StatusPedido.EM_PRODUCAO
+                                                        ? "bg-sky-500/10 text-sky-600 border-sky-500/20 dark:text-sky-400"
+                                                        : "bg-rose-500/10 text-rose-600 border-rose-500/20 dark:text-rose-400"
+                                                }`}>
+                                                {registro.status}
                                             </span>
                                         </div>
-
-                                        <div className="text-right">
-                                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-1">
-                                                Valor do Pedido
+                                        <div className="flex items-center gap-2 text-gray-400 dark:text-zinc-500">
+                                            <History size={12} strokeWidth={2.5} />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest">
+                                                {new Date(registro.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
                                             </span>
-                                            <span className="text-sm font-black text-zinc-900 dark:text-white">
+                                        </div>
+                                    </div>
+
+                                    <div className="text-right flex flex-col items-end">
+                                        <div className="bg-gray-100 dark:bg-white/5 px-3 py-1.5 rounded-xl border border-gray-200/50 dark:border-white/5 text-right">
+                                            <span className="text-[9px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest block mb-0.5">
+                                                INVESTIMENTO
+                                            </span>
+                                            <span className="text-sm font-black text-gray-900 dark:text-white tracking-tight">
                                                 {centavosParaReais(registro.valorCentavos)}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        ))
-                    )}
-                </div>
-
-                {/* Footer Minimalista */}
-                <div className="p-4 border-t border-zinc-100 dark:border-white/5 flex justify-center bg-zinc-50/50 dark:bg-[#0e0e11]/50 rounded-br-xl">
-                    <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-                        O histórico é atualizado automaticamente ao concluir orçamentos ou pedidos.
-                    </span>
+                        </div>
+                    ))}
                 </div>
             </div>
-        </Dialogo>
+        </ModalListagemPremium>
     );
 }

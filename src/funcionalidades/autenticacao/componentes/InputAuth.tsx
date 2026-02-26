@@ -4,6 +4,7 @@ interface PropsInputAuth extends ComponentProps<"input"> {
   label: string;
   icone: ElementType;
   labelDireita?: ReactNode;
+  erro?: string;
 }
 
 export function InputAuth({
@@ -17,24 +18,16 @@ export function InputAuth({
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between items-center ml-1">
-        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
           {label}
         </label>
         {labelDireita}
       </div>
-      <div
-        className={`
-                group flex items-center border rounded-xl px-3 py-3.5 transition-all duration-300
-                ${
-                  focou
-                    ? "bg-zinc-900/80 border-[#0ea5e9] shadow-[0_0_15px_-5px_rgba(14,165,233,0.3)]"
-                    : "bg-zinc-900/40 border-white/5 hover:border-white/10 hover:bg-zinc-900/60"
-                }
-            `}
-      >
+      <div className="relative group">
         <Icone
           size={18}
-          className={`mr-3 transition-colors ${focou ? "text-[#0ea5e9]" : "text-zinc-600 group-hover:text-zinc-500"}`}
+          className={`absolute left-0 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focou ? "text-white" : "text-zinc-600 group-hover:text-zinc-500"
+            }`}
         />
         <input
           {...props}
@@ -46,7 +39,7 @@ export function InputAuth({
             definirFocou(false);
             props.onBlur?.(e);
           }}
-          className="flex-1 bg-transparent outline-none text-zinc-200 placeholder-zinc-700 text-sm font-medium transition-colors"
+          className={`w-full h-10 bg-transparent border-0 border-b-[3px] ${props.erro ? 'border-red-500' : 'border-gray-100 dark:border-white/10 focus:border-gray-300 dark:focus:border-white/20'} text-sm text-gray-900 dark:text-white outline-none transition-all duration-300 placeholder:text-gray-400/50 dark:placeholder:text-zinc-700 font-normal pl-8 ${props.className || ""}`}
         />
       </div>
     </div>

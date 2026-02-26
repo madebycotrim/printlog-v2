@@ -1,18 +1,18 @@
-import { Cliente } from "../tipos";
-import { Trash2, MessageCircle, Mail, Phone, PlusCircle, History, MoreVertical, Pencil, Star } from "lucide-react";
+import { Cliente, StatusComercial } from "../tipos";
+import { Trash2, MessageCircle, Mail, Phone, PlusCircle, History, MoreVertical, Pencil, Star, ShieldCheck } from "lucide-react";
 import { Dica } from "@/compartilhado/componentes_ui/Dica";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { centavosParaReais, pluralizar } from "@/compartilhado/utilitarios/formatadores";
 
-interface CardClienteProps {
+interface PropriedadesCardCliente {
     cliente: Cliente;
     aoEditar: (cliente: Cliente) => void;
     aoRemover: (cliente: Cliente) => void;
     aoVerHistorico: (cliente: Cliente) => void;
 }
 
-export function CardCliente({ cliente, aoEditar, aoRemover, aoVerHistorico }: CardClienteProps) {
+export function CardCliente({ cliente, aoEditar, aoRemover, aoVerHistorico }: PropriedadesCardCliente) {
     const [menuAberto, definirMenuAberto] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -49,11 +49,22 @@ export function CardCliente({ cliente, aoEditar, aoRemover, aoVerHistorico }: Ca
         return cores[index];
     };
 
-
+    const obterBadgeStatus = (status: StatusComercial) => {
+        switch (status) {
+            case StatusComercial.VIP:
+                return "bg-amber-500/10 text-amber-500 border-amber-500/20";
+            case StatusComercial.ATIVO:
+                return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+            case StatusComercial.INATIVO:
+                return "bg-gray-500/10 text-gray-500 border-gray-500/20";
+            default:
+                return "bg-sky-500/10 text-sky-500 border-sky-500/20";
+        }
+    };
 
     const abrirWhatsapp = (e: React.MouseEvent) => {
         e.stopPropagation();
-        const numeroLimpo = cliente.telefone.replace(/\D/g, "");
+        const numeroLimpo = (cliente.telefone || "").replace(/\D/g, "");
         window.open(`https://wa.me/55${numeroLimpo}`, "_blank");
     };
 
@@ -70,9 +81,9 @@ export function CardCliente({ cliente, aoEditar, aoRemover, aoVerHistorico }: Ca
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md border border-zinc-200 dark:border-white/10 rounded-2xl p-5 transition-all shadow-sm"
+            className="relative bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md border border-zinc-200 dark:border-white/10 rounded-2xl p-5 transition-all shadow-sm group/card hover:shadow-xl hover:translate-y-[-2px]"
         >
-            {/* Ações Técnicas (WhatsApp e Menu) - Posicionamento Absoluto Baseado no Snippet */}
+            {/* Ações Técnicas (WhatsApp e Menu) */}
             <div className="absolute top-4 right-4 z-30 flex items-center gap-1" ref={menuRef}>
                 <Dica texto="WhatsApp" posicao="esquerda">
                     <button
@@ -146,7 +157,7 @@ export function CardCliente({ cliente, aoEditar, aoRemover, aoVerHistorico }: Ca
                         <div className={`w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-xs font-black border shadow-inner ${obterCorAvatar(cliente.nome)}`}>
                             {obterIniciais(cliente.nome)}
                         </div>
-                        {cliente.fiel && (
+                        {cliente.statusComercial === StatusComercial.VIP && (
                             <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-lg shadow-amber-500/40">
                                 <Star size={8} fill="white" className="text-white" />
                             </div>
@@ -154,41 +165,45 @@ export function CardCliente({ cliente, aoEditar, aoRemover, aoVerHistorico }: Ca
                     </div>
 
                     <div className="flex-1 min-w-0 flex flex-col pr-20">
-                        <div className="flex items-center justify-between gap-1">
-                            <h3 className="text-[14px] font-bold text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-[14px] font-black text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
                                 {cliente.nome}
                             </h3>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${obterBadgeStatus(cliente.statusComercial)}`}>
+                                {cliente.statusComercial}
+                            </span>
                         </div>
 
-                        <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-bold uppercase tracking-wider -mt-0.5">
-                            <span className="opacity-60 whitespace-nowrap">ID: {cliente.id.substring(0, 8)}</span>
+                        <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-bold uppercase tracking-wider">
+                            <ShieldCheck size={10} className="text-emerald-500" />
+                            <span className="opacity-60">LGPD: Ativo</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Métricas de Performance */}
-                <div className="flex items-center justify-center gap-12 py-1">
-                    <div className="flex flex-col items-center">
-                        <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">
-                            Faturamento
+                {/* Métricas de Performance CRM */}
+                <div className="grid grid-cols-2 gap-4 py-2 bg-zinc-50 dark:bg-white/[0.02] rounded-xl border border-transparent group-hover/card:border-zinc-100 dark:group-hover/card:border-white/5 transition-all">
+                    <div className="flex flex-col items-center border-r border-zinc-100 dark:border-white/5">
+                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1">
+                            LTV (Total Gerado)
                         </span>
-                        <span className="text-[13px] font-black text-zinc-900 dark:text-white tabular-nums">
+                        <span className="text-[14px] font-black text-zinc-900 dark:text-white tabular-nums">
                             {centavosParaReais(cliente.ltvCentavos)}
                         </span>
                     </div>
 
                     <div className="flex flex-col items-center">
-                        <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">
-                            Entregas
+                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1">
+                            Volume Projetos
                         </span>
-                        <span className="text-[13px] font-black text-zinc-900 dark:text-white tabular-nums">
-                            {pluralizar(cliente.totalProdutos, "unidade", "unidades")}
+                        <span className="text-[14px] font-black text-zinc-900 dark:text-white tabular-nums">
+                            {cliente.totalProdutos} {pluralizar(cliente.totalProdutos, "Job", "Jobs")}
                         </span>
                     </div>
                 </div>
 
                 {/* Rodapé - Contatos */}
-                <div className="pt-2.5 flex items-center border-t border-zinc-100 dark:border-white/5 divide-x divide-zinc-100 dark:divide-white/5">
+                <div className="pt-2 flex items-center border-t border-zinc-100 dark:border-white/5 divide-x divide-zinc-100 dark:divide-white/5">
                     <button
                         onClick={() => copiarParaAreaTransferencia(cliente.email, 'E-mail')}
                         className="relative flex-1 flex items-center gap-2 px-2 text-[10px] text-zinc-400 hover:text-sky-500 transition-colors group/contato min-w-0 pr-4"
@@ -207,12 +222,12 @@ export function CardCliente({ cliente, aoEditar, aoRemover, aoVerHistorico }: Ca
                             )}
                         </AnimatePresence>
                         <Mail size={12} className="shrink-0" />
-                        <span className="truncate w-full text-left">{cliente.email}</span>
+                        <span className="truncate w-full text-left font-bold">{cliente.email}</span>
                     </button>
 
                     <button
                         onClick={() => copiarParaAreaTransferencia(cliente.telefone, 'Telefone')}
-                        className="relative shrink-0 flex items-center justify-end gap-2 px-3 text-[10px] text-zinc-500 dark:text-zinc-400 font-medium hover:text-emerald-500 transition-colors group/contato"
+                        className="relative shrink-0 flex items-center justify-end gap-2 px-3 text-[10px] text-zinc-500 dark:text-zinc-400 font-black hover:text-emerald-500 transition-colors group/contato"
                         title="Clique para copiar telefone"
                     >
                         <AnimatePresence>
@@ -228,7 +243,7 @@ export function CardCliente({ cliente, aoEditar, aoRemover, aoVerHistorico }: Ca
                             )}
                         </AnimatePresence>
                         <Phone size={11} className="text-emerald-500/70 shrink-0" />
-                        <span className="whitespace-nowrap">{cliente.telefone}</span>
+                        <span className="whitespace-nowrap tracking-tighter">{cliente.telefone}</span>
                     </button>
                 </div>
             </div>

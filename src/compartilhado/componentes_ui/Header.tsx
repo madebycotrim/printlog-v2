@@ -44,7 +44,7 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
         {!dados.ocultarBusca && (
           <div className="relative group w-auto md:w-64 max-w-[280px]">
             <Search
-              className="absolute z-10 left-0 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 transition-colors pointer-events-none"
+              className="absolute z-10 left-0 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-gray-900 dark:group-focus-within:text-white transition-colors pointer-events-none"
               size={18}
               strokeWidth={2}
             />
@@ -52,7 +52,7 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
               type="text"
               placeholder={dados.placeholderBusca || "Pesquisar..."}
               onChange={(e) => dados.aoBuscar && dados.aoBuscar(e.target.value)}
-              className="w-full h-10 pl-8 pr-2 bg-transparent border-b-2 border-gray-200 dark:border-white/10 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 outline-none transition-all focus:border-[var(--cor-primaria)]"
+              className="w-full h-10 pl-8 pr-2 bg-transparent border-0 border-b-2 border-gray-200 dark:border-white/10 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 outline-none transition-all duration-300 focus:border-zinc-800 dark:focus:border-white"
             />
           </div>
         )}
@@ -90,7 +90,7 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
                 ? "bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-zinc-600 cursor-not-allowed opacity-70"
                 : "text-white hover:brightness-110 shadow-lg"
                 }`}
-              style={!dados.acao.desabilitado ? { backgroundColor: "var(--cor-primaria)", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" } : {}}
+              style={!dados.acao.desabilitado ? { backgroundColor: "var(--cor-primaria)", boxShadow: "var(--sombra-primaria)" } : {}}
             >
               {dados.acao.icone && (
                 <dados.acao.icone

@@ -1,6 +1,27 @@
 import { Centavos, StatusPedido } from "@/compartilhado/tipos_globais/modelos";
 
 /**
+ * Bases legais da LGPD (Art. 7º da Lei 13.709/2018).
+ * Conforme Regra 9.0.
+ */
+export enum BaseLegalLGPD {
+    CONSENTIMENTO = 'consentimento',       // Art. 7º, I
+    OBRIGACAO_LEGAL = 'obrigacao_legal',      // Art. 7º, II
+    EXECUCAO_CONTRATO = 'execucao_contrato',    // Art. 7º, V
+    INTERESSE_LEGITIMO = 'interesse_legitimo',   // Art. 7º, IX
+}
+
+/**
+ * Status do relacionamento comercial (CRM).
+ */
+export enum StatusComercial {
+    PROSPECT = "Prospect",
+    ATIVO = "Ativo",
+    INATIVO = "Inativo",
+    VIP = "VIP",
+}
+
+/**
  * Registro individual de histórico para o cliente.
  */
 export interface RegistroHistoricoCliente {
@@ -14,8 +35,6 @@ export interface RegistroHistoricoCliente {
 /**
  * Interface canônica de Cliente conforme Regra 9 (LGPD) e Rule 2 (Nomenclatura).
  * 
- * @lgpd Base legal: Execução de contrato (Art. 7º, V) - Gerenciamento de pedidos e histórico.
- * @lgpd Finalidade: Identificação do cliente para prestação de serviços de impressão 3D.
  * @lgpd Retenção: 5 anos (obrigação fiscal/contábil).
  */
 export interface Cliente {
@@ -25,11 +44,23 @@ export interface Cliente {
     telefone: string;
     dataCriacao: Date;
     dataAtualizacao: Date;
+
+    // Métricas CRM
     ltvCentavos: Centavos;
     totalProdutos: number;
     fiel: boolean;
+    statusComercial: StatusComercial;
+    observacoesCRM?: string;
     historico?: RegistroHistoricoCliente[];
+
+    // Colunas Obrigatórias LGPD (Regra 9.0)
+    idConsentimento: string;
+    baseLegal: BaseLegalLGPD;
+    finalidadeColeta: string;
+    prazoRetencaoMeses: number;
+    anonimizado: boolean;
+    dataAnonimizacao?: Date;
 }
 
 /** Opções de ordenação para a listagem */
-export type OrdenacaoCliente = "NOME" | "RECENTE";
+export type OrdenacaoCliente = "NOME" | "RECENTE" | "LTV";

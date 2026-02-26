@@ -7,6 +7,7 @@ export enum StatusPedido {
   ACABAMENTO = "acabamento",
   CONCLUIDO = "concluido",
   ATRASADO = "atrasado", // Derivado
+  ARQUIVADO = "arquivado",
 }
 
 export enum StatusImpressora {

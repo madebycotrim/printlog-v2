@@ -14,6 +14,7 @@ import {
     HelpCircle,
 } from "lucide-react";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
+import { registrar } from "@/compartilhado/utilitarios/registrador";
 
 type PropriedadesBarraLateral = {
     abertaMobile?: boolean;
@@ -46,7 +47,7 @@ export function BarraLateral({
             // intercepte a navegação enquanto o estado do Firebase ainda está sendo limpo.
             window.location.href = "/";
         } catch (erro) {
-            console.error("Erro ao realizar logout:", erro);
+            registrar.error({ rastreioId: "sistema", servico: "BarraLateral" }, "Erro ao realizar logout", erro);
         }
     };
 

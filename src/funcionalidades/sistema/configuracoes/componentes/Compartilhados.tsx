@@ -11,9 +11,11 @@ export interface PropsCampo {
 export function CampoDashboard({ label, valor, aoMudar, placeholder, icone: Icone }: PropsCampo) {
     return (
         <div className="w-full">
-            <label className="mb-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-gray-500 dark:text-zinc-500 ml-1">{label}</label>
+            <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-zinc-500 ml-1">
+                {label}
+            </label>
             <div className="relative group">
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[var(--cor-primaria)] transition-colors">
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-600 group-focus-within:text-gray-900 dark:group-focus-within:text-white transition-colors duration-300">
                     <Icone size={16} />
                 </span>
                 <input
@@ -21,7 +23,7 @@ export function CampoDashboard({ label, valor, aoMudar, placeholder, icone: Icon
                     value={valor}
                     onChange={(e) => aoMudar(e.target.value)}
                     placeholder={placeholder}
-                    className="h-11 w-full bg-transparent border-b-2 border-gray-200 dark:border-white/10 pl-8 pr-3 text-sm font-semibold text-gray-800 dark:text-zinc-200 outline-none focus:border-[var(--cor-primaria)] transition-all"
+                    className="h-11 w-full bg-transparent border-b-2 border-gray-200 dark:border-white/10 pl-8 pr-3 text-sm font-bold text-gray-800 dark:text-white outline-none focus:border-zinc-800 dark:focus:border-white transition-all placeholder:text-gray-300 dark:placeholder:text-zinc-800"
                 />
             </div>
         </div>
@@ -35,6 +37,23 @@ export interface PropsCabecalhoCard {
     corIcone: string;
     pendente?: boolean;
 }
+
+export interface PropriedadesSecaoConfiguracao {
+    titulo: string;
+    descricao?: string;
+    children: React.ReactNode;
+    semBorda?: boolean;
+}
+
+export const SecaoConfiguracao = ({ titulo, descricao, children, semBorda = false }: PropriedadesSecaoConfiguracao) => (
+    <div className={`py-6 space-y-4 ${!semBorda ? 'border-b border-borda-sutil' : ''}`}>
+        <div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-tight">{titulo}</h3>
+            {descricao && <p className="text-xs text-gray-500 dark:text-zinc-500 mt-1">{descricao}</p>}
+        </div>
+        {children}
+    </div>
+);
 
 export function CabecalhoCard({ titulo, descricao, icone: Icone, corIcone, pendente }: PropsCabecalhoCard) {
     return (

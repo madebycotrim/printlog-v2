@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Database, User, PackageSearch, Activity, Download, FolderKanban, CheckCircle2 } from "lucide-react";
+import { Download, Database, User, PackageSearch, Activity, FolderKanban, CheckCircle2 } from "lucide-react";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
 import { CabecalhoCard } from "./Compartilhados";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
 import { usarArmazemMateriais } from "@/funcionalidades/producao/materiais/estado/armazemMateriais";
 import { usarArmazemInsumos } from "@/funcionalidades/producao/insumos/estado/armazemInsumos";
 import { usarArmazemImpressoras } from "@/funcionalidades/producao/impressoras/estado/armazemImpressoras";
+import { toast } from "react-hot-toast";
 
 export function CardMetricas() {
     const { usuario } = usarAutenticacao();
@@ -95,8 +96,8 @@ export function CardMetricas() {
                 exibirSucesso();
             }
         } catch (e) {
-            console.error("Erro na exportação de portabilidade LGPD", e);
-            alert("Ocorreu um erro ao gerar arquivo de exportação.");
+            registrar.error({ rastreioId: "sistema", servico: "CardMetricas" }, "Erro na exportação de portabilidade LGPD", e);
+            toast.error("Falha ao exportar dados.");
         } finally {
             definirExportando(false);
         }

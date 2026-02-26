@@ -15,8 +15,10 @@ interface PropriedadesCombobox {
   placeholder?: string;
   titulo?: string; // Label do campo
   className?: string;
-  permitirNovo?: boolean; // Se true, funciona como um input com sugestÃµes
-  icone?: ElementType; // Novo prop para Ã­cone
+  permitirNovo?: boolean; // Se true, funciona como um input com sugestões
+  icone?: ElementType; // Novo prop para ícone
+  aoCriarNovo?: (termo: string) => Promise<string | void>; // Callback de criação
+  erro?: string; // Mensagem de erro para paridade com CampoTexto
 }
 
 export function Combobox({
@@ -28,10 +30,13 @@ export function Combobox({
   className = "",
   permitirNovo = true,
   icone: Icone,
+  aoCriarNovo,
+  erro,
 }: PropriedadesCombobox) {
   const [aberto, definirAberto] = useState(false);
   const [termoBusca, definirTermoBusca] = useState("");
   const [posicao, definirPosicao] = useState({ top: 0, left: 0, width: 0 });
+  const [criando, definirCriando] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -78,8 +83,23 @@ export function Combobox({
     op.rotulo.toLowerCase().includes(termoBusca.toLowerCase()),
   );
 
-  const selecionarOpcao = (valorOpcao: string) => {
-    aoAlterar(valorOpcao);
+  const selecionarOpcao = async (valorOpcao: string) => {
+    if (criando) return;
+
+    const opcaoExiste = opcoes.find((op) => op.valor === valorOpcao);
+
+    if (!opcaoExiste && permitirNovo && aoCriarNovo) {
+      try {
+        definirCriando(true);
+        const novoValor = await aoCriarNovo(valorOpcao);
+        aoAlterar(novoValor || valorOpcao);
+      } finally {
+        definirCriando(false);
+      }
+    } else {
+      aoAlterar(valorOpcao);
+    }
+
     definirAberto(false);
     definirTermoBusca("");
   };
@@ -87,57 +107,78 @@ export function Combobox({
 
 
   return (
-    <div className={`relative ${className}`} ref={containerRef}>
+    <div className={`space-y-2 ${className}`} ref={containerRef}>
       {titulo && (
-        <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+        <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest px-1 mb-1">
           {titulo}
         </label>
       )}
 
-      <div
-        className={`
-                    flex items-center justify-between w-full h-11 px-3 
-                    bg-transparent border-b-2 border-gray-200 dark:border-white/10 
-                    text-sm text-gray-900 dark:text-white 
-                    transition-all cursor-text gap-2
-                    ${aberto ? "border-[var(--cor-primaria)]" : "hover:border-gray-300 dark:hover:border-white/20"}
-                `}
-        onClick={() => {
-          if (!aberto) {
-            definirAberto(true);
-            // Se permitir novo, preenche a busca com o valor atual para editar
-            if (permitirNovo && valor) definirTermoBusca(valor);
-          }
-        }}
-      >
-        {/* ÃCONE Ã€ ESQUERDA */}
-        {Icone && <Icone size={16} className="text-zinc-500 shrink-0" />}
-
-        {aberto ? (
-          <input
-            autoFocus
-            type="text"
-            className="bg-transparent border-none outline-none w-full text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 h-full"
-            placeholder={permitirNovo ? placeholder : "Buscar..."}
-            value={termoBusca}
-            onChange={(e) => {
-              definirTermoBusca(e.target.value);
-              if (permitirNovo) aoAlterar(e.target.value);
-            }}
+      <div className="relative group">
+        {/* ÍCONE À ESQUERDA (Posicionamento absoluto para paridade com CampoTexto) */}
+        {Icone && (
+          <Icone
+            size={16}
+            strokeWidth={2}
+            className={`absolute left-0 top-1/2 -translate-y-1/2 transition-colors duration-300 
+                ${erro ? "text-red-500" : "text-gray-400 dark:text-zinc-600"}
+              `}
           />
-        ) : (
-          <span
-            className={`flex-1 truncate ${!valor ? "text-gray-400 dark:text-zinc-500" : ""}`}
-          >
-            {valor || placeholder}
-          </span>
         )}
 
-        <ChevronDown
-          size={14}
-          className={`text-gray-400 dark:text-zinc-500 transition-transform ${aberto ? "rotate-180" : ""}`}
-        />
+        <div
+          className={`
+            flex items-center justify-between w-full h-10 bg-transparent border-0 border-b-[3px] outline-none transition-all duration-300 cursor-text gap-2
+            ${Icone ? "pl-8" : "pl-0"} 
+            ${erro
+              ? "border-red-500 focus-within:border-red-600"
+              : aberto
+                ? "border-gray-300 dark:border-white/20"
+                : "border-gray-100 dark:border-white/10 focus-within:border-gray-300 dark:focus-within:border-white/20"
+            }
+          `}
+          onClick={() => {
+            if (!aberto) {
+              definirAberto(true);
+              if (permitirNovo && valor) {
+                const label = opcoes.find((op) => op.valor === valor)?.rotulo || valor;
+                definirTermoBusca(label);
+              }
+            }
+          }}
+        >
+          {aberto ? (
+            <input
+              autoFocus
+              type="text"
+              className="bg-transparent border-none outline-none w-full text-gray-900 dark:text-white placeholder-gray-400/50 dark:placeholder:text-zinc-700 font-normal text-sm h-full"
+              placeholder={permitirNovo ? placeholder : "Buscar..."}
+              value={termoBusca}
+              onChange={(e) => {
+                definirTermoBusca(e.target.value);
+                if (permitirNovo) aoAlterar(e.target.value);
+              }}
+            />
+          ) : (
+            <span
+              className={`flex-1 truncate text-sm font-normal ${!valor ? "text-gray-400/50 dark:text-zinc-700" : "text-gray-900 dark:text-white"}`}
+            >
+              {opcoes.find((op) => op.valor === valor)?.rotulo || valor || placeholder}
+            </span>
+          )}
+
+          <ChevronDown
+            size={14}
+            className={`text-gray-400 dark:text-zinc-500 shrink-0 transition-transform ${aberto ? "rotate-180" : ""}`}
+          />
+        </div>
       </div>
+
+      {erro && (
+        <span className="text-[10px] font-bold text-red-500 mt-1 block animate-in fade-in slide-in-from-top-1">
+          {erro}
+        </span>
+      )}
 
       {createPortal(
         <AnimatePresence>
@@ -188,11 +229,12 @@ export function Combobox({
                 !opcoesFiltradas.find((op) => op.valor === termoBusca) && (
                   <button
                     type="button"
+                    disabled={criando}
                     onClick={() => selecionarOpcao(termoBusca)}
-                    className="w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-t border-gray-100 dark:border-white/5 flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-t border-gray-100 dark:border-white/5 flex items-center gap-2 disabled:opacity-50"
                   >
                     <PlusIconPequeno />
-                    Criar "{termoBusca}"
+                    {criando ? "Criando..." : `Criar "${termoBusca}"`}
                   </button>
                 )}
             </motion.div>

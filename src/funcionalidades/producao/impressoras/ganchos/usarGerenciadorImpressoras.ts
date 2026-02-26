@@ -3,6 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { usarArmazemImpressoras } from "@/funcionalidades/producao/impressoras/estado/armazemImpressoras";
 import { servicoImpressoras } from "@/funcionalidades/producao/impressoras/servicos/ServicoImpressoras";
 import { Impressora, PecaDesgaste, RegistroManutencao } from "@/funcionalidades/producao/impressoras/tipos";
+import { obterStatusManutencao } from "../utilitarios/utilitariosManutencao";
 import { auditoria } from "@/compartilhado/utilitarios/Seguranca";
 import toast from "react-hot-toast";
 
@@ -170,6 +171,7 @@ export function usarGerenciadorImpressoras() {
                 estadoArmazem.impressoras.map((i) => (i.id === id ? salva : i))
             );
             auditoria.evento("SALVAR_PECAS_DESGASTE", { id });
+            acoesArmazem.fecharPecas();
         } catch (e) {
             auditoria.erro("Erro ao salvar peças de desgaste", e);
             toast.error("Erro ao atualizar rastreamento de peças.");
@@ -226,6 +228,13 @@ export function usarGerenciadorImpressoras() {
                 case "RECENTES":
                     comparacao = new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime();
                     break;
+                case "MANUTENCAO_URGENTE":
+                    {
+                        const percA = (a.horimetroTotalMinutos || 0) / (a.intervaloRevisaoMinutos || 1);
+                        const percB = (b.horimetroTotalMinutos || 0) / (b.intervaloRevisaoMinutos || 1);
+                        comparacao = percB - percA;
+                    }
+                    break;
             }
             return estadoArmazem.ordemInvertida ? -comparacao : comparacao;
         });
@@ -249,7 +258,12 @@ export function usarGerenciadorImpressoras() {
         const valorInvestido = estadoArmazem.impressoras.reduce((acc, i) => acc + (i.valorCompraCentavos || 0), 0);
         const horasImpressao = estadoArmazem.impressoras.reduce((acc, i) => acc + (i.horimetroTotalMinutos || 0) / 60, 0);
 
-        return { total, manutencao, valorInvestido, horasImpressao };
+        const requerAtencao = estadoArmazem.impressoras.filter((i) => {
+            const status = obterStatusManutencao(i.horimetroTotalMinutos || 0, i.intervaloRevisaoMinutos || 0);
+            return status !== 'normal';
+        }).length;
+
+        return { total, manutencao, valorInvestido, horasImpressao, requerAtencao };
     }, [estadoArmazem.impressoras]);
 
     return {

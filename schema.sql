@@ -33,10 +33,18 @@ CREATE TABLE IF NOT EXISTS pedidos_impressao (
 CREATE TABLE IF NOT EXISTS lancamentos_financeiros (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_usuario UUID NOT NULL,
+    id_cliente UUID REFERENCES clientes(id), -- Vínculo opcional com cliente
     tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('entrada', 'saida')),
     valor_centavos BIGINT NOT NULL,
     descricao TEXT,
-    data_criacao TIMESTAMPTZ DEFAULT NOW()
+    data_criacao TIMESTAMPTZ DEFAULT NOW(),
+    -- Colunas LGPD Obrigatórias (Regra 9.0)
+    id_consentimento UUID REFERENCES consentimentos_usuario(id),
+    base_legal VARCHAR(50) NOT NULL DEFAULT 'obrigacao_legal',
+    finalidade_coleta TEXT NOT NULL DEFAULT 'Registro de fluxo de caixa para fins fiscais e gerenciais',
+    prazo_retencao_meses INTEGER NOT NULL DEFAULT 60, -- Lei 9.430/1996
+    anonimizado BOOLEAN DEFAULT FALSE,
+    data_anonimizacao TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS impressoras (

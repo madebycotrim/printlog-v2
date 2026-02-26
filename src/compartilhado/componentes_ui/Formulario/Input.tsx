@@ -15,10 +15,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                         {label}
                     </label>
                 )}
-                <div className="relative group">
+                <div className="relative flex items-center">
                     <input
                         ref={ref}
-                        className={`w-full h-11 px-4 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 border ${error ? "border-red-500" : "border-gray-200 dark:border-white/5 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"} focus:bg-white dark:focus:bg-[#0c0c0e] rounded-lg text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium ${className}`}
+                        className={`w-full h-10 bg-transparent border-0 border-b-[3px] outline-none transition-all duration-300 placeholder:text-gray-400/50 dark:placeholder:text-zinc-700 font-normal text-sm text-gray-900 dark:text-white 
+                            ${error
+                                ? "border-red-500 focus:border-red-600"
+                                : "border-gray-100 dark:border-white/10 focus:border-gray-300 dark:focus:border-white/20"
+                            } ${className}`}
                         {...props}
                     />
                 </div>

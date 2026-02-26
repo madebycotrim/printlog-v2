@@ -11,6 +11,7 @@ export function usarGerenciadorInsumos() {
     // -----------------------------------------------------------------------------------
     const estadoArmazem = usarArmazemInsumos(useShallow((s) => ({
         insumos: s.insumos,
+        carregando: s.carregando,
         filtroPesquisa: s.filtroPesquisa,
         filtroCategoria: s.filtroCategoria,
         ordenacao: s.ordenacao,
@@ -29,6 +30,7 @@ export function usarGerenciadorInsumos() {
 
     const acoesArmazem = usarArmazemInsumos(useShallow((s) => ({
         adicionarOuAtualizarInsumo: s.adicionarOuAtualizarInsumo,
+        definirCarregando: s.definirCarregando,
         removerInsumo: s.removerInsumo,
         definirFiltroPesquisa: s.definirFiltroPesquisa,
         definirFiltroCategoria: s.definirFiltroCategoria,

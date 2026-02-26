@@ -12,15 +12,16 @@ import {
   Building2,
   Layers,
   Tag,
-  DollarSign,
   Weight,
   BoxSelect,
   Beaker,
-  AlertCircle,
 } from "lucide-react";
 import { Combobox } from "@/compartilhado/componentes_ui/Combobox";
 import { Dialogo } from "@/compartilhado/componentes_ui/Dialogo";
+import { CampoTexto } from "@/compartilhado/componentes_ui/CampoTexto";
+import { CampoMonetario } from "@/compartilhado/componentes_ui/CampoMonetario";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
+import { registrar } from "@/compartilhado/utilitarios/registrador";
 
 // --- ESQUEMA DE VALIDAO (ZOD) ---
 const esquemaMaterial = z.object({
@@ -92,9 +93,14 @@ const CORES_PREDEFINIDAS = [
   "#FA8072", "#FFC0CB", "#FF00FF", "#FF0000", "#32CD32", "#008000", "#006400",
 ];
 
-interface FormularioMaterialProps {
+interface PropriedadesFormularioMaterial {
   aberto: boolean;
-  aoSalvar: (dados: any) => void;
+  /**
+   * @lgpd Base legal: Execução de contrato (Art. 7º, V)
+   * @lgpd Finalidade: Gestão técnica de insumos de impressão 3D (estoque e custo)
+   * @param dados Dados brutos do material
+   */
+  aoSalvar: (dados: any) => Promise<any> | void;
   aoCancelar: () => void;
   materialEditando?: Material | null;
 }
@@ -104,8 +110,8 @@ export function FormularioMaterial({
   aoSalvar,
   aoCancelar,
   materialEditando,
-}: FormularioMaterialProps) {
-  const isEditando = Boolean(materialEditando);
+}: PropriedadesFormularioMaterial) {
+  const estaEditando = Boolean(materialEditando);
 
   const [confirmarDescarte, definirConfirmarDescarte] = useState(false);
   const inputCorRef = useRef<HTMLInputElement>(null);
@@ -119,6 +125,7 @@ export function FormularioMaterial({
     formState: { errors, isDirty },
   } = useForm<FormValues>({
     resolver: zodResolver(esquemaMaterial),
+    mode: "onChange",
     defaultValues: {
       tipo: "FDM",
       fabricante: "",
@@ -182,23 +189,28 @@ export function FormularioMaterial({
     [tipoSelecionado],
   );
 
-  const lidarComEnvioRHF = (dados: FormValues) => {
-    const corFinal = dados.cor || "#3b82f6";
-    const nomeFinal =
-      dados.nomePersonalizado ||
-      `${dados.tipoMaterial || "Material"} ${dados.fabricante || ""}`.trim();
+  const lidarComEnvioRHF = async (dados: FormValues) => {
+    try {
+      const corFinal = dados.cor || "#3b82f6";
+      const nomeFinal =
+        dados.nomePersonalizado ||
+        `${dados.tipoMaterial || "Material"} ${dados.fabricante || ""}`.trim();
 
-    aoSalvar({
-      id: materialEditando?.id || crypto.randomUUID(),
-      tipo: dados.tipo,
-      nome: nomeFinal,
-      tipoMaterial: dados.tipoMaterial,
-      fabricante: dados.fabricante,
-      cor: corFinal,
-      precoCentavos: Math.round(Number(dados.preco) * 100),
-      pesoGramas: Number(dados.peso),
-      estoque: dados.estoqueInicial,
-    });
+      await aoSalvar({
+        id: materialEditando?.id || crypto.randomUUID(),
+        tipo: dados.tipo,
+        nome: nomeFinal,
+        tipoMaterial: dados.tipoMaterial,
+        fabricante: dados.fabricante,
+        cor: corFinal,
+        precoCentavos: Math.round(Number(dados.preco) * 100),
+        pesoGramas: Number(dados.peso),
+        estoque: dados.estoqueInicial,
+      });
+      fecharModalRealmente();
+    } catch (erro) {
+      registrar.error({ rastreioId: "sistema", servico: "FormularioMaterial" }, "Erro ao salvar material", erro);
+    }
   };
 
   const lidarComTentativaFechamento = () => {
@@ -217,12 +229,12 @@ export function FormularioMaterial({
     <Dialogo
       aberto={aberto}
       aoFechar={lidarComTentativaFechamento}
-      titulo={isEditando ? "Editar Material" : "Novo Material"}
-      larguraMax="max-w-4xl"
+      titulo={estaEditando ? "Editar Material" : "Novo Material"}
+      larguraMax="max-w-5xl"
     >
       <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] min-h-[500px]">
         {/* --- COLUNA ESQUERDA: VISUALIZAÇÃO 3D --- */}
-        <div className="bg-gray-50 dark:bg-[#18181b] border-r border-gray-200 dark:border-white/5 p-6 flex flex-col items-center justify-center relative overflow-hidden group text-gray-900 dark:text-white">
+        <div className="bg-gray-50 dark:bg-black/20 border-r border-gray-200 dark:border-white/5 p-8 flex flex-col items-center justify-center relative overflow-hidden group">
           <div
             className="absolute inset-0 opacity-[0.03] dark:opacity-[0.07] pointer-events-none"
             style={{
@@ -236,77 +248,71 @@ export function FormularioMaterial({
                 "radial-gradient(ellipse at center, black 40%, transparent 75%)",
             }}
           />
-          <div
-            className="absolute inset-0 pointer-events-none opacity-100"
-            style={{
-              background:
-                "radial-gradient(circle at center 50%, rgba(56, 189, 248, 0.08) 0%, transparent 60%)",
-            }}
-          />
-          <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-gray-200/50 dark:from-black/40 to-transparent pointer-events-none" />
 
-          <div className="absolute top-6 inset-x-6 flex bg-white dark:bg-[#18181b] p-1 rounded-lg border border-gray-200 dark:border-white/5 z-20 shadow-sm">
+          <div className="absolute top-8 inset-x-8 flex bg-white/50 dark:bg-black/20 p-1.5 rounded-xl border border-gray-200 dark:border-white/5 z-20 backdrop-blur-md shadow-inner">
             <button
               type="button"
               onClick={() => setValue("tipo", "FDM", { shouldValidate: true, shouldDirty: true })}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${tipoSelecionado === "FDM" ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-gray-200 dark:ring-white/10" : "text-gray-500 hover:text-gray-700 dark:text-zinc-500 dark:hover:text-zinc-300"}`}
+              className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${tipoSelecionado === "FDM" ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-md ring-1 ring-gray-200 dark:ring-white/10 scale-105" : "text-gray-500 hover:text-gray-700 dark:text-zinc-500 dark:hover:text-zinc-300"}`}
             >
               FILAMENTO
             </button>
             <button
               type="button"
               onClick={() => setValue("tipo", "SLA", { shouldValidate: true, shouldDirty: true })}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${tipoSelecionado === "SLA" ? "bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-gray-200 dark:ring-white/10" : "text-gray-500 hover:text-gray-700 dark:text-zinc-500 dark:hover:text-zinc-300"}`}
+              className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${tipoSelecionado === "SLA" ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-md ring-1 ring-gray-200 dark:ring-white/10 scale-105" : "text-gray-500 hover:text-gray-700 dark:text-zinc-500 dark:hover:text-zinc-300"}`}
             >
               RESINA
             </button>
           </div>
 
-          <div className="relative z-10 my-auto py-12 transition-transform ">
+          <div className="relative z-10 my-auto py-12 transition-all duration-700 hover:scale-110">
             {tipoSelecionado === "FDM" ? (
               <Carretel
                 cor={corSelecionada || "#27272a"}
-                tamanho={200}
+                tamanho={220}
                 porcentagem={corSelecionada ? 100 : 0}
-                className={`drop-shadow-2xl transition-all duration-700`}
+                className="drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] filter contrast-125"
               />
             ) : (
               <GarrafaResina
                 cor={corSelecionada || "#27272a"}
-                tamanho={160}
+                tamanho={180}
                 porcentagem={corSelecionada ? 100 : 0}
-                className={`drop-shadow-2xl transition-all duration-700`}
+                className="drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] filter contrast-125"
               />
             )}
           </div>
 
-          <div className="absolute bottom-6 text-center">
-            <div className="flex items-center gap-2 justify-center">
+          <div className="absolute bottom-8 text-center flex flex-col items-center gap-1">
+            <div className="flex items-center gap-3 bg-white/80 dark:bg-black/40 px-4 py-2 rounded-full border border-gray-200 dark:border-white/5 backdrop-blur-md shadow-sm">
               <div
-                className="w-3 h-3 rounded-full border border-black/10 dark:border-white/10 shadow-sm"
+                className="w-3 h-3 rounded-full border border-black/10 dark:border-white/20 shadow-inner"
                 style={{ backgroundColor: corSelecionada || "#27272a" }}
               />
-              <span className="text-sm font-bold text-gray-700 dark:text-white tracking-widest">
+              <span className="text-[11px] font-black text-gray-900 dark:text-white tracking-[0.2em] uppercase">
                 {corSelecionada ? corSelecionada.toUpperCase() : "VAZIO"}
               </span>
             </div>
           </div>
+
+          <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-gray-200/30 dark:from-black/40 to-transparent pointer-events-none" />
         </div>
 
         {/* --- COLUNA DIREITA: FORMULÁRIO --- */}
         <form
           onSubmit={handleSubmit(lidarComEnvioRHF)}
-          className="flex flex-col h-full bg-white dark:bg-[#18181b]"
+          className="flex flex-col bg-transparent"
         >
-          <div className="flex-1 p-6 md:p-8 space-y-8">
-            <div className="space-y-5">
-              <h4 className="text-[11px] font-black uppercase tracking-widest border-b border-gray-100 dark:border-white/5 pb-2">
-                Identificação Principal
+          <div className="flex-1 p-5 md:p-6 space-y-6">
+            {/* SEÇÃO: IDENTIFICAÇÃO */}
+            <div className="space-y-6">
+              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] border-b border-gray-100 dark:border-white/5 pb-2 text-gray-400 dark:text-zinc-500">
+                IDENTIFICAÇÃO PRINCIPAL
               </h4>
-              <div className="grid grid-cols-2 gap-5">
-                {/* --- FABRICANTE --- */}
-                <div className="col-span-1">
-                  <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-500 px-1 mb-1">
                     Fabricante / Marca
                   </label>
                   <Combobox
@@ -317,16 +323,15 @@ export function FormularioMaterial({
                     permitirNovo={true}
                     icone={Building2}
                   />
-                  {errors.fabricante && (
-                    <span className="text-[10px] font-bold text-red-500 mt-1 block">
+                  {errors?.fabricante && (
+                    <span className="text-[9px] font-black uppercase text-red-500 mt-2 block tracking-wider">
                       {errors.fabricante.message}
                     </span>
                   )}
                 </div>
 
-                {/* --- TIPO MATERIAL --- */}
-                <div className="col-span-1">
-                  <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+                <div>
+                  <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-500 px-1 mb-1">
                     Tipo de Material
                   </label>
                   <Combobox
@@ -337,227 +342,180 @@ export function FormularioMaterial({
                     permitirNovo={true}
                     icone={Layers}
                   />
-                  {errors.tipoMaterial && (
-                    <span className="text-[10px] font-bold text-red-500 mt-1 block">
+                  {errors?.tipoMaterial && (
+                    <span className="text-[9px] font-black uppercase text-red-500 mt-2 block tracking-wider">
                       {errors.tipoMaterial.message}
                     </span>
                   )}
                 </div>
 
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                    Apelido (Como aparecerá no sistema)
+                <div className="md:col-span-2">
+                  <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-500 px-1 mb-1">
+                    Apelido (Nome amigável)
                   </label>
-                  <div className="relative group">
-                    <Tag
-                      size={16}
-                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 group-focus-within:text-sky-500 transition-colors"
-                    />
-                    <input
-                      type="text"
-                      {...register("nomePersonalizado")}
-                      placeholder={
-                        tipoMaterialSelecionado && fabricanteSelecionado
-                          ? `Padrão: ${tipoMaterialSelecionado} ${fabricanteSelecionado} ${corSelecionada}`
-                          : "Deixe em branco para auto-gerar o nome"
-                      }
-                      className="w-full h-11 pl-10 pr-4 bg-transparent border-b-2 border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)] text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-medium"
-                    />
-                  </div>
+                  <CampoTexto
+                    icone={Tag}
+                    placeholder={
+                      tipoMaterialSelecionado && fabricanteSelecionado
+                        ? `Ex: ${tipoMaterialSelecionado} Premium ${fabricanteSelecionado}`
+                        : "Deixe em branco para auto-gerar o nome"
+                    }
+                    erro={errors.nomePersonalizado?.message}
+                    {...register("nomePersonalizado")}
+                  />
                 </div>
+              </div>
+            </div>
 
-                {/* --- SELETOR DE COR --- */}
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                    Cor Predominante
-                  </label>
-                  <div className="bg-gray-50 dark:bg-[#0e0e11] border border-gray-200 dark:border-white/5 rounded-xl p-4 shadow-sm">
-                    <div className="flex flex-wrap gap-2.5">
-                      {CORES_PREDEFINIDAS.map((corPreset) => (
-                        <button
-                          key={corPreset}
-                          type="button"
-                          onClick={() => setValue("cor", corPreset, { shouldDirty: true })}
-                          className={`
-                            w-8 h-8 rounded-full border-2 transition-all hover:scale-110 active:scale-95 shadow-sm
-                            ${corSelecionada === corPreset ? "border-gray-900 dark:border-white scale-110 shadow-md ring-2 ring-gray-900/10 dark:ring-white/10" : "border-black/5 dark:border-white/10 hover:border-black/20 dark:hover:border-white/30"}
-                          `}
-                          style={{ backgroundColor: corPreset }}
-                          title={corPreset}
-                        />
-                      ))}
+            {/* SEÇÃO: CORES */}
+            <div className="space-y-6">
+              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] border-b border-gray-100 dark:border-white/5 pb-2 text-gray-400 dark:text-zinc-500">
+                APARÊNCIA VISUAL
+              </h4>
+              <div className="bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5 rounded-2xl p-6 shadow-inner">
+                <div className="flex flex-wrap gap-3">
+                  {CORES_PREDEFINIDAS.map((corPreset) => (
+                    <button
+                      key={corPreset}
+                      type="button"
+                      onClick={() => setValue("cor", corPreset, { shouldDirty: true })}
+                      className={`
+                        w-9 h-9 rounded-xl border-2 transition-all hover:scale-110 active:scale-95 shadow-sm
+                        ${corSelecionada === corPreset ? "border-sky-500 dark:border-sky-400 scale-110 shadow-lg ring-4 ring-sky-500/10" : "border-white dark:border-white/5 hover:border-gray-200 dark:hover:border-white/20"}
+                      `}
+                      style={{ backgroundColor: corPreset }}
+                      title={corPreset}
+                    />
+                  ))}
 
-                      {/* Botão Gradiente para Cor Personalizada */}
-                      <div className="relative">
-                        <input
-                          ref={inputCorRef}
-                          type="color"
-                          value={corSelecionada || "#000000"}
-                          onChange={(e) => setValue("cor", e.target.value, { shouldDirty: true })}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        />
-                        <button
-                          type="button"
-                          className={`
-                            w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110 shadow-sm
-                            bg-gradient-to-br from-gray-200 to-gray-300 dark:from-zinc-700 dark:to-zinc-900 text-gray-600 dark:text-zinc-400
-                            ${!CORES_PREDEFINIDAS.includes(corSelecionada || "") && corSelecionada ? "border-gray-900 dark:border-white shadow-md scale-110 ring-2 ring-gray-900/10 dark:ring-white/10" : "border-black/5 dark:border-white/10 hover:border-black/20 dark:hover:border-white/30"}
-                          `}
-                        >
-                          <Plus size={14} strokeWidth={3} />
-                        </button>
-                      </div>
-                    </div>
+                  <div className="relative">
+                    <input
+                      ref={inputCorRef}
+                      type="color"
+                      value={corSelecionada || "#000000"}
+                      onChange={(e) => setValue("cor", e.target.value, { shouldDirty: true })}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <button
+                      type="button"
+                      className={`
+                        w-9 h-9 rounded-xl border-2 flex items-center justify-center transition-all hover:scale-110 shadow-sm
+                        bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 text-gray-400 dark:text-zinc-600
+                        ${!CORES_PREDEFINIDAS.includes(corSelecionada || "") && corSelecionada ? "border-sky-500 dark:border-sky-400 shadow-lg scale-110 ring-4 ring-sky-500/10" : "border-white dark:border-white/5 hover:border-gray-200 dark:hover:border-white/20"}
+                      `}
+                    >
+                      <Plus size={16} strokeWidth={3} />
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-5">
-              <h4 className="text-[11px] font-black uppercase tracking-widest border-b border-gray-100 dark:border-white/5 pb-2">
-                Precificação & Estoque
+            {/* SEÇÃO: PRECIFICAÇÃO */}
+            <div className="space-y-6">
+              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] border-b border-gray-100 dark:border-white/5 pb-2 text-gray-400 dark:text-zinc-500">
+                PRECIFICAÇÃO & INVENTÁRIO
               </h4>
-              <div className="grid grid-cols-3 gap-5 relative">
-                {/* PREÇO */}
-                <div className="col-span-1">
-                  <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                    Valor Total
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-500 px-1 mb-1">
+                    Custo de Aquisição
                   </label>
-                  <div className="relative group">
-                    <DollarSign
-                      size={16}
-                      className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.preco ? "text-red-400" : "text-gray-400 dark:text-zinc-500 group-focus-within:text-gray-900 dark:group-focus-within:text-white"} transition-colors`}
-                    />
-                    <input
-                      type="number"
-                      step="0.01"
-                      {...register("preco", { valueAsNumber: true })}
-                      placeholder="Ex: 89,90"
-                      className={`w-full h-11 pl-10 pr-3 bg-transparent border-b-2 ${errors.preco ? "border-red-500" : "border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)]"} text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner`}
-                    />
-                  </div>
-                  {errors.preco && (
-                    <span className="text-[10px] font-bold text-red-500 mt-1 block">
-                      {errors.preco.message}
-                    </span>
-                  )}
+                  <CampoMonetario
+                    placeholder="Ex: 89,90"
+                    erro={errors.preco?.message}
+                    {...register("preco", { valueAsNumber: true })}
+                  />
                 </div>
 
-                {/* PESO / VOLUME TOTAL */}
-                <div className="col-span-1">
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-xs font-bold text-gray-700 dark:text-zinc-400">
-                      Quantidade útil
+                <div className="relative space-y-1.5">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-500 px-1">
+                      Peso / Volume
                     </label>
                     {tipoSelecionado === "SLA" && (
                       <button
                         type="button"
                         onClick={() => setValue("usarGramas", !usarGramasSelecionado)}
-                        className="text-[10px] font-bold text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white uppercase transition-colors"
+                        className="text-[9px] font-black text-sky-500 hover:text-sky-600 dark:hover:text-sky-400 uppercase transition-colors tracking-widest"
                       >
-                        {usarGramasSelecionado ? "Usar ML" : "Usar Gr"}
+                        {usarGramasSelecionado ? "Usar ML" : "Usar GR"}
                       </button>
                     )}
                   </div>
-                  <div className="relative group flex items-center">
-                    <div
-                      className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.peso ? "text-red-400" : "text-gray-400 dark:text-zinc-500 group-focus-within:text-gray-900 dark:group-focus-within:text-white"} transition-colors z-10`}
-                    >
-                      {tipoSelecionado === "SLA" && !usarGramasSelecionado ? (
-                        <Beaker size={16} />
-                      ) : (
-                        <Weight size={16} />
-                      )}
-                    </div>
-                    <input
+                  <div className="relative">
+                    <CampoTexto
+                      icone={tipoSelecionado === "SLA" && !usarGramasSelecionado ? Beaker : Weight}
                       type="number"
+                      placeholder="1000"
+                      erro={errors.peso?.message}
                       {...register("peso", { valueAsNumber: true })}
-                      placeholder={
-                        tipoSelecionado === "SLA" && !usarGramasSelecionado ? "1000" : "1000"
-                      }
-                      className={`w-full h-11 pl-10 pr-12 bg-transparent border-b-2 ${errors.peso ? "border-red-500" : "border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)]"} text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner`}
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none">
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none tracking-widest uppercase">
                       {tipoSelecionado === "SLA" && !usarGramasSelecionado ? "ML" : "G"}
                     </span>
                   </div>
-                  {errors.peso && (
-                    <span className="text-[10px] font-bold text-red-500 mt-1 block">
-                      {errors.peso.message}
-                    </span>
-                  )}
                 </div>
 
-                {/* ESTOQUE INICIAL */}
-                <div className="col-span-1">
-                  <label className="block text-xs font-bold text-gray-700 dark:text-zinc-400 mb-2">
-                    Unidades (Qtd)
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-500 px-1 mb-1">
+                    Estoque Inicial
                   </label>
-                  <div className="relative group">
-                    <BoxSelect
-                      size={16}
-                      className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${errors.estoqueInicial ? "text-red-400" : "text-gray-400 dark:text-zinc-500 group-focus-within:text-gray-900 dark:group-focus-within:text-white"} transition-colors`}
-                    />
-                    <input
-                      type="number"
-                      {...register("estoqueInicial", { valueAsNumber: true })}
-                      placeholder="Ex: 1"
-                      className={`w-full h-11 pl-10 pr-3 bg-transparent border-b-2 ${errors.estoqueInicial ? "border-red-500" : "border-gray-200 dark:border-white/10 focus:border-[var(--cor-primaria)]"} text-sm text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 font-bold no-spinner`}
-                    />
-                  </div>
-                  {errors.estoqueInicial && (
-                    <span className="text-[10px] font-bold text-red-500 mt-1 block">
-                      {errors.estoqueInicial.message}
-                    </span>
-                  )}
+                  <CampoTexto
+                    icone={BoxSelect}
+                    type="number"
+                    placeholder="1"
+                    erro={errors.estoqueInicial?.message}
+                    {...register("estoqueInicial", { valueAsNumber: true })}
+                  />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="p-5 md:p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50/80 dark:bg-[#0e0e11]/50 flex flex-col items-end gap-3 rounded-br-xl min-h-[88px] justify-center">
+          {/* RODAPÉ */}
+          <div className="p-5 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-[#0e0e11]/50 backdrop-blur-md flex flex-col items-end gap-2 rounded-br-2xl min-h-[70px] justify-center">
             {!confirmarDescarte ? (
               <div className="flex items-center gap-3 w-full justify-between md:justify-end">
                 <button
                   type="button"
                   onClick={lidarComTentativaFechamento}
-                  className="px-4 py-2 flex-1 md:flex-none text-sm font-bold text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+                  className="px-6 py-2.5 flex-1 md:flex-none text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-gray-900 dark:text-zinc-500 dark:hover:text-white transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   style={{ backgroundColor: "var(--cor-primaria)" }}
-                  className="px-6 py-2.5 flex-1 md:flex-none justify-center hover:brightness-95 text-white text-sm font-bold rounded-xl shadow-sm flex items-center gap-2 transition-all active:scale-95"
+                  className="px-8 py-2.5 flex-1 md:flex-none justify-center hover:brightness-110 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-sky-500/20 flex items-center gap-2 transition-all active:scale-95"
                 >
-                  <Save size={18} strokeWidth={2.5} />
-                  {isEditando ? "Salvar Alterações" : "Cadastrar Material"}
+                  <Save size={16} strokeWidth={3} />
+                  {estaEditando ? "Salvar Alterações" : "Cadastrar Material"}
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col items-end gap-3 w-full animate-in slide-in-from-right-4 fade-in duration-300">
+              <div className="flex flex-col items-end gap-2 w-full animate-in slide-in-from-bottom-2 fade-in duration-300">
                 <div className="flex items-center gap-3 w-full justify-between md:justify-end">
                   <button
                     type="button"
                     onClick={fecharModalRealmente}
-                    className="px-4 py-2.5 flex-1 md:flex-none text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-500/20"
+                    className="px-4 py-2 text-[11px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
                   >
-                    Descartar
+                    Descartar Alterações
                   </button>
                   <button
                     type="button"
                     onClick={() => definirConfirmarDescarte(false)}
-                    className="px-6 py-2.5 flex-1 md:flex-none justify-center bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-bold rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-95"
+                    className="px-8 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
                   >
                     Continuar Editando
                   </button>
                 </div>
-                <div className="flex items-center gap-2 text-red-600 dark:text-red-400/80 md:w-auto w-full justify-end">
-                  <AlertCircle size={14} strokeWidth={2.5} />
-                  <span className="text-[10px] uppercase font-bold tracking-widest">
-                    Tem certeza que deseja descartar alterações?
+                {isDirty && (
+                  <span className="text-[9px] font-black text-red-600/70 dark:text-red-500/50 uppercase tracking-[0.2em] mr-2">
+                    Há alterações não salvas que serão perdidas
                   </span>
-                </div>
+                )}
               </div>
             )}
           </div>

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/compartilhado/componentes_ui/Layout";
 import { RotaProtegida } from "@/compartilhado/infraestrutura/roteamento/RotaProtegida";
 import { ScrollParaTopo } from "@/compartilhado/utilitarios/ScrollParaTopo";
+import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
 import { ProvedorAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
 
 
@@ -56,6 +57,11 @@ const PaginaCalculadora = lazy(() =>
     default: m.PaginaCalculadora,
   })),
 );
+const PaginaDesperdicio = lazy(() =>
+  import("@/funcionalidades/geral/desperdicio/pagina").then((m) => ({
+    default: m.PaginaDesperdicio,
+  })),
+);
 
 // 2. Produção
 const PaginaProjetos = lazy(() =>
@@ -76,6 +82,16 @@ const PaginaMateriais = lazy(() =>
 const PaginaInsumos = lazy(() =>
   import("@/funcionalidades/producao/insumos/pagina").then((m) => ({
     default: m.PaginaInsumos,
+  })),
+);
+const PaginaHistoricoProducao = lazy(() =>
+  import("@/funcionalidades/producao/historico/pagina").then((m) => ({
+    default: m.PaginaHistoricoProducao,
+  })),
+);
+const PaginaManutencaoPreditiva = lazy(() =>
+  import("@/funcionalidades/producao/manutencao/preditiva/pagina").then((m) => ({
+    default: m.PaginaManutencaoPreditiva,
   })),
 );
 
@@ -103,19 +119,13 @@ const PaginaAjuda = lazy(() =>
   })),
 );
 
-// Fallback de Carregamento Global
-const FallbackCarregamento = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0e0e11]">
-    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-sky-500"></div>
-  </div>
-);
 
 export function RoteadorPrincipal() {
   return (
     <ProvedorAutenticacao>
       <BrowserRouter>
         <ScrollParaTopo />
-        <Suspense fallback={<FallbackCarregamento />}>
+        <Suspense fallback={<Carregamento />}>
           <Routes>
             {/* Landing Page Pública */}
             <Route path="/" element={<PaginaLanding />} />
@@ -159,6 +169,16 @@ export function RoteadorPrincipal() {
                 </RotaProtegida>
               }
             />
+            <Route
+              path="/relatorios/desperdicio"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaDesperdicio />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
 
             {/* 2. PRODUÃ‡ÃƒO */}
             <Route
@@ -197,6 +217,26 @@ export function RoteadorPrincipal() {
                 <RotaProtegida>
                   <Layout>
                     <PaginaInsumos />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
+            <Route
+              path="/producao/historico"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaHistoricoProducao />
+                  </Layout>
+                </RotaProtegida>
+              }
+            />
+            <Route
+              path="/producao/manutencao"
+              element={
+                <RotaProtegida>
+                  <Layout>
+                    <PaginaManutencaoPreditiva />
                   </Layout>
                 </RotaProtegida>
               }

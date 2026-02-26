@@ -7,8 +7,10 @@
 @theme {
   --font-sans: var(--familia-fonte);
   --font-inter: "Inter", sans-serif;
+  --color-card: var(--bg-card);
   --color-card-fundo: var(--bg-card);
   --color-borda-sutil: var(--border-subtle);
+  --color-subtle: var(--border-subtle);
 }
 
 /* Fontsource - Inter & JetBrains Mono */
@@ -40,6 +42,12 @@
   --border-subtle: #e4e4e7;
   --accent-blue: #0ea5e9;
   --accent-green: #10b981;
+
+  /* Sombras Adaptativas */
+  --sombra-suave: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --sombra-media: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --sombra-forte: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --sombra-primaria: 0 10px 15px -3px rgba(14, 165, 233, 0.25);
 }
 
 .dark {
@@ -47,6 +55,12 @@
   --bg-sidebar: #020202;
   --bg-card: #18181b;
   --border-subtle: rgba(255, 255, 255, 0.1);
+
+  /* Sombras no Dark Mode (Reduzidas ou Invertidas) */
+  --sombra-suave: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --sombra-media: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --sombra-forte: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+  --sombra-primaria: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
 body {
@@ -87,7 +101,7 @@ textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: var(--border-subtle);
   border-radius: 3px;
 }
 
@@ -99,8 +113,8 @@ textarea {
 .bg-grid-printlog {
   background-size: 40px 40px;
   background-image:
-    linear-gradient(to right, rgba(39, 39, 42, 0.3) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(39, 39, 42, 0.3) 1px, transparent 1px);
+    linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
   mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
   -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
 }
@@ -137,13 +151,14 @@ textarea {
 
 @layer utilities {
 
-  .no-spinner::-webkit-inner-spin-button,
-  .no-spinner::-webkit-outer-spin-button {
+  /* Remove spinners de inputs number globalmente */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
 
-  .no-spinner {
+  input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
   }
