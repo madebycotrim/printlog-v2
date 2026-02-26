@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
+import { SeletorEstudio } from "./SeletorEstudio";
 
 type PropriedadesBarraLateral = {
     abertaMobile?: boolean;
@@ -125,7 +126,6 @@ export function BarraLateral({
                 />
 
                 <div className="relative z-10 flex flex-col h-full">
-                    {/* Cabeçalho */}
                     <div className="h-24 flex items-center justify-center gap-3">
                         <img
                             src="/logo-colorida.png"
@@ -149,6 +149,8 @@ export function BarraLateral({
                             </button>
                         )}
                     </div>
+
+                    <SeletorEstudio />
 
                     {/* Navegação */}
                     <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-6 scrollbar-hide">

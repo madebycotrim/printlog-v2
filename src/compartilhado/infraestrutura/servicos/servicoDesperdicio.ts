@@ -84,6 +84,7 @@ export const servicoDesperdicio = {
         const hoje = new Date();
         const ultimos6Meses: PontoHistoricoDesperdicio[] = [];
 
+        // Inicializa os últimos 6 meses
         for (let i = 5; i >= 0; i--) {
             const dataRef = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
             ultimos6Meses.push({
@@ -93,13 +94,43 @@ export const servicoDesperdicio = {
             });
         }
 
+        const obterIndexMes = (dataStr: string) => {
+            const data = new Date(dataStr);
+            if (isNaN(data.getTime())) return -1;
+
+            for (let i = 0; i < 6; i++) {
+                const ref = new Date(hoje.getFullYear(), hoje.getMonth() - (5 - i), 1);
+                if (data.getMonth() === ref.getMonth() && data.getFullYear() === ref.getFullYear()) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+
         materiais.forEach(m => {
             const custoPorGrama = m.precoCentavos / (m.pesoGramas || 1000);
             m.historicoUso?.forEach(u => {
                 if (u.status === "FALHA" || u.status === "CANCELADO") {
-                    const mesIndex = Math.floor(Math.random() * 6);
-                    ultimos6Meses[mesIndex].valorCentavos += Math.round(u.quantidadeGastaGramas * custoPorGrama);
-                    ultimos6Meses[mesIndex].pesoGramas += u.quantidadeGastaGramas;
+                    // Tenta converter formatos como "26 Fev, 05:45" para Data real
+                    // Para fins de MVP, se a data for amigável, tentamos inferir o mês atual/anterior
+                    let dataIso = u.data;
+                    if (u.data.includes(',')) {
+                        // Formato amigável do sistema: "26 Fev, 05:45"
+                        // Como não tem ano, assumimos o ano atual
+                        const [diaMes] = u.data.split(',');
+                        const [dia, mesAbv] = diaMes.trim().split(' ');
+                        const mesIndex = meses.indexOf(mesAbv);
+                        if (mesIndex !== -1) {
+                            const d = new Date(hoje.getFullYear(), mesIndex, parseInt(dia));
+                            dataIso = d.toISOString();
+                        }
+                    }
+
+                    const idx = obterIndexMes(dataIso);
+                    if (idx !== -1) {
+                        ultimos6Meses[idx].valorCentavos += Math.round(u.quantidadeGastaGramas * custoPorGrama);
+                        ultimos6Meses[idx].pesoGramas += u.quantidadeGastaGramas;
+                    }
                 }
             });
         });
@@ -107,8 +138,10 @@ export const servicoDesperdicio = {
         insumos.forEach(i => {
             i.historico?.forEach(h => {
                 if (h.tipo === "Saída" && (h.motivo === "Descarte" || h.motivo === "Avaria")) {
-                    const mesIndex = Math.floor(Math.random() * 6);
-                    ultimos6Meses[mesIndex].valorCentavos += Math.round(h.quantidade * (i.custoMedioUnidade || 0));
+                    const idx = obterIndexMes(h.data);
+                    if (idx !== -1) {
+                        ultimos6Meses[idx].valorCentavos += Math.round(h.quantidade * (i.custoMedioUnidade || 0));
+                    }
                 }
             });
         });

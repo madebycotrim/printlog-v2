@@ -13,7 +13,7 @@ interface EstadoMateriais {
     arquivarMaterial: (id: string) => void;
 
     // Ações Específicas de Domínio
-    abaterPeso: (id: string, qtdAbatida: number, motivo: string) => void;
+    abaterPeso: (id: string, qtdAbatida: number, motivo: string, status?: "SUCESSO" | "FALHA" | "CANCELADO" | "MANUAL") => void;
     reporEstoque: (id: string, quantidadeComprada: number, precoTotalNovaCompra: number) => void;
 }
 
@@ -39,7 +39,7 @@ export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
             ),
         })),
 
-    abaterPeso: (id, qtdAbatida, motivo) =>
+    abaterPeso: (id, qtdAbatida, motivo, status = "MANUAL") =>
         set((state) => ({
             materiais: state.materiais.map((m) => {
                 if (m.id !== id) return m;
@@ -81,9 +81,9 @@ export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
                 const novoRegistro: RegistroUso = {
                     id: Date.now().toString(),
                     data: dataFormatada,
-                    nomePeca: motivo || "Abatimento Manual",
+                    nomePeca: motivo || (status === "FALHA" ? "Perda Técnica / Sucata" : "Abatimento Manual"),
                     quantidadeGastaGramas: qtdAbatida,
-                    status: "MANUAL",
+                    status: status,
                 };
 
                 return {

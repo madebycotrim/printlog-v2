@@ -5,6 +5,7 @@ import { RotaProtegida } from "@/compartilhado/infraestrutura/roteamento/RotaPro
 import { ScrollParaTopo } from "@/compartilhado/utilitarios/ScrollParaTopo";
 import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
 import { ProvedorAutenticacao } from "@/funcionalidades/autenticacao/contexto/ContextoAutenticacao";
+import { ProvedorEstudio } from "@/compartilhado/contextos/ContextoEstudio";
 
 
 // Landing Page Publica
@@ -123,171 +124,173 @@ const PaginaAjuda = lazy(() =>
 export function RoteadorPrincipal() {
   return (
     <ProvedorAutenticacao>
-      <BrowserRouter>
-        <ScrollParaTopo />
-        <Suspense fallback={<Carregamento />}>
-          <Routes>
-            {/* Landing Page Pública */}
-            <Route path="/" element={<PaginaLanding />} />
-            <Route
-              path="/seguranca-e-privacidade"
-              element={<SegurancaPrivacidade />}
-            />
-            <Route
-              path="/politica-de-privacidade"
-              element={<PoliticaPrivacidade />}
-            />
-            <Route path="/termos-de-uso" element={<TermosUso />} />
+      <ProvedorEstudio>
+        <BrowserRouter>
+          <ScrollParaTopo />
+          <Suspense fallback={<Carregamento />}>
+            <Routes>
+              {/* Landing Page Pública */}
+              <Route path="/" element={<PaginaLanding />} />
+              <Route
+                path="/seguranca-e-privacidade"
+                element={<SegurancaPrivacidade />}
+              />
+              <Route
+                path="/politica-de-privacidade"
+                element={<PoliticaPrivacidade />}
+              />
+              <Route path="/termos-de-uso" element={<TermosUso />} />
 
-            {/* Autenticação */}
-            <Route path="/login" element={<PaginaAcesso />} />
-            <Route path="/cadastro" element={<PaginaCadastro />} />
-            <Route
-              path="/recuperar-senha"
-              element={<PaginaRecuperacaoSenha />}
-            />
+              {/* Autenticação */}
+              <Route path="/login" element={<PaginaAcesso />} />
+              <Route path="/cadastro" element={<PaginaCadastro />} />
+              <Route
+                path="/recuperar-senha"
+                element={<PaginaRecuperacaoSenha />}
+              />
 
-            {/* Aplicação Interna Protegida */}
-            {/* 1. GERAL */}
-            <Route
-              path="/dashboard"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaInicial />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
-            <Route
-              path="/calculadora"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaCalculadora />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
-            <Route
-              path="/relatorios/desperdicio"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaDesperdicio />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
+              {/* Aplicação Interna Protegida */}
+              {/* 1. GERAL */}
+              <Route
+                path="/dashboard"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaInicial />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
+              <Route
+                path="/calculadora"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaCalculadora />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
+              <Route
+                path="/relatorios/desperdicio"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaDesperdicio />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
 
-            {/* 2. PRODUÃ‡ÃƒO */}
-            <Route
-              path="/projetos"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaProjetos />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
-            <Route
-              path="/impressoras"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaImpressoras />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
-            <Route
-              path="/materiais"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaMateriais />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
-            <Route
-              path="/insumos"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaInsumos />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
-            <Route
-              path="/producao/historico"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaHistoricoProducao />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
-            <Route
-              path="/producao/manutencao"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaManutencaoPreditiva />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
+              {/* 2. PRODUÃ‡ÃƒO */}
+              <Route
+                path="/projetos"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaProjetos />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
+              <Route
+                path="/impressoras"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaImpressoras />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
+              <Route
+                path="/materiais"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaMateriais />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
+              <Route
+                path="/insumos"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaInsumos />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
+              <Route
+                path="/producao/historico"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaHistoricoProducao />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
+              <Route
+                path="/producao/manutencao"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaManutencaoPreditiva />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
 
-            {/* 3. COMERCIAL */}
-            <Route
-              path="/clientes"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaClientes />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
-            <Route
-              path="/financeiro"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaFinanceiro />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
+              {/* 3. COMERCIAL */}
+              <Route
+                path="/clientes"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaClientes />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
+              <Route
+                path="/financeiro"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaFinanceiro />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
 
-            {/* 4. SISTEMA */}
-            <Route
-              path="/configuracoes"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaConfiguracoes />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
-            <Route
-              path="/central-maker"
-              element={
-                <RotaProtegida>
-                  <Layout>
-                    <PaginaAjuda />
-                  </Layout>
-                </RotaProtegida>
-              }
-            />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+              {/* 4. SISTEMA */}
+              <Route
+                path="/configuracoes"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaConfiguracoes />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
+              <Route
+                path="/central-maker"
+                element={
+                  <RotaProtegida>
+                    <Layout>
+                      <PaginaAjuda />
+                    </Layout>
+                  </RotaProtegida>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </ProvedorEstudio>
     </ProvedorAutenticacao>
   );
 }

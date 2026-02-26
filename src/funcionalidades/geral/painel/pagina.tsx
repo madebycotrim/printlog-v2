@@ -18,6 +18,7 @@ import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalh
 import { usarArmazemMateriais } from "@/funcionalidades/producao/materiais/estado/armazemMateriais";
 import { usarArmazemImpressoras } from "@/funcionalidades/producao/impressoras/estado/armazemImpressoras";
 import { usarArmazemInsumos } from "@/funcionalidades/producao/insumos/estado/armazemInsumos";
+import { usarArmazemFinanceiro } from "@/funcionalidades/comercial/financeiro/estado/armazemFinanceiro";
 import { usarPedidos } from "@/funcionalidades/producao/projetos/ganchos/usarPedidos";
 import { ALERTA_ESTOQUE_FILAMENTO_GRAMAS } from "@/compartilhado/utilitarios/constantesNegocio";
 
@@ -28,10 +29,13 @@ import { StatusTempoReal } from "./componentes/StatusTempoReal";
 import { AgendaManutencao } from "./componentes/AgendaManutencao";
 import { RelatorioInventario } from "./componentes/RelatorioInventario";
 import { RelatorioDesperdicio } from "./componentes/RelatorioDesperdicio";
+import { ResumoBI } from "./componentes/ResumoBI";
+import { RelatorioPerformanceOperacional } from "./componentes/RelatorioPerformanceOperacional";
 import { CardResumo } from "@/compartilhado/componentes_ui/CardResumo";
 import { StatusPedido } from "@/compartilhado/tipos_globais/modelos";
 import { servicoRelatorios } from "@/compartilhado/infraestrutura/servicos/servicoRelatorios";
 import { BarChart, PieChart, FileText, History as HistoryIcon } from "lucide-react";
+import { servicoExportacao } from "@/compartilhado/infraestrutura/servicos/servicoExportacao";
 
 export function PaginaInicial() {
   const { usuario } = usarAutenticacao();
@@ -42,6 +46,7 @@ export function PaginaInicial() {
   const materiais = usarArmazemMateriais(s => s.materiais);
   const impressoras = usarArmazemImpressoras(s => s.impressoras);
   const insumos = usarArmazemInsumos(s => s.insumos);
+  const lancamentos = usarArmazemFinanceiro(s => s.lancamentos);
 
   // 🧮 CÁLCULOS DE KPI
   const totaisPecas = insumos.reduce((acc, i) => acc + i.quantidadeAtual, 0);
@@ -107,8 +112,8 @@ export function PaginaInicial() {
             link="/impressoras"
           />
           <AtalhoItem
-            titulo="Fluxo de Caixa"
-            subtitulo="Relatórios de vendas"
+            titulo="Gestão Financeira"
+            subtitulo="Relatórios de DRE"
             icone={CreditCard}
             cor="bg-indigo-500"
             link="/financeiro"
@@ -159,6 +164,18 @@ export function PaginaInicial() {
         </div>
       </section>
 
+      {/* 🧠 INTELIGÊNCIA COMERCIAL & RENTABILIDADE (DRE & BI) */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-3">
+          <Activity size={18} className="text-indigo-500" />
+          <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 dark:text-zinc-500">
+            Inteligência Comercial & BI
+          </h2>
+        </div>
+
+        <ResumoBI pedidos={pedidos} materiais={materiais} lancamentos={lancamentos} />
+      </section>
+
       {/* 📈 VISTA OPERACIONAL (GRÁFICOS E STATUS) */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
@@ -191,36 +208,9 @@ export function PaginaInicial() {
           <div className="lg:col-span-1">
             <AgendaManutencao impressoras={impressoras} />
           </div>
-          <div className="lg:col-span-2 p-10 rounded-[2.5rem] bg-white dark:bg-[#121214] border border-gray-100 dark:border-white/5 shadow-sm flex flex-col justify-center">
-            <div className="flex items-center gap-6 mb-8">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-                <Activity size={28} />
-              </div>
-              <div>
-                <h3 className="text-lg font-black uppercase tracking-tight">OEE: Eficiência Global do Parque</h3>
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">Status operacional em tempo real</p>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <div className="space-y-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Tempo Ativo</span>
-                <p className="text-2xl font-black">94.2%</p>
-              </div>
-              <div className="space-y-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Qualidade</span>
-                <p className="text-2xl font-black">98.5%</p>
-              </div>
-              <div className="space-y-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Previsibilidade</span>
-                <p className="text-2xl font-black text-sky-500">Alta</p>
-              </div>
-              <div className="space-y-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">MTBF</span>
-                <p className="text-2xl font-black">152h</p>
-              </div>
-            </div>
-          </div>
+          <RelatorioPerformanceOperacional impressoras={impressoras} pedidos={pedidos} />
+
           <div className="lg:col-span-1">
             <RelatorioInventario materiais={materiais} insumos={insumos} />
           </div>
@@ -296,7 +286,10 @@ export function PaginaInicial() {
                   Relatório consolidado de dados pessoais e portabilidade para o titular da conta.
                 </p>
               </div>
-              <button className="relative z-10 px-8 py-4 bg-white hover:bg-sky-400 text-black font-black uppercase text-[10px] tracking-widest rounded-xl transition-all active:scale-95 shadow-lg">
+              <button
+                onClick={() => servicoExportacao.gerarRelatorioPortabilidade(usuario || { nome: "Maker Anônimo", email: "anonimo@printlog.com.br", id: "anon" }, pedidos)}
+                className="relative z-10 px-8 py-4 bg-white hover:bg-sky-400 text-black font-black uppercase text-[10px] tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
+              >
                 Gerar Portabilidade
               </button>
             </div>

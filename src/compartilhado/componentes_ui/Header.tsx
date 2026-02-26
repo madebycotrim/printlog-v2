@@ -1,5 +1,7 @@
 ﻿import { Menu, Search } from "lucide-react";
 import { usarCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
+import { MenuNotificacoes } from "./MenuNotificacoes";
+import { usarProcessadorNotificacoes } from "../ganchos/usarProcessadorNotificacoes";
 
 type PropriedadesCabecalho = {
   aoAbrirBarraLateral: () => void;
@@ -7,6 +9,9 @@ type PropriedadesCabecalho = {
 
 export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
   const { dados } = usarCabecalho();
+
+  // Inicializa o processador de notificações globais (pedidos atrasados, manutenção, etc.)
+  usarProcessadorNotificacoes();
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between px-6 md:px-12 h-20 md:h-24 bg-white/80 dark:bg-[#0e0e11]/80 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 transition-all duration-300">
@@ -56,6 +61,8 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
             />
           </div>
         )}
+
+        <MenuNotificacoes />
 
         {/* Ações Padronizadas */}
         <div className="flex items-center gap-2 md:gap-3">

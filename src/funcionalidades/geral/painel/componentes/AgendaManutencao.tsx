@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Impressora } from "@/funcionalidades/producao/impressoras/tipos";
 import { obterStatusManutencao, obterCorStatusManutencao } from "@/funcionalidades/producao/impressoras/utilitarios/utilitariosManutencao";
+import { servicoManutencao } from "@/compartilhado/infraestrutura/servicos/servicoManutencao";
 
 interface AgendaManutencaoProps {
     impressoras: Impressora[];
@@ -56,9 +57,16 @@ export function AgendaManutencao({ impressoras }: AgendaManutencaoProps) {
                                 <div className="flex justify-between items-start mb-3">
                                     <div>
                                         <h4 className="text-[12px] font-black uppercase tracking-tight mb-1">{i.nome}</h4>
-                                        <p className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-                                            {Math.round(i.percentual)}% do ciclo percorrido
-                                        </p>
+                                        <div className="flex flex-col gap-0.5">
+                                            <p className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                                                {Math.round(i.percentual)}% do ciclo percorrido
+                                            </p>
+                                            {servicoManutencao.preverProximaManutencao(i) && (
+                                                <p className="text-[8px] font-black text-rose-400 uppercase tracking-tighter">
+                                                    Previsão: {servicoManutencao.preverProximaManutencao(i)?.toLocaleDateString('pt-BR')}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${cores.bg} text-white`}>
                                         {i.statusManutencao}

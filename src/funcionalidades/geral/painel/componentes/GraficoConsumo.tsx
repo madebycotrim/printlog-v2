@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
     Area,
     AreaChart,
@@ -19,6 +20,13 @@ const DADOS_GRAFICO = [
 ];
 
 export function GraficoConsumo() {
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        const construtor = setTimeout(() => setIsMounted(true), 50);
+        return () => clearTimeout(construtor);
+    }, []);
+
     return (
         <div className="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-8">
@@ -32,44 +40,46 @@ export function GraficoConsumo() {
                 </select>
             </div>
 
-            <div className="h-[300px] w-full" style={{ minWidth: 0 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={DADOS_GRAFICO}>
-                        <defs>
-                            <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--cor-primaria)" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="var(--cor-primaria)" stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" className="dark:stroke-zinc-800" />
-                        <XAxis
-                            dataKey="nome"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 'bold' }}
-                            dy={10}
-                        />
-                        <YAxis hide />
-                        <Tooltip
-                            contentStyle={{
-                                backgroundColor: '#18181b',
-                                border: 'none',
-                                borderRadius: '12px',
-                                color: '#fff'
-                            }}
-                            itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
-                            cursor={{ stroke: "var(--cor-primaria)", strokeWidth: 2 }}
-                        />
-                        <Area
-                            type="monotone"
-                            dataKey="valor"
-                            stroke="var(--cor-primaria)"
-                            strokeWidth={4}
-                            fillOpacity={1}
-                            fill="url(#colorValor)"
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
+            <div className="h-[300px] w-full">
+                {isMounted && (
+                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                        <AreaChart data={DADOS_GRAFICO}>
+                            <defs>
+                                <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="var(--cor-primaria)" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="var(--cor-primaria)" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" className="dark:stroke-zinc-800" />
+                            <XAxis
+                                dataKey="nome"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 'bold' }}
+                                dy={10}
+                            />
+                            <YAxis hide />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: '#18181b',
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    color: '#fff'
+                                }}
+                                itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
+                                cursor={{ stroke: "var(--cor-primaria)", strokeWidth: 2 }}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="valor"
+                                stroke="var(--cor-primaria)"
+                                strokeWidth={4}
+                                fillOpacity={1}
+                                fill="url(#colorValor)"
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                )}
             </div>
         </div>
     );

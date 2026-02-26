@@ -5,6 +5,7 @@ import { StatusPedido } from "@/compartilhado/tipos_globais/modelos";
 import { toast } from "react-hot-toast";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
 import { usarArmazemPedidos } from "../estado/armazemPedidos";
+import { servicoManutencao } from "@/compartilhado/infraestrutura/servicos/servicoManutencao";
 
 export function usarPedidos() {
     const {
@@ -59,7 +60,6 @@ export function usarPedidos() {
     };
 
     const moverPedido = async (id: string, novoStatus: StatusPedido) => {
-        // Busca o estado mais atual diretamente do store para evitar closures obsoletas
         const todosPedidos = usarArmazemPedidos.getState().pedidos;
         const pedidoEncontrado = todosPedidos.find(p => p.id === id);
 
@@ -68,16 +68,17 @@ export function usarPedidos() {
 
         const pedidoOriginal = { ...pedidoEncontrado };
 
-        // Atualização Otimista: Move o card instantaneamente no UI
         atualizarPedidoNoEstado(id, { status: novoStatus });
 
         try {
             await servicoPedidos.atualizarStatus(id, novoStatus);
-            // Sucesso silencioso para experiência fluida
-        } catch (erro: any) {
-            // Rollback: Reverte para o estado original se a API falhar ou proibir
-            atualizarPedidoNoEstado(id, pedidoOriginal);
 
+            // Regra Manutenção v9.0: Ao concluir um job, abater tempo no horímetro da máquina
+            if (novoStatus === StatusPedido.CONCLUIDO && pedidoEncontrado.idImpressora && pedidoEncontrado.tempoMinutos) {
+                servicoManutencao.registrarUsoMaquina(pedidoEncontrado.idImpressora, pedidoEncontrado.tempoMinutos);
+            }
+        } catch (erro: any) {
+            atualizarPedidoNoEstado(id, pedidoOriginal);
             registrar.error({ rastreioId: id, servico: "Projetos", novoStatus }, "Erro ao mover pedido", erro);
             toast.error(erro.mensagem || "Movimentação não permitida.");
         }
@@ -111,7 +112,6 @@ export function usarPedidos() {
     }, [pedidos, termoBusca]);
 
     useEffect(() => {
-        // Só carrega se o estoque de pedidos estiver vazio para não sobrecarregar
         if (pedidos.length === 0) {
             carregarPedidos();
         }

@@ -1,5 +1,5 @@
-import { Plus, ReceiptText, Search } from "lucide-react";
-import { useState } from "react";
+import { Plus, ReceiptText, Search, FileBarChart } from "lucide-react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { ResumoFinanceiroComponente } from "./componentes/ResumoFinanceiro";
@@ -9,6 +9,9 @@ import { FiltrosFinanceiro } from "./componentes/FiltrosFinanceiro";
 import { EstadoVazio } from "@/compartilhado/componentes_ui/EstadoVazio";
 import { usarFinanceiro } from "./ganchos/usarFinanceiro";
 import { Carregamento } from "@/compartilhado/componentes_ui/Carregamento";
+import { usarArmazemMateriais } from "@/funcionalidades/producao/materiais/estado/armazemMateriais";
+import { usarPedidos } from "@/funcionalidades/producao/projetos/ganchos/usarPedidos";
+import { servicoFinanceiroAvancado } from "@/compartilhado/infraestrutura/servicos/servicoFinanceiroAvancado";
 
 export function PaginaFinanceiro() {
   const [modalAberto, setModalAberto] = useState(false);
@@ -27,13 +30,20 @@ export function PaginaFinanceiro() {
     pesquisar
   } = usarFinanceiro();
 
+  const materiais = usarArmazemMateriais(s => s.materiais);
+  const { pedidos } = usarPedidos();
+
+  const dre = useMemo(() =>
+    servicoFinanceiroAvancado.gerarDRE(pedidos, lancamentos, materiais),
+    [pedidos, lancamentos, materiais]);
+
   usarDefinirCabecalho({
-    titulo: "Financeiro",
-    subtitulo: "Gestão de fluxo de caixa e rendimentos",
-    placeholderBusca: "Buscar lançamentos (Ex: nome, valor, data, etc.)",
+    titulo: "Ecossistema Financeiro",
+    subtitulo: "Acompanhamento detalhado de DRE e Fluxo de Caixa",
+    placeholderBusca: "Buscar transações, categorias ou referências...",
     aoBuscar: pesquisar,
     acao: {
-      texto: "Nova Transação",
+      texto: "Registrar Transação",
       icone: Plus,
       aoClicar: () => setModalAberto(true),
     },
@@ -51,15 +61,35 @@ export function PaginaFinanceiro() {
           <Carregamento tipo="pulse" texto="Sincronizando Lançamentos" />
         ) : lancamentos.length === 0 ? (
           <EstadoVazio
-            titulo="Nenhum lançamento registrado"
-            descricao="Registre suas entradas e saídas para ter um controle financeiro completo do seu estúdio."
+            titulo="Fluxo de caixa vazio"
+            descricao="Comece registrando suas contas para visualizar sua rentabilidade e margem de lucro real."
             icone={ReceiptText}
             textoBotao="Novo Lançamento"
             aoClicarBotao={() => setModalAberto(true)}
           />
         ) : (
           <>
-            <ResumoFinanceiroComponente resumo={resumo} />
+            <ResumoFinanceiroComponente
+              resumo={resumo}
+              lucratividadePercentual={dre.lucratividadePercentual}
+            />
+
+            {/* Banner de Status DRE */}
+            <div className="bg-white dark:bg-[#121214] border border-gray-100 dark:border-white/5 rounded-[2rem] p-8 flex items-center justify-between group overflow-hidden relative shadow-sm">
+              <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700">
+                <FileBarChart size={120} />
+              </div>
+              <div className="space-y-3 relative z-10">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${dre.lucroLiquidoCentavos >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Status de Rentabilidade</h4>
+                </div>
+                <p className="text-sm font-medium text-gray-500 dark:text-zinc-400 max-w-lg">
+                  Baseado no Mix de Produção atual, seu estúdio está operando com uma margem de <strong className="text-zinc-900 dark:text-white">{dre.lucratividadePercentual}%</strong>.
+                  Este cálculo considera o preço de venda vs. consumo estimado de filamento.
+                </p>
+              </div>
+            </div>
 
             <FiltrosFinanceiro
               tipoAtivo={filtroTipo}
@@ -71,17 +101,9 @@ export function PaginaFinanceiro() {
             />
 
             {lancamentosFiltrados.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 text-center animate-in fade-in zoom-in-95 duration-500">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-zinc-100 dark:bg-white/5 rounded-full scale-150 blur-2xl opacity-50" />
-                  <Search size={48} strokeWidth={1} className="text-zinc-300 dark:text-zinc-700 relative z-10" />
-                </div>
-                <h3 className="text-lg font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-tight">
-                  Nenhum resultado encontrado
-                </h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 italic max-w-xs">
-                  Não encontramos transações para os filtros aplicados. Tente ajustar os termos ou categorias.
-                </p>
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <Search size={36} className="text-zinc-300 dark:text-zinc-700 mb-4" />
+                <h3 className="text-base font-black text-zinc-900 dark:text-white">Nenhum lançamento filtrado</h3>
               </div>
             ) : (
               <AnimatePresence mode="wait">

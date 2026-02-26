@@ -59,3 +59,16 @@ export enum BaseLegalLGPD {
   EXECUCAO_CONTRATO = "execucao_contrato", // Art. 7º, V
   INTERESSE_LEGITIMO = "interesse_legitimo", // Art. 7º, IX
 }
+
+/** 
+ * Interface de Estúdio (Tenant) para arquitetura multi-sessão. 
+ * @fase 3 - Roadmap
+ */
+export interface Estudio {
+  id: string;
+  nome: string;
+  slug: string;
+  corPrimaria: CorPrimaria;
+  logoUrl?: string;
+  dataCriacao: Date;
+}

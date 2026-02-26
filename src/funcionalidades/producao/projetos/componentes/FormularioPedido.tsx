@@ -14,16 +14,23 @@ import { usarGerenciadorClientes } from "@/funcionalidades/comercial/clientes/ga
 import { SecaoFormulario, GradeCampos } from "@/compartilhado/componentes_ui/FormularioLayout";
 import { usarAnalisadorGCode } from "@/compartilhado/ganchos/usarAnalisadorGCode";
 import { Upload, Loader2, Sparkles } from "lucide-react";
+import { SeletorInsumosSecundarios } from "./SeletorInsumosSecundarios";
 
 const esquemaPedido = z.object({
     idCliente: z.string().min(1, "Selecione um cliente"),
     descricao: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres"),
-    valorCentavos: z.number().int().positive("O valor deve ser maior que zero"), // Regra v9.0: FIN_001
+    valorCentavos: z.number().positive("O valor deve ser maior que zero"), // Regra v9.0: FIN_001
     prazoEntrega: z.string().optional(),
     material: z.string().optional(),
     pesoGramas: z.number().min(0).optional(),
     tempoMinutos: z.number().int().min(0).optional(),
     observacoes: z.string().optional(),
+    insumosSecundarios: z.array(z.object({
+        idInsumo: z.string(),
+        nome: z.string(),
+        quantidade: z.number().min(0),
+        custoUnitarioCentavos: z.number().int().min(0),
+    })).optional(),
 });
 
 type PedidoFormData = z.infer<typeof esquemaPedido>;
@@ -69,6 +76,7 @@ export function FormularioPedido({ aberto, aoSalvar, aoCancelar, pedidoEdicao }:
     });
 
     const clienteSelecionado = watch("idCliente");
+    const insumosSecundarios = watch("insumosSecundarios") || [];
 
     useEffect(() => {
         if (aberto) {
@@ -82,6 +90,7 @@ export function FormularioPedido({ aberto, aoSalvar, aoCancelar, pedidoEdicao }:
                     pesoGramas: pedidoEdicao.pesoGramas || 0,
                     tempoMinutos: pedidoEdicao.tempoMinutos || 0,
                     observacoes: pedidoEdicao.observacoes || "",
+                    insumosSecundarios: pedidoEdicao.insumosSecundarios || [],
                 });
             } else {
                 reset({
@@ -93,6 +102,7 @@ export function FormularioPedido({ aberto, aoSalvar, aoCancelar, pedidoEdicao }:
                     pesoGramas: 0,
                     tempoMinutos: 0,
                     observacoes: "",
+                    insumosSecundarios: [],
                 });
             }
             setConfirmarDescarte(false);
@@ -144,6 +154,7 @@ export function FormularioPedido({ aberto, aoSalvar, aoCancelar, pedidoEdicao }:
                 pesoGramas: dados.pesoGramas,
                 tempoMinutos: dados.tempoMinutos,
                 observacoes: dados.observacoes,
+                insumosSecundarios: dados.insumosSecundarios,
             });
             aoCancelar();
         } catch (erro) {
@@ -322,6 +333,14 @@ export function FormularioPedido({ aberto, aoSalvar, aoCancelar, pedidoEdicao }:
                                 />
                             </div>
                         </GradeCampos>
+                    </SecaoFormulario>
+
+                    {/* SEÇÃO 3: COMPOSIÇÃO DE CUSTOS (v9.0) */}
+                    <SecaoFormulario titulo="Insumos e Acessórios">
+                        <SeletorInsumosSecundarios
+                            selecionados={insumosSecundarios}
+                            aoAlterar={(novos) => setValue("insumosSecundarios", novos, { shouldDirty: true })}
+                        />
                     </SecaoFormulario>
                 </div>
 
