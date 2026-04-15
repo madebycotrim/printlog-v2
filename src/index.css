@@ -1,0 +1,165 @@
+/* Fontes Auxiliares Modernas - NO TOPO ABSOLUTO */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Outfit:wght@100..900&family=Poppins:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+@import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: var(--familia-fonte);
+  --font-inter: "Inter", sans-serif;
+  --color-card: var(--bg-card);
+  --color-card-fundo: var(--bg-card);
+  --color-borda-sutil: var(--border-subtle);
+  --color-subtle: var(--border-subtle);
+}
+
+/* Fontsource - Inter & JetBrains Mono */
+@import "@fontsource/inter/100.css";
+@import "@fontsource/inter/200.css";
+@import "@fontsource/inter/300.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/inter/800.css";
+@import "@fontsource/inter/900.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/700.css";
+
+:root {
+  --familia-fonte: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  font-family: var(--familia-fonte);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Palette Exata PrintLog */
+  --bg-page: #f4f4f5;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --border-subtle: #e4e4e7;
+  --accent-blue: #0ea5e9;
+  --accent-green: #10b981;
+
+  /* Sombras Adaptativas */
+  --sombra-suave: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --sombra-media: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --sombra-forte: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --sombra-primaria: 0 10px 15px -3px rgba(14, 165, 233, 0.25);
+}
+
+.dark {
+  --bg-page: #09090b;
+  --bg-sidebar: #020202;
+  --bg-card: #18181b;
+  --border-subtle: rgba(255, 255, 255, 0.1);
+
+  /* Sombras no Dark Mode (Reduzidas ou Invertidas) */
+  --sombra-suave: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --sombra-media: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --sombra-forte: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+  --sombra-primaria: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+body {
+  background-color: var(--bg-page);
+  font-family: var(--familia-fonte);
+}
+
+/* Forçamos a fonte em componentes que o Tailwind reseta explicitamente */
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Títulos com gradiente */
+.text-gradient-title {
+  background: linear-gradient(to right, #fff 0%, #cbd5e1 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Números Mono */
+.font-mono-numbers {
+  font-family: var(--font-mono) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-page);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Grid Patterns */
+.bg-grid-printlog {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+}
+
+.bg-grid-sidebar {
+  background-size: 32px 32px;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.15) 1px, transparent 1px);
+}
+
+.dark .bg-grid-sidebar {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+}
+
+/* Animações */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-float-slow {
+  animation: float 6s ease-in-out infinite;
+}
+
+@layer utilities {
+
+  /* Remove spinners de inputs number globalmente */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}
