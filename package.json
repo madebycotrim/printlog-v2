@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "deploy": "npm run build && npx wrangler deploy"
+    "deploy": "if exist dist rmdir /s /q dist && npm run build && npx wrangler pages deploy dist"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
