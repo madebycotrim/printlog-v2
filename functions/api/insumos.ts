@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 /**
- * API de Insumos - Cloudflare Pages Functions (v6.0 Definitive)
+ * API de Insumos - Cloudflare Pages Functions (v7.0 Soft Delete)
  */
 
 interface Env {
@@ -9,7 +9,7 @@ interface Env {
 }
 
 /**
- * BUSCAR INSUMOS
+ * BUSCAR INSUMOS (Apenas Ativos)
  */
 export const onRequestGet: PagesFunction<Env> = async (context) => {
     const { env, request } = context;
@@ -18,7 +18,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     try {
         const { results: insumos } = await env.DB.prepare(
-            "SELECT * FROM insumos WHERE id_usuario = ? ORDER BY nome ASC"
+            "SELECT * FROM insumos WHERE id_usuario = ? AND arquivado = 0 ORDER BY nome ASC"
         ).bind(usuarioId).all();
 
         const insumosComHistorico = await Promise.all(insumos.map(async (i: any) => {
@@ -34,6 +34,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 quantidadeMinima: i.quantidade_minima,
                 unidadeMedida: i.unidade_medida,
                 unidadeConsumo: i.unidade_consumo,
+                arquivado: i.arquivado === 1,
                 historico: historico || []
             };
         }));
@@ -66,8 +67,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 id, id_usuario, nome, descricao, categoria, unidade_medida, 
                 quantidade_atual, quantidade_minima, custo_medio_unidade,
                 link_compra, marca, item_fracionavel, rendimento_total, unidade_consumo,
-                data_criacao
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                arquivado, data_criacao
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
         `).bind(
             id, 
             usuarioId, 
@@ -144,7 +145,7 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
 };
 
 /**
- * EXCLUIR INSUMO (DELETE) - 🚀 ADICIONADO AGORA
+ * ARQUIVAR INSUMO (DELETE como SOFT DELETE)
  */
 export const onRequestDelete: PagesFunction<Env> = async (context) => {
     const { env, request } = context;
@@ -157,9 +158,9 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
     if (!id) return new Response("ID não informado", { status: 400 });
 
     try {
-        // As movimentações serão deletadas automaticamente devido ao ON DELETE CASCADE no banco
+        // Soft Delete: Mantém o registro mas marca como arquivado
         await env.DB.prepare(
-            "DELETE FROM insumos WHERE id = ? AND id_usuario = ?"
+            "UPDATE insumos SET arquivado = 1 WHERE id = ? AND id_usuario = ?"
         ).bind(id, usuarioId).run();
 
         return new Response(JSON.stringify({ sucesso: true }), {

@@ -1,5 +1,9 @@
 /// <reference types="@cloudflare/workers-types" />
 
+/**
+ * API de Peças de Desgaste - Cloudflare Pages Functions (v2.0 Soft Delete)
+ */
+
 interface Env {
     DB: D1Database;
 }
@@ -15,9 +19,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const metodo = request.method;
 
     try {
+        // GET - Listar (Apenas Ativas)
         if (metodo === "GET") {
-            let query = "SELECT * FROM pecas_desgaste WHERE id_usuario = ?";
-            const params: any[] = [usuarioId];
+            let query = "SELECT * FROM pecas_desgaste WHERE id_usuario = ? AND arquivado = 0";
+            let params = [usuarioId];
 
             if (idImpressora) {
                 query += " AND id_impressora = ?";
@@ -28,47 +33,49 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             return new Response(JSON.stringify(results), { headers: { "Content-Type": "application/json" } });
         }
 
+        // POST - Criar / Atualizar
         if (metodo === "POST") {
             const dados = await request.json() as any;
-            const novoId = dados.id || crypto.randomUUID();
+            const idParaUsar = dados.id || crypto.randomUUID();
+            
             await env.DB.prepare(`
                 INSERT INTO pecas_desgaste (
                     id, id_usuario, id_impressora, nome, vida_util_minutos, 
-                    horas_uso_atual_minutos, data_ultima_troca
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    horas_uso_atual_minutos, data_ultima_troca, arquivado
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+                ON CONFLICT(id) DO UPDATE SET
+                    nome = excluded.nome,
+                    vida_util_minutos = excluded.vida_util_minutos,
+                    horas_uso_atual_minutos = excluded.horas_uso_atual_minutos,
+                    data_ultima_troca = excluded.data_ultima_troca
             `).bind(
-                novoId, usuarioId, dados.idImpressora, dados.nome, 
-                dados.vidaUtilMinutos, dados.horasUsoAtualMinutos || 0,
+                idParaUsar, usuarioId, dados.idImpressora, dados.nome, 
+                dados.vidaUtilMinutos || 0, dados.horasUsoAtualMinutos || 0,
                 dados.dataUltimaTroca || new Date().toISOString()
             ).run();
-            return new Response(JSON.stringify({ id: novoId, sucesso: true }), { status: 201 });
+
+            return new Response(JSON.stringify({ id: idParaUsar, sucesso: true }), { 
+                status: 201,
+                headers: { "Content-Type": "application/json" }
+            });
         }
 
-        if (metodo === "PATCH" || metodo === "PUT") {
-            const dados = await request.json() as any;
-            await env.DB.prepare(`
-                UPDATE pecas_desgaste SET 
-                    nome = ?, vida_util_minutos = ?, 
-                    horas_uso_atual_minutos = ?, data_ultima_troca = ?
-                WHERE id = ? AND id_usuario = ?
-            `).bind(
-                dados.nome, dados.vidaUtilMinutos, 
-                dados.horasUsoAtualMinutos, dados.dataUltimaTroca,
-                dados.id, usuarioId
-            ).run();
-            return new Response(JSON.stringify({ sucesso: true }));
-        }
-
+        // DELETE - Soft Delete
         if (metodo === "DELETE") {
-            if (!id) return new Response("ID não fornecido", { status: 400 });
+            if (!id) return new Response("ID não informado", { status: 400 });
             await env.DB.prepare(
-                "DELETE FROM pecas_desgaste WHERE id = ? AND id_usuario = ?"
+                "UPDATE pecas_desgaste SET arquivado = 1 WHERE id = ? AND id_usuario = ?"
             ).bind(id, usuarioId).run();
-            return new Response(JSON.stringify({ sucesso: true }));
+            return new Response(JSON.stringify({ sucesso: true }), {
+                headers: { "Content-Type": "application/json" }
+            });
         }
 
         return new Response("Método não permitido", { status: 405 });
     } catch (erro: any) {
-        return new Response(JSON.stringify({ erro: erro.message }), { status: 500 });
+        return new Response(JSON.stringify({ erro: erro.message }), { 
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
     }
 };

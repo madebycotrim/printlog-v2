@@ -150,9 +150,9 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
     if (!id) return new Response("ID não informado", { status: 400 });
 
     try {
-        // O cascade cuidará do histórico
+        // Soft Delete: Mantém o registro mas marca como arquivado
         await env.DB.prepare(
-            "DELETE FROM materiais WHERE id = ? AND id_usuario = ?"
+            "UPDATE materiais SET arquivado = 1 WHERE id = ? AND id_usuario = ?"
         ).bind(id, usuarioId).run();
 
         return new Response(JSON.stringify({ sucesso: true }), {
