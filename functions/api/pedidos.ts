@@ -55,7 +55,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 dados.status, dados.descricao, dados.valorCentavos,
                 dados.dataConclusao, dados.idCliente, dados.id, usuarioId
             ).run();
-            return new Response(JSON.stringify({ sucesso: true }));
+            return new Response(JSON.stringify({ sucesso: true }), {
+            headers: { "Content-Type": "application/json" }
+        });
         }
 
         // DELETE - Excluir
@@ -64,7 +66,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             await env.DB.prepare(
                 "DELETE FROM pedidos_impressao WHERE id = ? AND id_usuario = ?"
             ).bind(id, usuarioId).run();
-            return new Response(JSON.stringify({ sucesso: true }));
+            return new Response(JSON.stringify({ sucesso: true }), {
+            headers: { "Content-Type": "application/json" }
+        });
         }
 
         return new Response("Método não permitido", { status: 405 });

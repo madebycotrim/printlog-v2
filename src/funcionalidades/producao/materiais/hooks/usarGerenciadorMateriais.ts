@@ -26,6 +26,8 @@ export function usarGerenciadorMateriais() {
       arquivarMaterial: s.arquivarMaterial,
       abaterPeso: s.abaterPeso,
       reporEstoque: s.reporEstoque,
+      definirMateriais: s.definirMateriais,
+      definirCarregando: s.definirCarregando,
     })),
   );
 
@@ -129,12 +131,17 @@ export function usarGerenciadorMateriais() {
     }
   };
 
-  const confirmarArquivamento = () => {
-    if (materialParaExcluir) {
-      acoesArmazem.arquivarMaterial(materialParaExcluir.id);
-      auditoria.evento("ARQUIVAR_MATERIAL", { id: materialParaExcluir.id, nome: materialParaExcluir.nome });
-      definirModalExclusaoAberto(false);
-      definirMaterialParaExcluir(null);
+  const confirmarArquivamento = async () => {
+    if (materialParaExcluir && usuario?.uid) {
+      try {
+        await apiMateriais.remover(materialParaExcluir.id, usuario.uid);
+        acoesArmazem.arquivarMaterial(materialParaExcluir.id);
+        auditoria.evento("ARQUIVAR_MATERIAL", { id: materialParaExcluir.id, nome: materialParaExcluir.nome });
+        definirModalExclusaoAberto(false);
+        definirMaterialParaExcluir(null);
+      } catch (erro) {
+        alert("Erro ao remover material no banco.");
+      }
     }
   };
 
@@ -170,12 +177,23 @@ export function usarGerenciadorMateriais() {
     }
   };
 
-  const confirmarReposicaoMaterial = (quantidadeComprada: number, precoTotalNovaCompra: number) => {
-    if (materialParaRepor) {
-      acoesArmazem.reporEstoque(materialParaRepor.id, quantidadeComprada, precoTotalNovaCompra);
-      auditoria.evento("REPOSICAO_MATERIAL", { id: materialParaRepor.id, quantidadeComprada });
-      definirModalReposicaoAberto(false);
-      definirMaterialParaRepor(null);
+  const confirmarReposicaoMaterial = async (quantidadeComprada: number, precoTotalNovaCompra: number) => {
+    if (materialParaRepor && usuario?.uid) {
+      try {
+        acoesArmazem.reporEstoque(materialParaRepor.id, quantidadeComprada, precoTotalNovaCompra);
+        
+        // Buscamos o material atualizado do store
+        const atualizado = materiais.find(m => m.id === materialParaRepor.id);
+        if (atualizado) {
+          await apiMateriais.atualizar(atualizado, usuario.uid);
+        }
+
+        auditoria.evento("REPOSICAO_MATERIAL", { id: materialParaRepor.id, quantidadeComprada });
+        definirModalReposicaoAberto(false);
+        definirMaterialParaRepor(null);
+      } catch (erro) {
+        alert("Erro ao salvar reposição no servidor.");
+      }
     }
   };
 

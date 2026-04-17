@@ -125,6 +125,16 @@ export function usarFinanceiro() {
     inverterOrdem,
     pesquisar,
     adicionarLancamento,
+    removerLancamento: async (id: string) => {
+      if (!usuarioId) return;
+      try {
+        await servicoFinanceiro.excluirLancamento(id, usuarioId);
+        toast.success("Lançamento removido.");
+        await carregarDados();
+      } catch (erro) {
+        toast.error("Erro ao remover lançamento do banco.");
+      }
+    },
     recarregar: carregarDados,
     rastreioId,
   };

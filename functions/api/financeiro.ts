@@ -48,6 +48,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
         return new Response("Método não permitido", { status: 405 });
     } catch (erro: any) {
-        return new Response(JSON.stringify({ erro: erro.message }), { status: 500 });
+        return new Response(JSON.stringify({ erro: erro.message }), { 
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
     }
 };

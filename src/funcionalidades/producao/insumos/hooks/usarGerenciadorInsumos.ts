@@ -317,13 +317,16 @@ export function usarGerenciadorInsumos() {
   };
 
   const confirmarArquivamento = async (idInsumo: string) => {
+    if (!usuario?.uid) return;
     try {
+      await apiInsumos.remover(idInsumo, usuario.uid);
       acoesArmazem.removerInsumo(idInsumo);
       auditoria.evento("REMOVER_INSUMO", { id: idInsumo });
-      toast.success("O card Insumo foi permanentemente removido.");
+      toast.success("Insumo removido permanentemente do banco.");
       acoesArmazem.fecharArquivamento();
     } catch (e) {
-      toast.error("Erro ao deletar histórico.");
+      auditoria.erro("Erro ao deletar insumo no banco", e);
+      toast.error("Erro ao deletar do banco de dados.");
     }
   };
 

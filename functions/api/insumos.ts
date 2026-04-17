@@ -1,18 +1,19 @@
 /// <reference types="@cloudflare/workers-types" />
 
 /**
- * API de Insumos - Cloudflare Pages Functions
- * Gerencia Fitas, Colas, Limpeza e Acabamento no D1.
+ * API de Insumos - Cloudflare Pages Functions (v6.0 Definitive)
  */
 
 interface Env {
     DB: D1Database;
 }
 
+/**
+ * BUSCAR INSUMOS
+ */
 export const onRequestGet: PagesFunction<Env> = async (context) => {
     const { env, request } = context;
     const usuarioId = request.headers.get("x-usuario-id");
-
     if (!usuarioId) return new Response("Não autorizado", { status: 401 });
 
     try {
@@ -33,7 +34,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 quantidadeMinima: i.quantidade_minima,
                 unidadeMedida: i.unidade_medida,
                 unidadeConsumo: i.unidade_consumo,
-                historico: historico
+                historico: historico || []
             };
         }));
 
@@ -41,19 +42,25 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             headers: { "Content-Type": "application/json" }
         });
     } catch (erro: any) {
-        return new Response(JSON.stringify({ erro: erro.message }), { status: 500 });
+        return new Response(JSON.stringify({ erro: erro.message }), { 
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
     }
 };
 
+/**
+ * CRIAR INSUMO (POST)
+ */
 export const onRequestPost: PagesFunction<Env> = async (context) => {
     const { env, request } = context;
     const usuarioId = request.headers.get("x-usuario-id");
     if (!usuarioId) return new Response("Não autorizado", { status: 401 });
 
-    const dados = await request.json() as any;
-    const id = dados.id || crypto.randomUUID();
-
     try {
+        const dados = await request.json() as any;
+        const id = dados.id || crypto.randomUUID();
+
         await env.DB.prepare(`
             INSERT INTO insumos (
                 id, id_usuario, nome, descricao, categoria, unidade_medida, 
@@ -64,7 +71,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         `).bind(
             id, 
             usuarioId, 
-            dados.nome || 'Sem Nome', 
+            dados.nome || 'Novo Insumo', 
             dados.descricao || '', 
             dados.categoria || 'Geral', 
             dados.unidadeMedida || 'un',
@@ -79,21 +86,29 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             new Date().toISOString()
         ).run();
 
-        return new Response(JSON.stringify({ id, sucesso: true }), { status: 201 });
+        return new Response(JSON.stringify({ id, sucesso: true }), { 
+            status: 201,
+            headers: { "Content-Type": "application/json" }
+        });
     } catch (erro: any) {
-        return new Response(JSON.stringify({ erro: erro.message }), { status: 500 });
+        return new Response(JSON.stringify({ erro: erro.message }), { 
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
     }
 };
 
+/**
+ * ATUALIZAR INSUMO (PATCH)
+ */
 export const onRequestPatch: PagesFunction<Env> = async (context) => {
     const { env, request } = context;
     const usuarioId = request.headers.get("x-usuario-id");
     if (!usuarioId) return new Response("Não autorizado", { status: 401 });
 
-    const dados = await request.json() as any;
-
     try {
-        // Registrar movimentação se houver
+        const dados = await request.json() as any;
+
         if (dados.movimentacao) {
             const m = dados.movimentacao;
             await env.DB.prepare(`
@@ -107,7 +122,6 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
             ).run();
         }
 
-        // Atualizar insumo principal
         await env.DB.prepare(`
             UPDATE insumos SET 
                 quantidade_atual = ?,
@@ -118,8 +132,43 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
             dados.quantidadeAtual, dados.custoMedioUnidade, dados.id, usuarioId
         ).run();
 
-        return new Response(JSON.stringify({ sucesso: true }));
+        return new Response(JSON.stringify({ sucesso: true }), {
+            headers: { "Content-Type": "application/json" }
+        });
     } catch (erro: any) {
-        return new Response(JSON.stringify({ erro: erro.message }), { status: 500 });
+        return new Response(JSON.stringify({ erro: erro.message }), { 
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
+    }
+};
+
+/**
+ * EXCLUIR INSUMO (DELETE) - 🚀 ADICIONADO AGORA
+ */
+export const onRequestDelete: PagesFunction<Env> = async (context) => {
+    const { env, request } = context;
+    const usuarioId = request.headers.get("x-usuario-id");
+    if (!usuarioId) return new Response("Não autorizado", { status: 401 });
+
+    const url = new URL(request.url);
+    const id = url.searchParams.get("id");
+
+    if (!id) return new Response("ID não informado", { status: 400 });
+
+    try {
+        // As movimentações serão deletadas automaticamente devido ao ON DELETE CASCADE no banco
+        await env.DB.prepare(
+            "DELETE FROM insumos WHERE id = ? AND id_usuario = ?"
+        ).bind(id, usuarioId).run();
+
+        return new Response(JSON.stringify({ sucesso: true }), {
+            headers: { "Content-Type": "application/json" }
+        });
+    } catch (erro: any) {
+        return new Response(JSON.stringify({ erro: erro.message }), { 
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
     }
 };

@@ -44,5 +44,16 @@ export const apiInsumos = {
       body: JSON.stringify({ ...insumo, movimentacao })
     });
     if (!resposta.ok) throw new Error("Erro ao atualizar insumo.");
+  },
+
+  /**
+   * Remove um insumo do banco de dados
+   */
+  async remover(id: string, usuarioId: string): Promise<void> {
+    const resposta = await fetch(`/api/insumos?id=${id}`, {
+      method: "DELETE",
+      headers: { "x-usuario-id": usuarioId }
+    });
+    if (!resposta.ok) throw new Error("Erro ao remover insumo.");
   }
 };

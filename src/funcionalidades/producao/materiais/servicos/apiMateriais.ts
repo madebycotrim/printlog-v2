@@ -44,5 +44,16 @@ export const apiMateriais = {
       body: JSON.stringify({ ...material, registroUso })
     });
     if (!resposta.ok) throw new Error("Erro ao atualizar dados no banco de dados.");
+  },
+
+  /**
+   * Remove um material permanentemente
+   */
+  async remover(id: string, usuarioId: string): Promise<void> {
+    const resposta = await fetch(`/api/materiais?id=${id}`, {
+      method: "DELETE",
+      headers: { "x-usuario-id": usuarioId }
+    });
+    if (!resposta.ok) throw new Error("Erro ao remover material do banco.");
   }
 };
