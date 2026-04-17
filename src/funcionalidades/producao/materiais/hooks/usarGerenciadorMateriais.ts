@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
 import {
@@ -6,14 +6,12 @@ import {
   OrdenacaoMaterial,
 } from "@/funcionalidades/producao/materiais/componentes/FiltrosMaterial";
 import { usarArmazemMateriais } from "@/funcionalidades/producao/materiais/estado/armazemMateriais";
-import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
-import { Plus } from "lucide-react";
 import { auditoria } from "@/compartilhado/utilitarios/Seguranca";
 
 import { ALERTA_ESTOQUE_FILAMENTO_GRAMAS } from "@/compartilhado/constantes/constantesNegocio";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
-import { useEffect } from "react";
 import { apiMateriais } from "../servicos/apiMateriais";
+import { toast } from "react-hot-toast";
 
 export function usarGerenciadorMateriais() {
   // 🎯 SELETORES OTIMIZADOS
@@ -43,6 +41,7 @@ export function usarGerenciadorMateriais() {
   const [materialParaHistorico, definirMaterialParaHistorico] = useState<Material | null>(null);
   const [materialParaExcluir, definirMaterialParaExcluir] = useState<Material | null>(null);
   const [materialParaRepor, definirMaterialParaRepor] = useState<Material | null>(null);
+  const [abaHistoricoInicial, definirAbaHistoricoInicial] = useState<"extrato" | "novo">("extrato");
 
   // Estados de Filtro e Ordenação
   const [filtro, definirFiltro] = useState<FiltroTipoMaterial>("TODOS");
@@ -70,20 +69,6 @@ export function usarGerenciadorMateriais() {
     }
   }, [usuario?.uid]);
 
-  usarDefinirCabecalho({
-    titulo: "Meus Materiais",
-    subtitulo: "Gerencie filamentos e resinas para cálculo preciso de custos.",
-    placeholderBusca: "Buscar material (ex: PLA Preto)...",
-    aoBuscar: definirTermoBusca,
-    acao: {
-      texto: "Novo Material",
-      icone: Plus,
-      aoClicar: () => {
-        definirMaterialSendoEditado(null);
-        definirModalAberto(true);
-      },
-    },
-  });
 
   // Ações de Modal
   const fecharModal = () => {
@@ -105,8 +90,8 @@ export function usarGerenciadorMateriais() {
       : {
         ...dadosDoFormulario,
         id: crypto.randomUUID(),
-        pesoRestanteGramas: dadosDoFormulario.pesoGramas,
-        estoque: dadosDoFormulario.estoque > 1 ? dadosDoFormulario.estoque - 1 : 0,
+        pesoRestanteGramas: dadosDoFormulario.estoque >= 1 ? dadosDoFormulario.pesoGramas : 0,
+        estoque: dadosDoFormulario.estoque >= 1 ? dadosDoFormulario.estoque - 1 : 0,
         arquivado: false,
         dataCriacao: new Date(),
         dataAtualizacao: new Date(),
@@ -125,9 +110,10 @@ export function usarGerenciadorMateriais() {
       }
       
       auditoria.evento("SALVAR_MATERIAL", { id: materialParaSalvar.id, eEdicao, nome: dadosDoFormulario.nome });
+      toast.success(eEdicao ? "Material atualizado!" : "Material cadastrado com sucesso! 🚀");
       fecharModal();
     } catch (erro) {
-      alert("Erro ao salvar no banco de dados. Verifique sua conexão.");
+      toast.error("Erro ao salvar material no banco de dados.");
     }
   };
 
@@ -137,10 +123,11 @@ export function usarGerenciadorMateriais() {
         await apiMateriais.remover(materialParaExcluir.id, usuario.uid);
         acoesArmazem.arquivarMaterial(materialParaExcluir.id);
         auditoria.evento("ARQUIVAR_MATERIAL", { id: materialParaExcluir.id, nome: materialParaExcluir.nome });
+        toast.success("Material arquivado com sucesso.");
         definirModalExclusaoAberto(false);
         definirMaterialParaExcluir(null);
       } catch (erro) {
-        alert("Erro ao remover material no banco.");
+        toast.error("Erro ao arquivar material.");
       }
     }
   };
@@ -169,10 +156,11 @@ export function usarGerenciadorMateriais() {
         }
 
         auditoria.evento("ABATE_PESO_MATERIAL", { id: materialParaAbater.id, qtdAbatida, motivo });
+        toast.success(`${qtdAbatida}g abatidos do estoque!`);
         definirModalAbatimentoAberto(false);
         definirMaterialParaAbater(null);
       } catch (erro) {
-        alert("Erro ao salvar abatimento no servidor.");
+        toast.error("Falha ao processar abatimento manual.");
       }
     }
   };
@@ -189,10 +177,11 @@ export function usarGerenciadorMateriais() {
         }
 
         auditoria.evento("REPOSICAO_MATERIAL", { id: materialParaRepor.id, quantidadeComprada });
+        toast.success("Estoque de material renovado!");
         definirModalReposicaoAberto(false);
         definirMaterialParaRepor(null);
       } catch (erro) {
-        alert("Erro ao salvar reposição no servidor.");
+        toast.error("Erro ao registrar reposição.");
       }
     }
   };
@@ -281,6 +270,7 @@ export function usarGerenciadorMateriais() {
       materialParaHistorico,
       materialParaExcluir,
       materialParaRepor,
+      abaHistoricoInicial,
       // Filtros
       filtro,
       ordenacao,
@@ -301,10 +291,11 @@ export function usarGerenciadorMateriais() {
           definirModalAbatimentoAberto(true);
         }
       },
-      abrirHistorico: (id: string) => {
+      abrirHistorico: (id: string, aba: "extrato" | "novo" = "extrato") => {
         const m = encontrarMaterial(id);
         if (m) {
           definirMaterialParaHistorico(m);
+          definirAbaHistoricoInicial(aba);
           definirModalHistoricoAberto(true);
         }
       },
@@ -348,6 +339,7 @@ export function usarGerenciadorMateriais() {
       // Filtros
       definirFiltro,
       definirOrdenacao,
+      definirTermoBusca,
       inverterOrdem: () => definirOrdemInvertida((prev) => !prev),
     },
   };

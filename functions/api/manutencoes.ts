@@ -19,9 +19,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const metodo = request.method;
 
     try {
-        // GET - Listar (Apenas Ativos)
+        // GET - Listar (Com Fallback para Esquemas Antigos)
         if (metodo === "GET") {
-            let query = "SELECT * FROM registros_manutencao WHERE id_usuario = ? AND arquivado = 0";
+            let query = "SELECT * FROM registros_manutencao WHERE id_usuario = ?";
             let params = [usuarioId];
 
             if (idImpressora) {
@@ -29,22 +29,55 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 params.push(idImpressora);
             }
 
-            const { results } = await env.DB.prepare(query).bind(...params).all();
-            return new Response(JSON.stringify(results), { headers: { "Content-Type": "application/json" } });
+            // Tentamos filtrar por arquivados, mas envolvemos em um try interno 
+            // para não quebrar caso a coluna ainda não tenha sido criada via migração
+            try {
+                const { results } = await env.DB.prepare(query + " AND arquivado = 0").bind(...params).all();
+                return new Response(JSON.stringify(results), { headers: { "Content-Type": "application/json" } });
+            } catch (e) {
+                // Se falhar (ex: no such column: arquivado), retorna sem o filtro
+                const { results } = await env.DB.prepare(query).bind(...params).all();
+                return new Response(JSON.stringify(results), { headers: { "Content-Type": "application/json" } });
+            }
         }
 
-        // POST - Criar
+        // POST - Criar / Registrar
         if (metodo === "POST") {
             const dados = await request.json() as any;
             const novoId = dados.id || crypto.randomUUID();
+            
+            // Garantimos que todos os campos do tipo RegistroManutencao sejam persistidos
             await env.DB.prepare(`
                 INSERT INTO registros_manutencao (
-                    id, id_usuario, id_impressora, data, tipo, descricao, custo_centavos, observacoes, arquivado
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                    id, id_usuario, id_impressora, data, tipo, descricao, 
+                    custo_centavos, observacoes, tempo_parada_minutos, 
+                    pecas_trocadas, responsavel, horas_maquina_atualmente, arquivado
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+                ON CONFLICT(id) DO UPDATE SET
+                    data = excluded.data,
+                    tipo = excluded.tipo,
+                    descricao = excluded.descricao,
+                    custo_centavos = excluded.custo_centavos,
+                    observacoes = excluded.observacoes,
+                    tempo_parada_minutos = excluded.tempo_parada_minutos,
+                    pecas_trocadas = excluded.pecas_trocadas,
+                    responsavel = excluded.responsavel,
+                    horas_maquina_atualmente = excluded.horas_maquina_atualmente
             `).bind(
-                novoId, usuarioId, dados.idImpressora, dados.data || new Date().toISOString(),
-                dados.tipo, dados.descricao, dados.custoCentavos || 0, dados.observacoes || ''
+                novoId, 
+                usuarioId, 
+                dados.idImpressora, 
+                dados.data || new Date().toISOString(),
+                dados.tipo, 
+                dados.descricao, 
+                dados.custoCentavos || 0, 
+                dados.observacoes || '',
+                dados.tempoParadaMinutos || 0,
+                dados.pecasTrocadas || '',
+                dados.responsavel || '',
+                dados.horasMaquinaNoMomentoMinutos || 0
             ).run();
+
             return new Response(JSON.stringify({ id: novoId, sucesso: true }), { 
                 status: 201,
                 headers: { "Content-Type": "application/json" }

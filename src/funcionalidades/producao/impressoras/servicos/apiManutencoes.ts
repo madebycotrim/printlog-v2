@@ -14,7 +14,11 @@ export const apiManutencoes = {
         return dados.map((m: any) => ({
             ...m,
             custoCentavos: m.custo_centavos,
-            idImpressora: m.id_impressora
+            idImpressora: m.id_impressora,
+            tempoParadaMinutos: m.tempo_parada_minutos,
+            pecasTrocadas: m.pecas_trocadas,
+            responsavel: m.responsavel,
+            horasMaquinaNoMomentoMinutos: m.horas_maquina_atualmente
         }));
     },
 

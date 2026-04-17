@@ -3,7 +3,7 @@ import { Material, RegistroUso } from "@/funcionalidades/producao/materiais/tipo
 
 interface EstadoMateriais {
     materiais: Material[];
-    carregando: boolean; // Simular requisições futuras
+    carregando: boolean;
 
     // Ações Base
     definirMateriais: (materiais: Material[]) => void;
@@ -17,7 +17,6 @@ interface EstadoMateriais {
     reporEstoque: (id: string, quantidadeComprada: number, precoTotalNovaCompra: number) => void;
 }
 
-// Simulando dados iniciais vazios. No futuro será preenchido por React Query / useEffect fetch.
 export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
     materiais: [],
     carregando: false,
@@ -67,20 +66,9 @@ export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
                     }
                 }
 
-                const hoje = new Date();
-                const dataFormatada = new Intl.DateTimeFormat("pt-BR", {
-                    day: "2-digit",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                })
-                    .format(hoje)
-                    .replace(" de ", " ")
-                    .replace(".,", ",");
-
                 const novoRegistro: RegistroUso = {
-                    id: Date.now().toString(),
-                    data: dataFormatada,
+                    id: crypto.randomUUID(),
+                    data: new Date().toISOString(),
                     nomePeca: motivo || (status === "FALHA" ? "Perda Técnica / Sucata" : "Abatimento Manual"),
                     quantidadeGastaGramas: qtdAbatida,
                     status: status,
@@ -111,20 +99,9 @@ export const usarArmazemMateriais = create<EstadoMateriais>((set) => ({
                         ? novoValorTotal / novoEstoqueTotalFract
                         : m.precoCentavos;
 
-                const hoje = new Date();
-                const dataFormatada = new Intl.DateTimeFormat("pt-BR", {
-                    day: "2-digit",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                })
-                    .format(hoje)
-                    .replace(" de ", " ")
-                    .replace(".,", ",");
-
                 const novoRegistro: RegistroUso = {
-                    id: Date.now().toString(),
-                    data: dataFormatada,
+                    id: crypto.randomUUID(),
+                    data: new Date().toISOString(),
                     nomePeca: `Reposição de Estoque (+${quantidadeComprada})`,
                     quantidadeGastaGramas: 0,
                     status: "MANUAL",

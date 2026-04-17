@@ -63,6 +63,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 cor, preco_centavos, peso_gramas, estoque_unidades, peso_restante_gramas, arquivado,
                 data_criacao
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                tipo = excluded.tipo,
+                nome = excluded.nome,
+                tipo_material = excluded.tipo_material,
+                fabricante = excluded.fabricante,
+                cor = excluded.cor,
+                preco_centavos = excluded.preco_centavos,
+                peso_gramas = excluded.peso_gramas,
+                estoque_unidades = excluded.estoque_unidades,
+                peso_restante_gramas = excluded.peso_restante_gramas,
+                arquivado = excluded.arquivado
         `).bind(
             id, 
             usuarioId, 

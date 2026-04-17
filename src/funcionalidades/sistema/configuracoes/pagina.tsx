@@ -44,7 +44,6 @@ export function PaginaConfiguracoes() {
   const [sucesso, definirSucesso] = useState(false);
   const [enviandoEmail, definirEnviandoEmail] = useState(false);
   const [sucessoLink, definirSucessoLink] = useState(false);
-  const [toastVisivel, definirToastVisivel] = useState(false);
 
   // Estado Estudio
   const [participarPrototipos, definirParticiparPrototipos] = useState(beta.participarPrototipos);
@@ -110,6 +109,7 @@ export function PaginaConfiguracoes() {
     definirSucessoLink(false);
     try {
       await recuperarSenha(usuario.email);
+      toast.success("E-mail de redefinição enviado com sucesso!");
       definirSucessoLink(true);
       setTimeout(() => definirSucessoLink(false), 8000);
     } catch (erro) {
@@ -171,16 +171,13 @@ export function PaginaConfiguracoes() {
       beta.definirBetaRelatorios(betaRelatorios);
 
       definirSucesso(true);
-      definirToastVisivel(true);
+      toast.success("Suas preferências foram atualizadas com sucesso.");
       setTimeout(() => {
         definirSucesso(false);
-        definirToastVisivel(false);
       }, 4000);
     } catch (erro) {
       registrar.error({ rastreioId: "sistema", servico: "Configuracoes" }, "Erro ao salvar configurações", erro);
       toast.error("Falha ao salvar configurações.");
-      definirToastVisivel(true);
-      setTimeout(() => definirToastVisivel(false), 4000);
     } finally {
       definirSalvando(false);
     }
@@ -272,28 +269,6 @@ export function PaginaConfiguracoes() {
         </div>
       </div>
 
-      {toastVisivel && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]">
-          {sucesso ? (
-            <div className="rounded-2xl border border-gray-200/50 dark:border-white/10 bg-white/95 dark:bg-zinc-900/95 shadow-xl backdrop-blur-md px-4 py-3 flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
-                <Check size={16} strokeWidth={3} />
-              </div>
-              <div className="pr-2">
-                <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">Configurações salvas</p>
-                <p className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 mt-0.5 leading-tight">
-                  Suas preferências foram atualizadas com sucesso.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-white/20 bg-gradient-to-r from-emerald-500 to-sky-500 px-4 py-3 text-[10px] font-black uppercase tracking-[0.14em] text-white flex items-center gap-2 shadow-2xl animate-in slide-in-from-bottom-5 fade-in duration-300">
-              <Check size={16} />
-              E-mail enviado com sucesso!
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

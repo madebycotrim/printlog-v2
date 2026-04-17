@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/compartilhado/componentes/Layout";
 import { RotaProtegida } from "@/configuracoes/rotas-protegidas";
@@ -7,6 +7,7 @@ import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 import { ProvedorAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
 import { ProvedorEstudio } from "@/funcionalidades/beta/multi_estudos/contextos/ContextoEstudio";
 import { ProvedorBeta } from "@/compartilhado/contextos/ContextoBeta";
+import { ToasterPremium } from "@/compartilhado/componentes/ToasterPremium";
 
 // Landing Page Publica
 const PaginaLanding = lazy(() =>
@@ -124,6 +125,7 @@ export function RoteadorPrincipal() {
       <ProvedorBeta>
         <ProvedorEstudio>
           <BrowserRouter>
+            <ToasterPremium />
             <ScrollParaTopo />
             <Suspense fallback={<Carregamento />}>
               <Routes>

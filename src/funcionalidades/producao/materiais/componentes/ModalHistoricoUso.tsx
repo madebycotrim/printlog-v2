@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ModalListagemPremium } from "@/compartilhado/componentes/ModalListagemPremium";
 import { Material } from "../tipos";
 import { usarHistoricoMateriais } from "../hooks/usarHistoricoMateriais";
@@ -10,11 +10,19 @@ interface ModalHistoricoUsoProps {
   aberto: boolean;
   aoFechar: () => void;
   material: Material;
+  abaInicial?: "extrato" | "novo";
 }
 
-export function ModalHistoricoUso({ aberto, aoFechar, material }: ModalHistoricoUsoProps) {
+export function ModalHistoricoUso({ aberto, aoFechar, material, abaInicial = "extrato" }: ModalHistoricoUsoProps) {
   const { historico, registrarConsumo } = usarHistoricoMateriais(material.id);
-  const [abaAtiva, setAbaAtiva] = useState<"extrato" | "novo">("extrato");
+  const [abaAtiva, setAbaAtiva] = useState<"extrato" | "novo">(abaInicial);
+
+  // Sincroniza a aba ativa quando o modal abre (necessário porque o estado persiste se o componente não desmontar)
+  useEffect(() => {
+    if (aberto) {
+      setAbaAtiva(abaInicial);
+    }
+  }, [aberto, abaInicial]);
   const [busca, setBusca] = useState("");
 
   const historicoFiltrado = useMemo(() => {

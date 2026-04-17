@@ -1,4 +1,4 @@
-import { Pencil, Trash2, History, MoreVertical } from "lucide-react";
+import { Pencil, Trash2, History, MoreVertical, Scale } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
 import { Carretel, GarrafaResina } from "@/compartilhado/componentes/Icones3D";
@@ -9,7 +9,7 @@ interface PropriedadesCardMaterial {
   material: Material;
   aoEditar: (material: Material) => void;
   aoExcluir: (id: string) => void;
-  aoHistorico: (id: string) => void;
+  aoHistorico: (id: string, abaInicial?: "extrato" | "novo") => void;
 }
 
 export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico }: PropriedadesCardMaterial) {
@@ -120,7 +120,19 @@ export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico }: Pro
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-primaria/10 hover:text-primaria rounded-xl transition-colors group/item uppercase tracking-widest"
                 >
                   <History size={14} className="text-gray-400 group-hover/item:text-primaria transition-colors" />
-                  GERENCIAR USO
+                  HISTÓRICO
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    aoHistorico(material.id, "novo");
+                    definirMenuAberto(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-600 dark:text-zinc-300 hover:bg-emerald-500/10 hover:text-emerald-500 rounded-xl transition-colors group/item uppercase tracking-widest"
+                >
+                  <Scale size={14} className="text-gray-400 group-hover/item:text-emerald-500 transition-colors" />
+                  ABATER PESO
                 </button>
 
                 <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />

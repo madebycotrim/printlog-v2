@@ -19,9 +19,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const metodo = request.method;
 
     try {
-        // GET - Listar (Apenas Ativas)
+        // GET - Listar (Com Fallback para Esquemas Antigos)
         if (metodo === "GET") {
-            let query = "SELECT * FROM pecas_desgaste WHERE id_usuario = ? AND arquivado = 0";
+            let query = "SELECT * FROM pecas_desgaste WHERE id_usuario = ?";
             let params = [usuarioId];
 
             if (idImpressora) {
@@ -29,8 +29,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 params.push(idImpressora);
             }
 
-            const { results } = await env.DB.prepare(query).bind(...params).all();
-            return new Response(JSON.stringify(results), { headers: { "Content-Type": "application/json" } });
+            try {
+                const { results } = await env.DB.prepare(query + " AND arquivado = 0").bind(...params).all();
+                return new Response(JSON.stringify(results), { headers: { "Content-Type": "application/json" } });
+            } catch (e) {
+                const { results } = await env.DB.prepare(query).bind(...params).all();
+                return new Response(JSON.stringify(results), { headers: { "Content-Type": "application/json" } });
+            }
         }
 
         // POST - Criar / Atualizar

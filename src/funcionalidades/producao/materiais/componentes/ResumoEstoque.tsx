@@ -33,7 +33,7 @@ export function ResumoEstoque({
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8"
     >
-      <CardResumo titulo="Volume de Insumos" valor={totalEmbalagens} unidade="rolos / filamentos" icone={PackageSearch} cor="sky" />
+      <CardResumo titulo="Volume de Insumos" valor={totalEmbalagens} unidade="rolos / resinas" icone={PackageSearch} cor="sky" />
 
       <CardResumo
         titulo="Patrimônio em Estoque"

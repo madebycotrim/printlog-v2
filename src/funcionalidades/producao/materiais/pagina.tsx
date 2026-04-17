@@ -23,7 +23,7 @@ export function PaginaMateriais() {
     titulo: "Estoque de Insumos",
     subtitulo: "Gestão inteligente de filamentos, resinas e patrimônio técnico",
     placeholderBusca: "Buscar fabricante, cor ou tipo de material...",
-    aoBuscar: acoes.definirFiltro,
+    aoBuscar: acoes.definirTermoBusca,
     acao: {
       texto: "Novo Material",
       icone: Plus,
@@ -132,6 +132,7 @@ export function PaginaMateriais() {
         <ModalHistoricoUso
           aberto={estado.modalHistoricoAberto}
           material={estado.materialParaHistorico}
+          abaInicial={estado.abaHistoricoInicial}
           aoFechar={acoes.fecharHistorico}
         />
       )}
