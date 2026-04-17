@@ -15,6 +15,7 @@ import {
 } from "firebase/auth";
 import { autenticacao } from "@/compartilhado/servicos/firebase";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
+import { usarArmazemConfiguracoes } from "@/funcionalidades/sistema/configuracoes/estado/armazemConfiguracoes";
 
 import { Usuario } from "@/compartilhado/tipos/modelos";
 
@@ -89,6 +90,7 @@ const registrarAceiteTermos = async (uid: string) => {
 export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
   const [usuario, definirUsuario] = useState<Usuario | null>(null);
   const [carregando, definirCarregando] = useState(true);
+  const carregarConfiguracoes = usarArmazemConfiguracoes((s) => s.carregarDoD1);
 
   useEffect(() => {
     // Configura persistência local (mantém logado mesmo fechando o navegador)
@@ -111,6 +113,8 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
           fotoUrl: user.photoURL,
           provedorGoogle: ehGoogle,
         });
+        // Carrega as configurações operacionais do D1 assim que o usuário é identificado
+        carregarConfiguracoes(user.uid);
       } else {
         definirUsuario(null);
       }
@@ -118,7 +122,7 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
     });
 
     return () => cancelarInscricao();
-  }, []);
+  }, [carregarConfiguracoes]);
 
   /**
    * Traduz códigos de erro do Firebase para mensagens amigáveis em PT-BR.

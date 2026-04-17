@@ -1,28 +1,32 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { apiConfiguracoes } from "../servicos/apiConfiguracoes";
 
 /**
  * Interface para as configurações operacionais do estúdio.
- * Conforme Regra de Negócio: Valores armazenados como string formatada para UI, 
- * mas processados como centavos nas utilidades de cálculo (Art. 7º, V - LGPD).
+ * Valores armazenados como string formatada para a UI — processados como
+ * centavos pelas utilidades de cálculo.
+ * Finalidade: Configuração de custo operacional | Base Legal: Contrato (Art. 7º, V — LGPD)
  */
 interface ArmazemConfiguracoes {
   custoEnergia: string;
   horaMaquina: string;
   horaOperador: string;
   margemLucro: string;
-  
-  // Ações para atualizar valores
+  carregando: boolean;
+
+  // Ações
+  carregarDoD1: (usuarioId: string) => Promise<void>;
   definirCustoEnergia: (valor: string) => void;
   definirHoraMaquina: (valor: string) => void;
   definirHoraOperador: (valor: string) => void;
   definirMargemLucro: (valor: string) => void;
-  
-  /** Reseta as configurações para os padrões de fábrica do sistema */
+  salvarNoD1: (usuarioId: string) => Promise<void>;
+
+  /** Reseta as configurações para os padrões de fábrica */
   resetarParaPadrao: () => void;
 }
 
-const VALORES_PADRAO = {
+export const VALORES_PADRAO = {
   custoEnergia: "R$ 0,95",
   horaMaquina: "R$ 5,00",
   horaOperador: "R$ 20,00",
@@ -31,22 +35,48 @@ const VALORES_PADRAO = {
 
 /**
  * Armazém de Configurações Operacionais.
- * Persiste os dados localmente para garantir consistência entre sessões.
+ * Os dados são persistidos no Cloudflare D1 e carregados na inicialização.
+ * Não usa mais localStorage — funciona entre dispositivos e browsers.
  */
-export const usarArmazemConfiguracoes = create<ArmazemConfiguracoes>()(
-  persist(
-    (set) => ({
-      ...VALORES_PADRAO,
-      
-      definirCustoEnergia: (valor) => set({ custoEnergia: valor }),
-      definirHoraMaquina: (valor) => set({ horaMaquina: valor }),
-      definirHoraOperador: (valor) => set({ horaOperador: valor }),
-      definirMargemLucro: (valor) => set({ margemLucro: valor }),
-      
-      resetarParaPadrao: () => set(VALORES_PADRAO),
-    }),
-    {
-      name: "printlog-config-operacional", // Chave de persistência no localStorage
+export const usarArmazemConfiguracoes = create<ArmazemConfiguracoes>((set, get) => ({
+  ...VALORES_PADRAO,
+  carregando: false,
+
+  /**
+   * Busca as configurações salvas no D1 para o usuário.
+   * Chamado uma vez após o login, no contexto de autenticação.
+   */
+  carregarDoD1: async (usuarioId: string) => {
+    set({ carregando: true });
+    try {
+      const dados = await apiConfiguracoes.buscar(usuarioId);
+      set({
+        custoEnergia: dados.custoEnergia,
+        horaMaquina: dados.horaMaquina,
+        horaOperador: dados.horaOperador,
+        margemLucro: dados.margemLucro,
+      });
+    } catch (erro) {
+      // Se falhar, mantém os valores padrão silenciosamente
+      console.warn("[configuracoes] Falha ao carregar do D1, usando valores padrão.", erro);
+    } finally {
+      set({ carregando: false });
     }
-  )
-);
+  },
+
+  definirCustoEnergia: (valor) => set({ custoEnergia: valor }),
+  definirHoraMaquina: (valor) => set({ horaMaquina: valor }),
+  definirHoraOperador: (valor) => set({ horaOperador: valor }),
+  definirMargemLucro: (valor) => set({ margemLucro: valor }),
+
+  /**
+   * Persiste o estado atual das configurações no D1.
+   * Chamado quando o usuário clica em "Salvar" na página de Configurações.
+   */
+  salvarNoD1: async (usuarioId: string) => {
+    const { custoEnergia, horaMaquina, horaOperador, margemLucro } = get();
+    await apiConfiguracoes.salvar({ custoEnergia, horaMaquina, horaOperador, margemLucro }, usuarioId);
+  },
+
+  resetarParaPadrao: () => set(VALORES_PADRAO),
+}));

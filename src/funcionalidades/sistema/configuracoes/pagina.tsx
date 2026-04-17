@@ -151,11 +151,12 @@ export function PaginaConfiguracoes() {
         fotoUrl: nome !== usuario?.nome ? "" : undefined 
       });
 
-      // 2. Salvar Configurações Operacionais no Armazém Persistente (LocalStorage)
+      // 2. Atualiza o estado local do armazém e persiste no D1
       config.definirCustoEnergia(custoEnergia);
       config.definirHoraMaquina(horaMaquina);
       config.definirHoraOperador(horaOperador);
       config.definirMargemLucro(margemLucro);
+      await config.salvarNoD1(usuario!.uid);
 
       // 3. Atualizar Estado Inicial de Aparência
       definirInicialAparencia({
