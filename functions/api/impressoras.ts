@@ -54,11 +54,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             await env.DB.prepare(`
                 INSERT INTO impressoras (
                     id, id_usuario, nome, tecnologia, status, 
-                    marca, modelo_base,
+                    marca, modelo_base, imagem_url,
                     taxa_hora_centavos, horimetro_total_minutos,
                     intervalo_revisao_minutos, valor_compra_centavos,
                     observacoes, data_criacao
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
                 novoId, 
                 usuarioId, 
@@ -67,6 +67,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 dados.status ?? 'livre', 
                 dados.marca ?? null,
                 dados.modeloBase ?? dados.modelo_base ?? null,
+                dados.imagemUrl ?? dados.imagem_url ?? null,
                 dados.taxaHoraCentavos ?? dados.taxa_hora_centavos ?? 0,
                 dados.horimetroTotalMinutos ?? dados.horimetro_total_minutos ?? 0, 
                 dados.intervaloRevisaoMinutos ?? dados.intervalo_revisao_minutos ?? 30000,
@@ -82,7 +83,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             await env.DB.prepare(`
                 UPDATE impressoras SET 
                     nome = ?, tecnologia = ?, status = ?, 
-                    marca = ?, modelo_base = ?,
+                    marca = ?, modelo_base = ?, imagem_url = ?,
                     taxa_hora_centavos = ?, horimetro_total_minutos = ?,
                     intervalo_revisao_minutos = ?, valor_compra_centavos = ?,
                     observacoes = ?, data_aposentadoria = ?
@@ -93,6 +94,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 dados.status ?? 'livre',
                 dados.marca ?? null,
                 dados.modeloBase ?? dados.modelo_base ?? null,
+                dados.imagemUrl ?? dados.imagem_url ?? null,
                 dados.taxaHoraCentavos ?? dados.taxa_hora_centavos ?? 0, 
                 dados.horimetroTotalMinutos ?? dados.horimetro_total_minutos ?? 0,
                 dados.intervaloRevisaoMinutos ?? dados.intervalo_revisao_minutos ?? 30000, 

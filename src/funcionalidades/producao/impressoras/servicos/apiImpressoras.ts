@@ -15,6 +15,7 @@ export const apiImpressoras = {
             ...i,
             marca: i.marca,
             modeloBase: i.modelo_base,
+            imagemUrl: i.imagem_url,
             taxaHoraCentavos: i.taxa_hora_centavos,
             horimetroTotalMinutos: i.horimetro_total_minutos,
             intervaloRevisaoMinutos: i.intervalo_revisao_minutos,

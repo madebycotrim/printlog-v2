@@ -1,5 +1,6 @@
 import { Printer, Timer, Wrench, DollarSign } from "lucide-react";
 import { CardResumo } from "@/compartilhado/componentes/CardResumo";
+import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
 
 interface PropriedadesResumoImpressoras {
   totalMaquinas: number;
@@ -30,10 +31,7 @@ export function ResumoImpressoras({
 
       <CardResumo
         titulo="Valor Investido"
-        valor={valorInvestido.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        })}
+        valor={centavosParaReais(valorInvestido)}
         icone={DollarSign}
         cor="indigo"
       />
