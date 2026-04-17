@@ -1,9 +1,13 @@
 import { Dialogo } from "@/compartilhado/componentes/Dialogo";
-import { SecaoFormulario, GradeCampos } from "@/compartilhado/componentes/FormularioLayout";
-import { Impressora } from "@/funcionalidades/producao/impressoras/tipos";
+import { Impressora, RegistroProducao } from "@/funcionalidades/producao/impressoras/tipos";
 import { StatusImpressora } from "@/compartilhado/tipos/modelos";
-import { Printer, Zap, DollarSign, Wrench, Clock, Edit2, Box, X, Activity } from "lucide-react";
-import { useState, useEffect } from "react";
+import { 
+  Printer, Zap, DollarSign, Wrench, Clock, 
+  Edit2, Box, X, Activity, TrendingUp, 
+  History, CheckCircle2, AlertTriangle, AlertCircle
+} from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ModalDetalhesImpressoraProps {
   impressora: Impressora | null;
@@ -21,7 +25,6 @@ export function ModalDetalhesImpressora({
   const [editandoObs, setEditandoObs] = useState(false);
   const [obsTexto, setObsTexto] = useState("");
 
-  // Sincronizar estado local quando abrir modal
   useEffect(() => {
     if (impressora) {
       setObsTexto(impressora.observacoes || "");
@@ -29,289 +32,265 @@ export function ModalDetalhesImpressora({
     }
   }, [impressora, aberto]);
 
-  if (!impressora) return null;
+  const metricas = useMemo(() => {
+    if (!impressora) return null;
 
-  const isOperacional =
-    impressora.status === StatusImpressora.LIVRE || impressora.status === StatusImpressora.IMPRIMINDO;
+    const horasUsadas = (impressora.horimetroTotalMinutos || 0) / 60;
+    const intervaloHoras = (impressora.intervaloRevisaoMinutos || 18000) / 60;
+    const porcentagemRevisao = Math.min(100, ((horasUsadas % intervaloHoras) / intervaloHoras) * 100);
+    const horasRestantes = Math.max(0, intervaloHoras - (horasUsadas % intervaloHoras));
+
+    // Rentabilidade Real Baseada em Projetos
+    const totalFaturadoCentavos = (impressora.historicoProducao || []).reduce(
+      (acc, proj) => acc + (proj.valorGeradoCentavos || 0), 
+      0
+    );
+    const valorCompraCentavos = impressora.valorCompraCentavos || 0;
+    const roiPercentual = valorCompraCentavos > 0 
+      ? (totalFaturadoCentavos / valorCompraCentavos) * 100 
+      : 0;
+
+    // Eficiência
+    const totalProjetos = (impressora.historicoProducao || []).length;
+    const sucessos = (impressora.historicoProducao || []).filter(p => p.sucesso).length;
+    const taxaSucesso = totalProjetos > 0 ? (sucessos / totalProjetos) * 100 : 100;
+
+    // Energia Estimada (Baseado na Potência declarada)
+    const custoKwhMedio = 0.85; // Fallback ou config
+    const kwhTotal = ( (impressora.potenciaWatts || 150) / 1000 ) * horasUsadas;
+    const custoEnergiaCentavos = kwhTotal * custoKwhMedio * 100;
+
+    return {
+      horasUsadas,
+      porcentagemRevisao,
+      horasRestantes,
+      totalFaturadoCentavos,
+      valorCompraCentavos,
+      roiPercentual,
+      taxaSucesso,
+      totalProjetos,
+      custoEnergiaCentavos,
+      intervaloHoras
+    };
+  }, [impressora]);
+
+  if (!impressora || !metricas) return null;
+
   const isManutencao = impressora.status === StatusImpressora.MANUTENCAO;
-
-  const statusCor = isOperacional
-    ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-    : isManutencao
-      ? "text-amber-400 bg-amber-500/10 border-amber-500/20"
-      : "text-zinc-500 bg-zinc-500/10 border-zinc-500/20";
-
-  const barraCor = isOperacional ? "#10b981" : isManutencao ? "#f59e0b" : "#3f3f46";
-
-  const subtitulo = [impressora.marca, impressora.modeloBase].filter(Boolean).join(" • ") || impressora.tecnologia;
-
-  const horasUsadas = (impressora.horimetroTotalMinutos || 0) / 60;
-  const intervaloHoras = (impressora.intervaloRevisaoMinutos || 18000) / 60; // Default 300h
-  const porcentagemRevisao = Math.min(100, ((horasUsadas % intervaloHoras) / intervaloHoras) * 100);
-  const horasRestantes = Math.max(0, intervaloHoras - (horasUsadas % intervaloHoras));
-
-  // Lógica do ROI (Retorno sobre Investimento) em Centavos
-  const valorCompraCentavos = impressora.valorCompraCentavos || 0;
-  const taxaHoraCentavos = impressora.taxaHoraCentavos ?? 1500; // 15,00 fallback
-  const valorGeradoCentavos = horasUsadas * taxaHoraCentavos;
-
-  const porcentagemRoi = valorCompraCentavos > 0 ? Math.min(100, (valorGeradoCentavos / valorCompraCentavos) * 100) : 0;
+  const statusConfig = {
+    [StatusImpressora.LIVRE]: { cor: "text-blue-500", bg: "bg-blue-500/10", label: "Livre" },
+    [StatusImpressora.IMPRIMINDO]: { cor: "text-emerald-500", bg: "bg-emerald-500/10", label: "Imprimindo" },
+    [StatusImpressora.MANUTENCAO]: { cor: "text-amber-500", bg: "bg-amber-500/10", label: "Manutenção" },
+  };
+  const config = statusConfig[impressora.status] || statusConfig[StatusImpressora.LIVRE];
 
   const lidarSalvarObs = () => {
-    if (aoSalvarObservacoes && impressora) {
-      aoSalvarObservacoes(impressora.id, obsTexto);
-    }
+    if (aoSalvarObservacoes) aoSalvarObservacoes(impressora.id, obsTexto);
     setEditandoObs(false);
   };
 
   return (
-    <Dialogo aberto={aberto} aoFechar={aoFechar} larguraMax="max-w-3xl" esconderCabecalho>
-      <div className="flex flex-col relative overflow-hidden bg-white dark:bg-[#18181b]">
-        {/* Background Decorativo */}
-        <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-sky-500/10 dark:from-sky-500/5 to-transparent pointer-events-none" />
-
-        <div
-          className="absolute top-0 right-0 w-64 h-64 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
-          style={{
-            backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)",
-            backgroundSize: "24px 24px",
-          }}
-        />
-
-        <div className="p-6 md:p-10 space-y-8 relative z-10">
-          {/* CABEÇALHO DE IDENTIFICAÇÃO */}
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8 pb-8 border-b border-gray-100 dark:border-white/5">
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-tr from-sky-500 to-indigo-500 rounded-3xl opacity-20 group-hover:opacity-40 blur transition duration-500" />
-              <div className="relative w-32 h-32 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden shadow-xl bg-white dark:bg-card border border-gray-200 dark:border-white/5 p-2">
-                {impressora.imagemUrl ? (
-                  <img
-                    src={impressora.imagemUrl}
-                    alt={impressora.nome}
-                    className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
-                  />
-                ) : (
-                  <Printer size={48} strokeWidth={1} className="text-gray-300 dark:text-zinc-700" />
-                )}
-              </div>
-            </div>
-
-            <div className="flex-1 min-w-0 text-center md:text-left flex flex-col">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-[0.2em]">
-                  {subtitulo}
-                </p>
-                <button
-                  onClick={aoFechar}
-                  className="hidden md:flex p-2 rounded-xl bg-gray-100/50 dark:bg-white/5 text-gray-400 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white transition-all active:scale-90 border border-transparent hover:border-gray-200 dark:hover:border-white/10"
-                  aria-label="Fechar"
-                >
-                  <X size={18} strokeWidth={3} />
-                </button>
-              </div>
-
-              <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight mb-4 lowercase first-letter:uppercase">
-                {impressora.nome}
-              </h2>
-
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                <span
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm ${statusCor}`}
-                >
-                  {impressora.status}
-                </span>
-                <span className="px-3 py-1.5 rounded-lg text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-white/5 shadow-sm">
-                  {impressora.tecnologia}
-                </span>
-              </div>
+    <Dialogo aberto={aberto} aoFechar={aoFechar} larguraMax="max-w-4xl" esconderCabecalho>
+      <div className="flex flex-col relative overflow-hidden bg-white dark:bg-[#0c0c0e] min-h-[600px]">
+        {/* Banner de Identidade Industrial */}
+        <div className="relative h-48 bg-zinc-50 dark:bg-white/[0.02] border-b border-zinc-100 dark:border-white/5 p-10 flex items-center gap-10">
+          <div className="relative group">
+            <div className="absolute -inset-4 bg-indigo-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition duration-500" />
+            <div className="relative w-32 h-32 rounded-[2.5rem] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 shadow-2xl flex items-center justify-center p-4 overflow-hidden">
+               {impressora.imagemUrl ? (
+                 <img src={impressora.imagemUrl} alt={impressora.nome} className="w-full h-full object-contain" />
+               ) : (
+                 <Printer size={48} className="text-zinc-200 dark:text-zinc-800" />
+               )}
             </div>
           </div>
 
-          {/* DASHBOARD DE MÉTRICAS */}
-          <GradeCampos colunas={2}>
-            {/* CARD: MANUTENÇÃO */}
-            <div className="rounded-2xl p-6 bg-gray-50 dark:bg-[#0e0e11] border border-gray-200 dark:border-white/5 flex flex-col justify-between shadow-inner relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-[0.03] dark:opacity-[0.05] group-hover:scale-125 transition-transform duration-700">
-                <Clock size={80} strokeWidth={1} />
-              </div>
-
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-6 text-gray-400 dark:text-zinc-500">
-                  <Clock size={16} strokeWidth={2.5} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Ciclo de Revisão</span>
-                </div>
-
-                <div className="flex items-end justify-between mb-4">
-                  <span className="text-3xl font-black text-gray-900 dark:text-white tabular-nums leading-none">
-                    {horasUsadas.toLocaleString("pt-BR")}h
-                  </span>
-                  <div className="flex flex-col items-end">
-                    <span className="text-[10px] font-black text-sky-500 uppercase tracking-widest">
-                      {Math.round(horasRestantes)}h Restantes
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative z-10">
-                <div className="h-2.5 w-full bg-gray-200 dark:bg-card rounded-full overflow-hidden mb-2 shadow-inner">
-                  <div
-                    className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(0,0,0,0.1)]"
-                    style={{ width: `${porcentagemRevisao}%`, background: barraCor }}
-                  />
-                </div>
-                <p className="text-[10px] font-black text-gray-400 dark:text-zinc-600 flex justify-between uppercase tracking-widest">
-                  <span>Base: {intervaloHoras}h</span>
-                  <span>{Math.round(porcentagemRevisao)}%</span>
-                </p>
+          <div className="flex-1">
+            <div className="flex items-center gap-4 mb-2">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-500">
+                {impressora.marca} {impressora.modeloBase} // {impressora.tecnologia}
+              </span>
+              <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${config.bg} ${config.cor} border-current/20`}>
+                {config.label}
               </div>
             </div>
+            <h2 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase leading-none mb-1">
+              {impressora.nome}
+            </h2>
+          </div>
 
-            {/* CARD: RENTABILIDADE (ROI) */}
-            <div className="rounded-2xl p-6 bg-gradient-to-br from-white to-gray-50 dark:from-card dark:to-[#0e0e11] border border-gray-200 dark:border-white/5 shadow-sm flex flex-col justify-between group overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-[0.03] dark:opacity-[0.05] group-hover:scale-125 transition-transform duration-700">
-                <DollarSign size={80} strokeWidth={1} />
-              </div>
+          <button onClick={aoFechar} className="absolute top-8 right-8 p-3 rounded-full hover:bg-zinc-100 dark:hover:bg-white/5 transition-all text-zinc-400">
+             <X size={20} />
+          </button>
+        </div>
 
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-500">
-                    <DollarSign size={16} strokeWidth={2.5} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Rentabilidade (ROI)</span>
-                  </div>
-                  {valorCompraCentavos > 0 && (
-                    <span className="text-[9px] font-black text-white bg-emerald-500 px-2 py-0.5 rounded-full shadow-lg shadow-emerald-500/20 uppercase tracking-widest">
-                      {Math.round(porcentagemRoi)}%
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="p-10 grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* COLUNA ESQUERDA: DASHBOARD FINANCEIRO E OPERACIONAL */}
+          <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* ROI REAL */}
+            <div className="col-span-1 md:col-span-2 p-8 rounded-[2.5rem] bg-zinc-900 dark:bg-white/[0.03] border border-zinc-100 dark:border-white/5 relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-700">
+                  <TrendingUp size={120} />
+               </div>
+               
+               <div className="relative z-10 flex flex-col justify-between h-full">
                   <div>
-                    <p className="text-[9px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1.5 leading-none">
-                      Total Gerado
-                    </p>
-                    <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums leading-none">
-                      R$ {(valorGeradoCentavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </p>
+                    <div className="flex items-center gap-2 text-emerald-500 mb-6">
+                      <DollarSign size={16} />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Retorno sobre Investimento (ROI)</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-10">
+                      <div>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-2">Faturamento Real (Projetos)</span>
+                        <div className="text-4xl font-black text-emerald-500 tracking-tighter tabular-nums">
+                          R$ {(metricas.totalFaturadoCentavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-2">Ponto de Equilíbrio</span>
+                        <div className="text-4xl font-black text-zinc-300 dark:text-zinc-600 tracking-tighter tabular-nums">
+                          {Math.round(metricas.roiPercentual)}%
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[9px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1.5 leading-none">
-                      Investimento
-                    </p>
-                    <p className="text-sm font-black text-gray-400 dark:text-zinc-400 tabular-nums leading-none">
-                      R${" "}
-                      {valorCompraCentavos > 0
-                        ? (valorCompraCentavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })
-                        : "0,00"}
-                    </p>
-                  </div>
-                </div>
-              </div>
 
-              <div className="relative z-10 pt-2">
-                <div className="h-2 w-full bg-gray-200 dark:bg-[#0e0e11] rounded-full overflow-hidden shadow-inner">
-                  <div
-                    className="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-emerald-400 to-emerald-600 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
-                    style={{ width: `${porcentagemRoi}%` }}
-                  />
-                </div>
-              </div>
+                  <div className="mt-8 space-y-3">
+                    <div className="h-3 w-full bg-black/20 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, metricas.roiPercentual)}%` }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                      />
+                    </div>
+                    <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-zinc-500">
+                       <span>Investimento: R$ {(metricas.valorCompraCentavos / 100).toLocaleString('pt-BR')}</span>
+                       <span>Lucro Líquido: R$ {((metricas.totalFaturadoCentavos - metricas.valorCompraCentavos) / 100).toLocaleString('pt-BR')}</span>
+                    </div>
+                  </div>
+               </div>
             </div>
-          </GradeCampos>
 
-          {/* GRID DE INFORMAÇÕES SECUNDÁRIAS */}
-          <GradeCampos colunas={4}>
-            <InfoCard
-              icone={Zap}
-              rotulo="Potência"
-              valor={impressora.potenciaWatts ? `${impressora.potenciaWatts}W` : "—"}
-            />
-            <InfoCard icone={Box} rotulo="Impressões" valor={impressora.historicoProducao?.length.toString() || "0"} />
-            <InfoCard
-              icone={Wrench}
-              rotulo="Energia"
-              valor={impressora.consumoKw ? `${impressora.consumoKw} kW/h` : "—"}
-            />
-            <InfoCard icone={Activity} rotulo="Eficiência" valor="—" />
-          </GradeCampos>
+            {/* SAÚDE E REVISÃO */}
+            <div className="p-8 rounded-[2.5rem] bg-zinc-50 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/5 flex flex-col justify-between group">
+               <div>
+                  <div className="flex items-center gap-2 text-zinc-400 dark:text-zinc-500 mb-6">
+                    <Wrench size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Manutenção Preventiva</span>
+                  </div>
+                  <div className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter mb-1">
+                    {Math.round(metricas.horasUsadas)}h
+                  </div>
+                  <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                    de {metricas.intervaloHoras}h rodadas
+                  </span>
+               </div>
 
-          {/* SEÇÃO DE ANOTAÇÕES */}
-          <SecaoFormulario
-            titulo="Observações Técnicas"
-            acaoCabecalho={
-              !editandoObs ? (
-                <button
-                  onClick={() => setEditandoObs(true)}
-                  className="text-[9px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-widest flex items-center gap-2 hover:bg-sky-50 dark:hover:bg-sky-500/10 px-3 py-1.5 rounded-lg transition-all border border-transparent hover:border-sky-200 dark:hover:border-sky-500/30"
-                >
-                  <Edit2 size={12} strokeWidth={3} /> Editar Registro
-                </button>
-              ) : undefined
-            }
-          >
-            <div className="pt-2">
-              {editandoObs ? (
-                <div className="space-y-4">
-                  <textarea
-                    value={obsTexto}
-                    onChange={(e) => setObsTexto(e.target.value)}
-                    className="w-full text-sm bg-white dark:bg-[#09090b] border border-gray-200 dark:border-white/10 rounded-xl p-4 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 focus:outline-none focus:border-sky-500/50 focus:ring-4 focus:ring-sky-500/10 shadow-inner resize-none min-h-[120px] transition-all"
-                    placeholder="Detalhes sobre manutenção, bicos preferidos, quirks da máquina..."
-                    autoFocus
-                  />
-                  <div className="flex justify-end gap-3">
-                    <button
-                      onClick={() => {
-                        setEditandoObs(false);
-                        setObsTexto(impressora.observacoes || "");
-                      }}
-                      className="px-4 py-2 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-gray-900 dark:hover:text-white transition-colors"
-                    >
-                      Descartar
-                    </button>
-                    <button
-                      onClick={lidarSalvarObs}
-                      style={{ backgroundColor: "var(--cor-primaria)" }}
-                      className="px-6 py-2 text-[10px] font-black text-white uppercase tracking-widest rounded-lg shadow-lg shadow-sky-500/20 hover:brightness-110 active:scale-95 transition-all"
-                    >
-                      Salvar Definitivo
-                    </button>
+               <div className="space-y-4">
+                  <div className="h-2 w-full bg-zinc-200 dark:bg-white/5 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${metricas.porcentagemRevisao}%` }}
+                      className={`h-full ${metricas.porcentagemRevisao > 80 ? 'bg-rose-500' : 'bg-indigo-500'}`}
+                    />
                   </div>
-                </div>
-              ) : (
-                <div className="bg-white dark:bg-[#09090b] rounded-xl p-4 border border-gray-100 dark:border-white/5 shadow-inner min-h-[80px] flex items-start">
-                  <div className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap font-medium">
-                    {impressora.observacoes || (
-                      <span className="text-gray-400 dark:text-zinc-600 italic flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-gray-200 dark:bg-card animate-pulse" />
-                        Nenhum registro técnico encontrado para esta unidade.
-                      </span>
-                    )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Próxima em {Math.round(metricas.horasRestantes)}h</span>
+                    <span className={`text-[9px] font-black uppercase tracking-widest ${metricas.porcentagemRevisao > 80 ? 'text-rose-500' : 'text-zinc-400'}`}>
+                      {Math.round(metricas.porcentagemRevisao)}% do Ciclo
+                    </span>
                   </div>
-                </div>
-              )}
+               </div>
             </div>
-          </SecaoFormulario>
+          </div>
+
+          {/* DASHBOARD DE DETALHES TÉCNICOS */}
+          <div className="lg:col-span-8 space-y-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+               <MiniMetrica icone={Box} rotulo="Total Projetos" valor={metricas.totalProjetos.toString()} />
+               <MiniMetrica icone={CheckCircle2} rotulo="Taxa Sucesso" valor={`${Math.round(metricas.taxaSucesso)}%`} cor="text-emerald-500" />
+               <MiniMetrica icone={Zap} rotulo="Custo Energia" valor={`R$ ${(metricas.custoEnergiaCentavos / 100).toLocaleString('pt-BR')}`} />
+               <MiniMetrica icone={Activity} rotulo="Eficiência" valor="A+" cor="text-indigo-500" />
+            </div>
+
+            <div className="space-y-6">
+               <div className="flex items-center justify-between">
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600">Observações de Setup</h3>
+                  {!editandoObs && (
+                    <button onClick={() => setEditandoObs(true)} className="text-[9px] font-black text-indigo-500 uppercase tracking-widest hover:underline">Editar Registro</button>
+                  )}
+               </div>
+               
+               {editandoObs ? (
+                 <div className="space-y-4">
+                    <textarea 
+                      value={obsTexto} 
+                      onChange={(e) => setObsTexto(e.target.value)}
+                      className="w-full bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/10 rounded-3xl p-6 text-sm text-zinc-900 dark:text-zinc-300 focus:outline-none focus:ring-2 ring-indigo-500/20 min-h-[150px]"
+                      placeholder="Anote detalhes técnicos como calibração, bicos favoritos, etc..."
+                    />
+                    <div className="flex justify-end gap-3">
+                      <button onClick={() => setEditandoObs(false)} className="px-6 py-2 text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">Cancelar</button>
+                      <button onClick={lidarSalvarObs} className="px-8 py-2 bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-500/20">Salvar Dados</button>
+                    </div>
+                 </div>
+               ) : (
+                 <div className="p-8 rounded-[2.5rem] bg-zinc-50/50 dark:bg-white/[0.01] border border-zinc-100 dark:border-white/[0.05] min-h-[120px] text-sm text-zinc-600 dark:text-zinc-400 italic">
+                    {obsTexto || "Nenhuma observação técnica registrada para este ativo."}
+                 </div>
+               )}
+            </div>
+          </div>
+
+          {/* COLUNA DIREITA: TIMELINE DE PRODUÇÃO */}
+          <div className="lg:col-span-4 space-y-6">
+             <div className="flex items-center gap-3 mb-2">
+                <History size={16} className="text-zinc-400" />
+                <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600">Últimos Projetos</h3>
+             </div>
+
+             <div className="space-y-4">
+                {impressora.historicoProducao && impressora.historicoProducao.length > 0 ? (
+                  impressora.historicoProducao.slice(0, 5).map((p, idx) => (
+                    <div key={idx} className="p-5 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-white/5 flex items-center justify-between group hover:border-indigo-500/30 transition-all">
+                       <div className="min-w-0">
+                          <p className="text-[10px] font-black text-zinc-900 dark:text-white truncate uppercase tracking-tight mb-1">{p.nomeProjeto || "Projeto Sem Nome"}</p>
+                          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                            {new Date(p.dataConclusao).toLocaleDateString('pt-BR')}
+                          </span>
+                       </div>
+                       <div className="text-right">
+                          <p className="text-xs font-black text-emerald-500 tracking-tighter">
+                            + R$ {(p.valorGeradoCentavos / 100).toLocaleString('pt-BR')}
+                          </p>
+                       </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-10 text-center border-2 border-dashed border-zinc-100 dark:border-white/5 rounded-[2.5rem]">
+                     <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Nenhum Job Registrado</p>
+                  </div>
+                )}
+             </div>
+          </div>
         </div>
       </div>
     </Dialogo>
   );
 }
 
-function InfoCard({ icone: Icone, rotulo, valor }: { icone: React.ElementType; rotulo: string; valor: string }) {
+function MiniMetrica({ icone: Icone, rotulo, valor, cor = "text-zinc-900 dark:text-white" }: { icone: any, rotulo: string, valor: string, cor?: string }) {
   return (
-    <div className="rounded-2xl p-4 bg-gray-50 dark:bg-[#0e0e11] border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
-      <div className="absolute -right-2 -bottom-2 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500 pointer-events-none">
-        <Icone size={48} />
-      </div>
-      <div className="relative z-10 flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-gray-400 dark:text-zinc-500">
-          <Icone size={14} strokeWidth={2.5} />
-          <span className="text-[9px] font-black uppercase tracking-[0.15em]">{rotulo}</span>
-        </div>
-        <span className="text-lg font-black text-gray-900 dark:text-white tabular-nums">{valor}</span>
-      </div>
+    <div className="p-5 rounded-3xl bg-zinc-50/50 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/5">
+       <div className="flex items-center gap-2 mb-3 text-zinc-400">
+          <Icone size={14} />
+          <span className="text-[8px] font-black uppercase tracking-widest">{rotulo}</span>
+       </div>
+       <div className={`text-xl font-black tracking-tight ${cor}`}>
+          {valor}
+       </div>
     </div>
   );
 }

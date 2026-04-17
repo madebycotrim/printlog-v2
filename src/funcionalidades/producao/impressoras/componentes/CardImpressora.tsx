@@ -105,11 +105,11 @@ export function CardImpressora({
     >
       {/* ═══════ CABEÇALHO DE IDENTIDADE ═══════ */}
       <div className="p-8 pb-4 flex justify-between items-start relative z-20">
-        <div className="flex flex-col gap-1.5 min-w-0">
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600 truncate">
+        <div className="flex flex-col gap-1.5 min-w-0 pr-4">
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600 whitespace-normal">
             {impressora.marca || "Custom"} {impressora.modeloBase} // {impressora.tecnologia}
           </span>
-          <h4 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter leading-none uppercase truncate">
+          <h4 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter leading-[1.1] uppercase whitespace-normal">
             {impressora.nome}
           </h4>
         </div>

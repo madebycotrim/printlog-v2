@@ -18,7 +18,34 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             const { results: impressoras } = await env.DB.prepare(
                 "SELECT * FROM impressoras WHERE id_usuario = ? ORDER BY nome ASC"
             ).bind(usuarioId).all();
-            return new Response(JSON.stringify(impressoras), { headers: { "Content-Type": "application/json" } });
+
+            // Buscar histórico de produção (pedidos vinculados)
+            const { results: pedidos } = await env.DB.prepare(
+                `SELECT id as idProtocolo, descricao as nomeProjeto, valor_centavos as valorGeradoCentavos, 
+                        data_conclusao as dataConclusao, status, id_impressora
+                 FROM pedidos_impressao 
+                 WHERE id_usuario = ? AND status = 'concluido' AND id_impressora IS NOT NULL`
+            ).bind(usuarioId).all();
+
+            // Mapear pedidos para cada impressora
+            const impressorasComHistorico = impressoras.map((imp: any) => {
+                const historico = pedidos
+                    .filter((p: any) => p.id_impressora === imp.id)
+                    .map((p: any) => ({
+                        idProtocolo: p.idProtocolo,
+                        nomeProjeto: p.nomeProjeto,
+                        valorGeradoCentavos: p.valorGeradoCentavos,
+                        dataConclusao: p.dataConclusao,
+                        sucesso: p.status === 'concluido'
+                    }));
+
+                return {
+                    ...imp,
+                    historicoProducao: historico
+                };
+            });
+
+            return new Response(JSON.stringify(impressorasComHistorico), { headers: { "Content-Type": "application/json" } });
         }
 
         if (metodo === "POST") {
