@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "audit:seguranca": "npm audit && echo '✅ Nenhuma vulnerabilidade encontrada'",
-    "deploy": "if exist dist rmdir /s /q dist && npm run build && npx wrangler pages deploy dist"
+    "deploy": "if exist dist rmdir /s /q dist && npm run build && npx wrangler pages deploy dist --project-name=printlog"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
