@@ -4,6 +4,7 @@ import { servicoFinanceiro } from "../servicos/servicoFinanceiro";
 import { toast } from "react-hot-toast";
 import { ErroPrintLog } from "@/compartilhado/utilitarios/excecoes";
 import { usarArmazemFinanceiro } from "../estado/armazemFinanceiro";
+import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
 
 export function usarFinanceiro() {
   // Seletores estáveis para evitar re-renderizações desnecessárias
@@ -24,15 +25,19 @@ export function usarFinanceiro() {
   const inverterOrdem = usarArmazemFinanceiro((s) => s.inverterOrdem);
   const pesquisar = usarArmazemFinanceiro((s) => s.pesquisar);
 
+  const { usuario } = usarAutenticacao();
+  const usuarioId = usuario?.uid;
+
   // Gerado uma vez por sessão do hook para agrupar operações relacionadas
   const rastreioId = useMemo(() => crypto.randomUUID(), []);
 
   const carregarDados = useCallback(async () => {
+    if (!usuarioId) return;
     try {
       definirCarregando(true);
       const [dadosLancamentos, dadosResumo] = await Promise.all([
-        servicoFinanceiro.buscarLancamentos(rastreioId),
-        servicoFinanceiro.obterResumo(rastreioId),
+        servicoFinanceiro.buscarLancamentos(usuarioId, rastreioId),
+        servicoFinanceiro.obterResumo(usuarioId, rastreioId),
       ]);
 
       // Atualiza tudo de uma vez para minimizar re-renderizações
@@ -44,11 +49,12 @@ export function usarFinanceiro() {
     } finally {
       definirCarregando(false);
     }
-  }, [rastreioId, definirCarregando, definirLancamentos, definirResumo]);
+  }, [rastreioId, definirCarregando, definirLancamentos, definirResumo, usuarioId]);
 
   const adicionarLancamento = async (dados: CriarLancamentoInput) => {
+    if (!usuarioId) return;
     try {
-      const novo = await servicoFinanceiro.registrarLancamento(dados, rastreioId);
+      const novo = await servicoFinanceiro.registrarLancamento(dados, usuarioId, rastreioId);
       toast.success("Lançamento registrado!");
       await carregarDados(); // Recarrega para atualizar saldo e lista
       return novo;

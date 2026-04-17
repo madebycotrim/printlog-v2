@@ -1,85 +1,34 @@
 import { TipoLancamentoFinanceiro } from "@/compartilhado/tipos/modelos";
 import { LancamentoFinanceiro, CriarLancamentoInput, ResumoFinanceiro } from "../tipos";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
-import { CodigoErro, ErroValidacao, ErroInterno } from "@/compartilhado/utilitarios/excecoes";
+import { apiFinanceiro } from "./apiFinanceiro";
 
 /**
- * Modelo sintético de lançamentos financeiros para desenvolvimento local.
+ * Serviço de Negócio para o módulo Financeiro.
+ * Gerencia a lógica de lançamentos e cálculos de saldo.
  */
-const MODELO_LANCAMENTOS: LancamentoFinanceiro[] = [];
-
 class ServicoFinanceiro {
-  /**
-   * Busca todos os lançamentos financeiros ordenados por data decrescente.
-   * @param rastreioId ID de correlação para logs.
-   */
-  async buscarLancamentos(rastreioId: string = "sistema"): Promise<LancamentoFinanceiro[]> {
-    registrar.info({ rastreioId, servico: "ServicoFinanceiro" }, "Buscando lançamentos financeiros");
-    await new Promise((resolver) => setTimeout(resolver, 400));
-    return [...MODELO_LANCAMENTOS].sort((a, b) => b.dataCriacao.getTime() - a.dataCriacao.getTime());
+  async buscarLancamentos(usuarioId: string, rastreioId: string = "sistema"): Promise<LancamentoFinanceiro[]> {
+    registrar.info({ rastreioId, servico: "ServicoFinanceiro" }, "Buscando lançamentos no banco");
+    return apiFinanceiro.buscarTodos(usuarioId);
   }
 
-  /**
-   * Registra um novo lançamento financeiro.
-   * @param dados Dados do lançamento.
-   * @param rastreioId ID de correlação para logs.
-   *
-   * @lgpd Base legal: Obrigação legal (Art. 7º, II) — retenção 60 meses (Lei 9.430/1996)
-   * @lgpd Finalidade: Registro de fluxo de caixa para conformidade fiscal.
-   */
   async registrarLancamento(
     dados: CriarLancamentoInput,
+    usuarioId: string,
     rastreioId: string = "sistema",
   ): Promise<LancamentoFinanceiro> {
-    registrar.info(
-      { rastreioId, servico: "ServicoFinanceiro", tipo: dados.tipo },
-      "Registrando novo lançamento financeiro",
-    );
-
-    if (dados.valorCentavos <= 0) {
-      registrar.warn(
-        { rastreioId, servico: "ServicoFinanceiro", valor: dados.valorCentavos },
-        "Tentativa de registro de valor inválido",
-      );
-      throw new ErroValidacao("O valor do lançamento deve ser maior que zero.", CodigoErro.LANCAMENTO_VALOR_INVALIDO);
-    }
-
-    try {
-      await new Promise((resolver) => setTimeout(resolver, 500));
-
-      const novoLancamento: LancamentoFinanceiro = {
-        id: crypto.randomUUID(),
-        idUsuario: "usuario-logado",
-        tipo: dados.tipo,
-        valorCentavos: Math.abs(dados.valorCentavos),
-        descricao: dados.descricao,
-        categoria: dados.categoria,
-        idReferencia: dados.idReferencia,
-        idCliente: dados.idCliente,
-        dataCriacao: dados.data || new Date(),
-      };
-
-      MODELO_LANCAMENTOS.push(novoLancamento);
-      registrar.info({ rastreioId, id: novoLancamento.id }, "Lançamento registrado com sucesso");
-      return novoLancamento;
-    } catch (erro) {
-      registrar.error({ rastreioId, servico: "ServicoFinanceiro" }, "Falha ao registrar lançamento", erro);
-      throw new ErroInterno("Erro inesperado ao registrar lançamento financeiro.", CodigoErro.ERRO_INTERNO, {}, erro);
-    }
+    registrar.info({ rastreioId, servico: "ServicoFinanceiro" }, "Registrando no banco");
+    return apiFinanceiro.registrar(dados, usuarioId);
   }
 
-  /**
-   * Obtém o resumo financeiro consolidado (saldo total, entradas e saídas do mês).
-   * @param rastreioId ID de correlação para logs.
-   */
-  async obterResumo(rastreioId: string = "sistema"): Promise<ResumoFinanceiro> {
-    registrar.info({ rastreioId, servico: "ServicoFinanceiro" }, "Calculando resumo financeiro");
-    await new Promise((resolver) => setTimeout(resolver, 300));
-
+  async obterResumo(usuarioId: string, rastreioId: string = "sistema"): Promise<ResumoFinanceiro> {
+    const lancamentos = await apiFinanceiro.buscarTodos(usuarioId);
+    
     const agora = new Date();
     const primeiroDiaMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
 
-    const resumo = MODELO_LANCAMENTOS.reduce(
+    return lancamentos.reduce(
       (acumulador, l) => {
         const ehMesAtual = l.dataCriacao >= primeiroDiaMes;
 
@@ -95,8 +44,10 @@ class ServicoFinanceiro {
       },
       { saldoTotalCentavos: 0, entradasMesCentavos: 0, saidasMesCentavos: 0 } as ResumoFinanceiro,
     );
+  }
 
-    return resumo;
+  async excluirLancamento(id: string, usuarioId: string): Promise<void> {
+      await apiFinanceiro.remover(id, usuarioId);
   }
 }
 

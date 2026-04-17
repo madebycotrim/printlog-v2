@@ -1,13 +1,19 @@
 import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { usarArmazemImpressoras } from "@/funcionalidades/producao/impressoras/estado/armazemImpressoras";
-import { servicoImpressoras } from "@/funcionalidades/producao/impressoras/servicos/ServicoImpressoras";
+import { apiImpressoras } from "../servicos/apiImpressoras";
+import { apiManutencoes } from "../servicos/apiManutencoes";
+import { apiPecas } from "../servicos/apiPecas";
 import { Impressora, PecaDesgaste, RegistroManutencao } from "@/funcionalidades/producao/impressoras/tipos";
 import { obterStatusManutencao } from "../utilitarios/utilitariosManutencao";
 import { auditoria } from "@/compartilhado/utilitarios/Seguranca";
+import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
 import toast from "react-hot-toast";
 
 export function usarGerenciadorImpressoras() {
+  const { usuario } = usarAutenticacao();
+  const usuarioId = usuario?.uid;
+
   // 🎯 SELETORES OTIMIZADOS
   const estadoArmazem = usarArmazemImpressoras(
     useShallow((s) => ({
@@ -66,10 +72,21 @@ export function usarGerenciadorImpressoras() {
   }, []);
 
   const carregarImpressoras = async () => {
+    if (!usuarioId) return;
     acoesArmazem.definirCarregando(true);
     try {
-      const dados = await servicoImpressoras.buscarImpressoras();
-      acoesArmazem.definirImpressoras(dados);
+      const dados = await apiImpressoras.buscarTodas(usuarioId);
+      
+      // Carregar também manutenções e peças para cada impressora
+      const impressorasCompletas = await Promise.all(dados.map(async (i) => {
+        const [manutencoes, pecas] = await Promise.all([
+          apiManutencoes.buscarPorImpressora(usuarioId, i.id),
+          apiPecas.buscarPorImpressora(usuarioId, i.id)
+        ]);
+        return { ...i, historicoManutencao: manutencoes, pecasDesgaste: pecas };
+      }));
+
+      acoesArmazem.definirImpressoras(impressorasCompletas);
     } catch (e) {
       acoesArmazem.definirErro("Erro ao carregar impressoras.");
       auditoria.erro("Erro ao carregar impressoras", e);
@@ -80,19 +97,14 @@ export function usarGerenciadorImpressoras() {
   };
 
   const salvarImpressora = async (impressora: Impressora) => {
+    if (!usuarioId) return;
     try {
-      const salva = await servicoImpressoras.salvarImpressora(impressora);
-      const existe = estadoArmazem.impressoras.find((i) => i.id === salva.id);
-
-      if (existe) {
-        acoesArmazem.definirImpressoras(estadoArmazem.impressoras.map((i) => (i.id === salva.id ? salva : i)));
-        toast.success("Impressora atualizada com sucesso!");
-      } else {
-        acoesArmazem.definirImpressoras([...estadoArmazem.impressoras, salva]);
-        toast.success("Impressora cadastrada com sucesso!");
-      }
+      const salva = await apiImpressoras.salvar(impressora, usuarioId);
+      await carregarImpressoras(); // Recarrega tudo para manter consistência
+      
       auditoria.evento("SALVAR_IMPRESSORA", { id: salva.id, nome: salva.nome });
       acoesArmazem.fecharEditar();
+      toast.success(impressora.id ? "Impressora atualizada!" : "Impressora cadastrada!");
     } catch (e) {
       auditoria.erro("Erro ao salvar impressora", e);
       toast.error("Erro ao salvar impressora.");
@@ -100,21 +112,18 @@ export function usarGerenciadorImpressoras() {
   };
 
   const salvarObservacoes = async (id: string, observacoes: string) => {
+    if (!usuarioId) return;
     try {
       const impressoraOriginal = estadoArmazem.impressoras.find((i) => i.id === id);
       if (!impressoraOriginal) return;
 
       const impressoraAtualizada = { ...impressoraOriginal, observacoes };
-      const salva = await servicoImpressoras.salvarImpressora(impressoraAtualizada);
+      await apiImpressoras.salvar(impressoraAtualizada, usuarioId);
 
-      acoesArmazem.definirImpressoras(estadoArmazem.impressoras.map((i) => (i.id === id ? salva : i)));
-
-      if (estadoArmazem.impressoraEmDetalhes?.id === id) {
-        acoesArmazem.abrirDetalhes(salva);
-      }
+      await carregarImpressoras();
 
       auditoria.evento("SALVAR_OBSERVACOES_IMPRESSORA", { id });
-      toast.success("Observações atualizadas com sucesso!");
+      toast.success("Observações atualizadas!");
     } catch (e) {
       auditoria.erro("Erro ao salvar observações", e);
       toast.error("Erro ao atualizar observações.");
@@ -122,37 +131,31 @@ export function usarGerenciadorImpressoras() {
   };
 
   const registrarManutencao = async (id: string, registro: Omit<RegistroManutencao, "id" | "data">) => {
+    if (!usuarioId) return;
     try {
-      const impressoraOriginal = estadoArmazem.impressoras.find((i) => i.id === id);
-      if (!impressoraOriginal) return;
-
-      const novoRegistro: RegistroManutencao = {
+      const novoRegistro = {
         ...registro,
-        id: crypto.randomUUID(),
+        idImpressora: id,
         data: new Date().toISOString(),
       };
 
-      const historicoManutencao = [...(impressoraOriginal.historicoManutencao || []), novoRegistro];
-      let horimetroAtualizado = impressoraOriginal.horimetroTotalMinutos;
-      if (
-        registro.horasMaquinaNoMomentoMinutos !== undefined &&
-        registro.horasMaquinaNoMomentoMinutos > (horimetroAtualizado || 0)
-      ) {
-        horimetroAtualizado = registro.horasMaquinaNoMomentoMinutos;
+      await apiManutencoes.salvar(novoRegistro, usuarioId);
+
+      // Se for uma manutenção que altera o horímetro, atualizamos a impressora também
+      if (registro.horasMaquinaNoMomentoMinutos) {
+        const impressora = estadoArmazem.impressoras.find(i => i.id === id);
+        if (impressora && (registro.horasMaquinaNoMomentoMinutos > (impressora.horimetroTotalMinutos || 0))) {
+          await apiImpressoras.salvar({ 
+            ...impressora, 
+            horimetroTotalMinutos: registro.horasMaquinaNoMomentoMinutos 
+          }, usuarioId);
+        }
       }
 
-      const impressoraAtualizada = {
-        ...impressoraOriginal,
-        historicoManutencao,
-        horimetroTotalMinutos: horimetroAtualizado,
-      };
-
-      const salva = await servicoImpressoras.salvarImpressora(impressoraAtualizada);
-
-      acoesArmazem.definirImpressoras(estadoArmazem.impressoras.map((i) => (i.id === id ? salva : i)));
+      await carregarImpressoras();
 
       auditoria.evento("REGISTRAR_MANUTENCAO", { id, tipo: registro.tipo });
-      toast.success("Manutenção registrada com sucesso!");
+      toast.success("Manutenção registrada!");
       acoesArmazem.fecharManutencao();
     } catch (e) {
       auditoria.erro("Erro ao registrar manutenção", e);
@@ -161,15 +164,14 @@ export function usarGerenciadorImpressoras() {
   };
 
   const salvarPecasDesgaste = async (id: string, pecas: PecaDesgaste[]) => {
+    if (!usuarioId) return;
     try {
-      const impressoraOriginal = estadoArmazem.impressoras.find((i) => i.id === id);
-      if (!impressoraOriginal) return;
-
-      const impressoraAtualizada = { ...impressoraOriginal, pecasDesgaste: pecas };
-      const salva = await servicoImpressoras.salvarImpressora(impressoraAtualizada);
-
-      acoesArmazem.definirImpressoras(estadoArmazem.impressoras.map((i) => (i.id === id ? salva : i)));
+      // Salva todas as peças no banco
+      await Promise.all(pecas.map(p => apiPecas.salvar({ ...p, idImpressora: id }, usuarioId)));
+      
+      await carregarImpressoras();
       auditoria.evento("SALVAR_PECAS_DESGASTE", { id });
+      toast.success("Rastreamento de peças atualizado!");
       acoesArmazem.fecharPecas();
     } catch (e) {
       auditoria.erro("Erro ao salvar peças de desgaste", e);
@@ -178,7 +180,7 @@ export function usarGerenciadorImpressoras() {
   };
 
   const confirmarAposentadoria = async () => {
-    if (!estadoArmazem.impressoraParaAposentar?.id) return;
+    if (!estadoArmazem.impressoraParaAposentar?.id || !usuarioId) return;
 
     try {
       const id = estadoArmazem.impressoraParaAposentar.id;
@@ -187,11 +189,11 @@ export function usarGerenciadorImpressoras() {
         dataAposentadoria: new Date().toISOString(),
       };
 
-      const salva = await servicoImpressoras.salvarImpressora(impressoraAtualizada);
+      await apiImpressoras.salvar(impressoraAtualizada, usuarioId);
+      await carregarImpressoras();
 
-      acoesArmazem.definirImpressoras(estadoArmazem.impressoras.map((i) => (i.id === id ? salva : i)));
       auditoria.evento("APOSENTAR_IMPRESSORA", { id });
-      toast.success("Impressora arquivada com sucesso.");
+      toast.success("Impressora arquivada.");
       acoesArmazem.fecharAposentar();
     } catch (e) {
       auditoria.erro("Erro ao aposentar impressora", e);
