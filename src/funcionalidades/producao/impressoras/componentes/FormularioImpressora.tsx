@@ -15,7 +15,7 @@ import { SecaoFormulario, GradeCampos } from "@/compartilhado/componentes/Formul
 const esquemaImpressora = z.object({
   nome: z.string().min(2, "O apelido deve ter pelo menos 2 caracteres"),
   tecnologia: z.enum(["FDM", "SLA"] as const),
-  marca: z.string().min(1, "O fabricante é obrigatório."),
+  marca: z.string().optional(),
   modeloBase: z.string().min(1, "O modelo é obrigatório."),
   imagemUrl: z.string().optional(),
   potenciaWatts: z.coerce.number().optional(),
@@ -193,7 +193,7 @@ export function FormularioImpressora({
         nome: dados.nome,
         tecnologia: dados.tecnologia,
         status: impressoraEditando?.status || StatusImpressora.LIVRE,
-        marca: dados.marca,
+        marca: dados.marca?.trim() || "Genérico",
         modeloBase: dados.modeloBase,
         imagemUrl: dados.imagemUrl,
         consumoKw: dados.consumoKw,

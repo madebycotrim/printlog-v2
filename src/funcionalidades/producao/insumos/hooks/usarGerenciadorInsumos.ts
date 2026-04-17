@@ -9,6 +9,9 @@ import {
   CategoriaInsumo,
 } from "@/funcionalidades/producao/insumos/tipos";
 import { auditoria } from "@/compartilhado/utilitarios/Seguranca";
+import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
+import { useEffect } from "react";
+import { apiInsumos } from "../servicos/apiInsumos";
 
 export function usarGerenciadorInsumos() {
   // -----------------------------------------------------------------------------------
@@ -56,6 +59,27 @@ export function usarGerenciadorInsumos() {
       fecharHistorico: s.fecharHistorico,
     })),
   );
+
+  const { usuario } = usarAutenticacao();
+
+  // 🔄 SINCRONIZAÇÃO INICIAL COM D1
+  useEffect(() => {
+    if (usuario?.uid) {
+      const carregarInsumos = async () => {
+        acoesArmazem.definirCarregando(true);
+        try {
+          const dadosDoBanco = await apiInsumos.listar(usuario.uid);
+          dadosDoBanco.forEach(i => acoesArmazem.adicionarOuAtualizarInsumo(i));
+          auditoria.evento("SINCRONIZACAO_INSUMOS_SUCESSO", { qtd: dadosDoBanco.length });
+        } catch (erro) {
+          console.error("Falha ao sincronizar insumos:", erro);
+        } finally {
+          acoesArmazem.definirCarregando(false);
+        }
+      };
+      carregarInsumos();
+    }
+  }, [usuario?.uid]);
 
   // -----------------------------------------------------------------------------------
   // 🧠 DERIVAÇÕES DE ESTADO (Listas e Filtragens)
@@ -176,11 +200,16 @@ export function usarGerenciadorInsumos() {
         dataAtualizacao: agora,
       };
 
-      acoesArmazem.adicionarOuAtualizarInsumo(insumoCompleto);
-      auditoria.evento("SALVAR_INSUMO", { id, eEdicao, nome: insumoCompleto.nome });
+      if (usuario?.uid) {
+        // Persiste no D1 antes de atualizar localmente
+        await apiInsumos.salvar(insumoCompleto, usuario.uid);
+        
+        acoesArmazem.adicionarOuAtualizarInsumo(insumoCompleto);
+        auditoria.evento("SALVAR_INSUMO", { id, eEdicao, nome: insumoCompleto.nome });
 
-      toast.success(eEdicao ? "Insumo atualizado." : "Novo insumo rastreado na base.");
-      acoesArmazem.fecharEditar();
+        toast.success(eEdicao ? "Insumo atualizado." : "Novo insumo rastreado na base.");
+        acoesArmazem.fecharEditar();
+      }
     } catch (erro) {
       auditoria.erro("Erro ao salvar insumo", erro);
       toast.error("Erro ao salvar o insumo.");
@@ -218,11 +247,16 @@ export function usarGerenciadorInsumos() {
         dataAtualizacao: new Date(),
       };
 
-      acoesArmazem.adicionarOuAtualizarInsumo(insumoAtualizado);
-      auditoria.evento("BAIXA_INSUMO", { id: idInsumo, quantidade: quantidadeBaixada, motivo });
+      if (usuario?.uid) {
+        // Persiste a baixa no D1
+        await apiInsumos.atualizar(insumoAtualizado, usuario.uid, novaMovimentacao);
+        
+        acoesArmazem.adicionarOuAtualizarInsumo(insumoAtualizado);
+        auditoria.evento("BAIXA_INSUMO", { id: idInsumo, quantidade: quantidadeBaixada, motivo });
 
-      toast.success(`${quantidadeBaixada}${insumo.unidadeMedida} subtraídos com sucesso.`);
-      acoesArmazem.fecharBaixa();
+        toast.success(`${quantidadeBaixada}${insumo.unidadeMedida} subtraídos com sucesso.`);
+        acoesArmazem.fecharBaixa();
+      }
 
       if (insumoAtualizado.quantidadeAtual <= insumoAtualizado.quantidadeMinima) {
         toast.error(`⚠️ ATENÇÃO: ${insumo.nome} atingiu nível crítico de estoque!`, { duration: 5000 });
@@ -266,11 +300,16 @@ export function usarGerenciadorInsumos() {
         dataAtualizacao: new Date(),
       };
 
-      acoesArmazem.adicionarOuAtualizarInsumo(insumoAtualizado);
-      auditoria.evento("REPOSICAO_INSUMO", { id: idInsumo, quantidade: quantidadeAdicionada });
+      if (usuario?.uid) {
+        // Persiste a reposição no D1
+        await apiInsumos.atualizar(insumoAtualizado, usuario.uid, novaMovimentacao);
 
-      toast.success(`Estoque do insumo reabastecido!`);
-      acoesArmazem.fecharReposicao();
+        acoesArmazem.adicionarOuAtualizarInsumo(insumoAtualizado);
+        auditoria.evento("REPOSICAO_INSUMO", { id: idInsumo, quantidade: quantidadeAdicionada });
+
+        toast.success(`Estoque do insumo reabastecido!`);
+        acoesArmazem.fecharReposicao();
+      }
     } catch (e) {
       auditoria.erro("Erro na reposição de insumo", e);
       toast.error("Falha ao registrar a entrada.");

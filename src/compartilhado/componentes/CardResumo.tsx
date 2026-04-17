@@ -71,41 +71,45 @@ export function CardResumo({
     <Container
       onClick={aoClicar}
       className={`
-                bg-white/50 dark:bg-[var(--bg-card)] backdrop-blur-sm border border-gray-100 dark:border-[var(--border-subtle)] 
-                p-6 rounded-2xl shadow-sm flex items-center gap-5 relative overflow-hidden group transition-all text-left
-                ${aoClicar ? `${estilo.hover} cursor-pointer active:scale-[0.98]` : ""}
+                bg-white dark:bg-[#121214] border border-gray-100 dark:border-white/[0.04] 
+                p-5 rounded-2xl shadow-sm flex items-center gap-4 relative overflow-hidden group transition-all duration-700 text-left
+                ${aoClicar ? `hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] dark:hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] cursor-pointer active:scale-[0.98]` : ""}
             `}
     >
+      {/* Brilho de Fundo Dinâmico (Glow) - Apenas para cards iterativos de destaque */}
+      {aoClicar && (cor === 'indigo' || cor === 'violet') && (
+        <div className={`absolute -inset-24 bg-${cor}-500/5 blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
+      )}
       {/* Indicador de Ação (Apenas se tiver aoClicar) */}
       {aoClicar && (
         <div
-          className={`absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 ${estilo.texto}`}
+          className={`absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-2 group-hover:translate-x-0 ${estilo.texto}`}
         >
-          {textoAcao && <span className="text-[7px] font-black uppercase tracking-widest">{textoAcao}</span>}
-          <ArrowUpRight size={10} />
+          {textoAcao && <span className="text-[7px] font-black uppercase tracking-[0.2em]">{textoAcao}</span>}
+          <ArrowUpRight size={10} strokeWidth={3} />
         </div>
       )}
 
       {/* Ícone */}
       <div
-        className={`w-12 h-12 rounded-xl flex items-center justify-center border relative z-10 transition-transform group-hover:scale-110 duration-300 ${estilo.bg} ${estilo.texto}`}
+        className={`w-11 h-11 rounded-xl flex items-center justify-center border relative z-10 transition-all group-hover:scale-110 duration-500 ${estilo.bg} ${estilo.texto} shadow-sm group-hover:shadow-lg`}
       >
-        <Icone size={24} strokeWidth={2.5} />
+        <Icone size={22} strokeWidth={2.5} className={aoClicar && (cor === 'indigo') ? 'animate-[pulse_4s_ease-in-out_infinite]' : ''} />
       </div>
 
       {/* Conteúdo */}
-      <div className="relative z-10">
-        <h4 className="text-[10px] font-black text-gray-400 dark:text-[var(--text-secondary)] uppercase tracking-[0.2em] mb-0.5">
+      <div className="relative z-10 flex flex-col">
+        <h4 className="text-[9px] font-black text-gray-400 dark:text-zinc-600 uppercase tracking-[0.2em] mb-0.5 leading-none">
           {titulo}
         </h4>
         <div className="flex items-baseline gap-1.5 mt-0.5">
           <span
-            className={`text-2xl font-black tracking-tight ${carregando ? "skeleton h-8 w-12 rounded-lg" : "text-gray-900 dark:text-[var(--text-primary)]"}`}
+            className={`text-2xl font-black tracking-tighter tabular-nums ${carregando ? "skeleton h-8 w-12 rounded-lg" : "text-gray-900 dark:text-white"}`}
           >
             {!carregando && valor}
           </span>
           {unidade && !carregando && (
-            <span className="text-[10px] font-black text-gray-400 dark:text-[var(--text-muted)] uppercase tracking-widest">
+            <span className="text-[9px] font-black text-gray-400 dark:text-zinc-700 uppercase tracking-[0.2em] italic ml-0.5">
               {unidade}
             </span>
           )}

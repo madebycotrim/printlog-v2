@@ -46,10 +46,10 @@ export function GridWiki({ categorias, aoSelecionarTopico }: Propriedades) {
                 {categorias.map((categoria, index) => (
                     <motion.div
                         key={categoria.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="group relative bg-white dark:bg-[#121214] rounded-2xl border border-gray-100 dark:border-white/[0.04] p-2 shadow-sm hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] dark:hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] transition-all duration-700 flex flex-col overflow-hidden"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30, delay: index * 0.08 }}
+                        className="group relative bg-white dark:bg-[#121214] rounded-2xl border border-gray-100 dark:border-white/[0.04] p-2 shadow-sm hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] dark:hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] transition-shadow duration-500 flex flex-col overflow-hidden"
                     >
                         {/* CABEÇALHO DO MÓDULO (LADO A - VERTICALIZADO) */}
                         <div className={`p-8 rounded-2xl relative overflow-hidden ${categoria.fundo} border border-white/50 dark:border-white/5 m-1`}>

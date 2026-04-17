@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Save, Check, X } from "lucide-react";
+import { motion } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
@@ -213,42 +214,52 @@ export function PaginaConfiguracoes() {
       )}
       <div className="relative mx-auto w-full max-w-6xl space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <CardPerfil
-            usuario={usuario}
-            nome={nome}
-            definirNome={definirNome}
-            sucessoEmail={sucessoLink}
-            lidarComTrocaSenha={lidarComTrocaSenha}
-            pendente={perfilPendente}
-          />
-          <CardOperacional
-            custoEnergia={custoEnergia}
-            definirCustoEnergia={definirCustoEnergia}
-            horaMaquina={horaMaquina}
-            definirHoraMaquina={definirHoraMaquina}
-            horaOperador={horaOperador}
-            definirHoraOperador={definirHoraOperador}
-            margemLucro={margemLucro}
-            definirMargemLucro={definirMargemLucro}
-            pendente={operacionalPendente}
-          />
-          <CardAparencia pendente={aparenciaPendente} />
-          <CardMetricas />
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.0 }}>
+            <CardPerfil
+              usuario={usuario}
+              nome={nome}
+              definirNome={definirNome}
+              sucessoEmail={sucessoLink}
+              lidarComTrocaSenha={lidarComTrocaSenha}
+              pendente={perfilPendente}
+            />
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.08 }}>
+            <CardOperacional
+              custoEnergia={custoEnergia}
+              definirCustoEnergia={definirCustoEnergia}
+              horaMaquina={horaMaquina}
+              definirHoraMaquina={definirHoraMaquina}
+              horaOperador={horaOperador}
+              definirHoraOperador={definirHoraOperador}
+              margemLucro={margemLucro}
+              definirMargemLucro={definirMargemLucro}
+              pendente={operacionalPendente}
+            />
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.16 }}>
+            <CardAparencia pendente={aparenciaPendente} />
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.24 }}>
+            <CardMetricas />
+          </motion.div>
         </div>
 
-        <CardEstudio
-          participarPrototipos={participarPrototipos}
-          definirParticiparPrototipos={definirParticiparPrototipos}
-          betaMultiEstudio={betaMultiEstudio}
-          definirBetaMultiEstudio={definirBetaMultiEstudio}
-          betaRelatorios={betaRelatorios}
-          definirBetaRelatorios={definirBetaRelatorios}
-          pendente={estudioPendente}
-        />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.32 }}>
+          <CardEstudio
+            participarPrototipos={participarPrototipos}
+            definirParticiparPrototipos={definirParticiparPrototipos}
+            betaMultiEstudio={betaMultiEstudio}
+            definirBetaMultiEstudio={definirBetaMultiEstudio}
+            betaRelatorios={betaRelatorios}
+            definirBetaRelatorios={definirBetaRelatorios}
+            pendente={estudioPendente}
+          />
+        </motion.div>
 
-        <div id="secao-privacidade">
+        <motion.div id="secao-privacidade" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.4 }}>
           <CardPrivacidade destaque={destaqueLgpd} />
-        </div>
+        </motion.div>
 
         <div className="pt-4 pb-8 border-t border-gray-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
           <p></p>

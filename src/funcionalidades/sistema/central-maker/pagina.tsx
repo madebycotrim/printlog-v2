@@ -339,6 +339,8 @@ const FAQS: InterfaceFAQ[] = [
   },
 ];
 
+import { motion } from "framer-motion";
+
 export function PaginaAjuda() {
   const [busca, definirBusca] = useState("");
   const [abrirSuporte, definirAbrirSuporte] = useState(false);
@@ -403,11 +405,14 @@ export function PaginaAjuda() {
 
           {todosTopicosEncontrados.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {todosTopicosEncontrados.map((topico) => (
-                <button
+              {todosTopicosEncontrados.map((topico, index) => (
+                <motion.button
                   key={topico.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30, delay: index * 0.05 }}
                   onClick={() => definirTopicoSelecionado(topico)}
-                  className="flex items-center justify-between p-6 rounded-2xl bg-white dark:bg-card-fundo border border-gray-100 dark:border-white/[0.04] hover:bg-[var(--cor-primaria)]/5 transition-all group text-left shadow-sm hover:shadow-xl"
+                  className="flex items-center justify-between p-6 rounded-2xl bg-white dark:bg-card-fundo border border-gray-100 dark:border-white/[0.04] hover:bg-[var(--cor-primaria)]/5 transition-colors duration-500 group text-left shadow-sm hover:shadow-xl"
                   style={{ borderLeft: "4px solid var(--cor-primaria)" }}
                 >
                   <div className="space-y-1">
@@ -430,7 +435,7 @@ export function PaginaAjuda() {
                     className="text-gray-300 group-hover:translate-x-1 transition-all"
                     style={{ color: "var(--cor-primaria)" }}
                   />
-                </button>
+                </motion.button>
               ))}
             </div>
           ) : (

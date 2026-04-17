@@ -227,9 +227,9 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEdita
                 <section className="space-y-6">
                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Preço e Quantidade</h4>
                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <CampoMonetario rotulo="Preço do Rolo" erro={errors.preco?.message} {...register("preco", { valueAsNumber: true })} />
-                      <CampoTexto rotulo={`Peso (${tipoSelecionado === "FDM" ? "G" : "ML"})`} type="number" icone={Weight} {...register("peso", { valueAsNumber: true })} />
-                      <CampoTexto rotulo="Qtd. em Estoque" type="number" icone={BoxSelect} {...register("estoqueInicial", { valueAsNumber: true })} />
+                      <CampoMonetario rotulo="Preço do Rolo" erro={errors.preco?.message} {...register("preco", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })} />
+                      <CampoTexto rotulo={`Peso (${tipoSelecionado === "FDM" ? "G" : "ML"})`} type="number" icone={Weight} {...register("peso", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })} />
+                      <CampoTexto rotulo="Qtd. em Estoque" type="number" icone={BoxSelect} {...register("estoqueInicial", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })} />
                    </div>
                 </section>
              </div>

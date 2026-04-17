@@ -4,6 +4,9 @@ import { GraficoConsumoMateriais } from "./GraficoConsumoMateriais";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
 import { CardResumo } from "@/compartilhado/componentes/CardResumo";
 import { Dialogo } from "@/compartilhado/componentes/Dialogo";
+import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
+
+import { motion } from "framer-motion";
 
 interface PropriedadesResumoEstoque {
   materiais: Material[];
@@ -24,15 +27,17 @@ export function ResumoEstoque({
   const [modalGraficoAberto, definirModalGraficoAberto] = useState(false);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-      <CardResumo titulo="Volume de Insumos" valor={totalEmbalagens} unidade="rolos / potes" icone={PackageSearch} cor="sky" />
+    <motion.div 
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8"
+    >
+      <CardResumo titulo="Volume de Insumos" valor={totalEmbalagens} unidade="rolos / filamentos" icone={PackageSearch} cor="sky" />
 
       <CardResumo
         titulo="Patrimônio em Estoque"
-        valor={valorInvestido.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        })}
+        valor={centavosParaReais(valorInvestido)}
         icone={DollarSign}
         cor="emerald"
       />
@@ -65,6 +70,6 @@ export function ResumoEstoque({
           <GraficoConsumoMateriais materiais={materiais} />
         </div>
       </Dialogo>
-    </div>
+    </motion.div>
   );
 }

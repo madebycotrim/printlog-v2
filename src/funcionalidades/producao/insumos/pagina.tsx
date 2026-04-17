@@ -97,12 +97,11 @@ export function PaginaInsumos() {
                         <div className="flex-1 h-px bg-gray-200 dark:bg-white/5" />
                       </div>
 
-                      <div className="flex flex-col bg-white dark:bg-[#18181b] rounded-xl border border-gray-200 dark:border-white/5">
+                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                         {lista.map((ins, index) => (
                           <CardInsumo
                             key={ins.id}
                             insumo={ins}
-                            ultimo={index === lista.length - 1}
                             aoEditar={acoes.abrirEditar}
                             aoBaixar={acoes.abrirBaixa}
                             aoExcluir={acoes.abrirArquivamento}

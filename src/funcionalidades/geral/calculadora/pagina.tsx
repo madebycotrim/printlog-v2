@@ -151,9 +151,11 @@ export function PaginaCalculadora() {
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*[.,]?[0-9]*"
                     value={peso}
-                    onChange={(e) => setPeso(Number(e.target.value))}
+                    onChange={(e) => setPeso(Number(e.target.value.replace(",", ".")) || 0)}
                     className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-sky-500/50 focus:bg-white dark:focus:bg-black transition-all outline-none font-black text-sm"
                   />
                   <Scale size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
@@ -166,9 +168,11 @@ export function PaginaCalculadora() {
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*[.,]?[0-9]*"
                     value={tempo}
-                    onChange={(e) => setTempo(Number(e.target.value))}
+                    onChange={(e) => setTempo(Number(e.target.value.replace(",", ".")) || 0)}
                     className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-sky-500/50 focus:bg-white dark:focus:bg-black transition-all outline-none font-black text-sm"
                   />
                   <Timer size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
@@ -190,9 +194,11 @@ export function PaginaCalculadora() {
                   Preço do Filamento (R$/kg)
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.,]?[0-9]*"
                   value={precoFilamento}
-                  onChange={(e) => setPrecoFilamento(Number(e.target.value))}
+                  onChange={(e) => setPrecoFilamento(Number(e.target.value.replace(",", ".")) || 0)}
                   className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-amber-500/50 transition-all outline-none font-black text-sm"
                 />
               </div>
@@ -201,9 +207,11 @@ export function PaginaCalculadora() {
                   Consumo (W)
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.,]?[0-9]*"
                   value={potencia}
-                  onChange={(e) => setPotencia(Number(e.target.value))}
+                  onChange={(e) => setPotencia(Number(e.target.value.replace(",", ".")) || 0)}
                   className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-amber-500/50 transition-all outline-none font-black text-sm"
                 />
               </div>
@@ -212,10 +220,11 @@ export function PaginaCalculadora() {
                   kWh (R$)
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.,]?[0-9]*"
                   value={precoKwh}
-                  onChange={(e) => setPrecoKwh(Number(e.target.value))}
+                  onChange={(e) => setPrecoKwh(Number(e.target.value.replace(",", ".")) || 0)}
                   className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-amber-500/50 transition-all outline-none font-black text-sm"
                 />
               </div>
@@ -248,9 +257,11 @@ export function PaginaCalculadora() {
             </label>
             <div className="relative">
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
+                pattern="[0-9]*[.,]?[0-9]*"
                 value={maoDeObra}
-                onChange={(e) => setMaoDeObra(Number(e.target.value))}
+                onChange={(e) => setMaoDeObra(Number(e.target.value.replace(",", ".")) || 0)}
                 className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-sky-500/50 transition-all outline-none font-black text-sm"
               />
               <DollarSign size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />

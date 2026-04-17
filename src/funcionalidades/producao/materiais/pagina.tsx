@@ -75,16 +75,16 @@ export function PaginaMateriais() {
                 <p className="text-sm text-gray-500 dark:text-zinc-400">Tente buscar com termos diferentes.</p>
               </div>
             ) : (
-              <div className="flex flex-col gap-10">
+            <div className="flex flex-col gap-10">
                 <AnimatePresence mode="popLayout">
-                  {estado.agrupadosPorTipoMaterial.map(([tipo, lista]) => (
+                  {estado.agrupadosPorTipoMaterial.map(([tipo, lista], index) => (
                     <motion.div
                       layout
                       key={tipo}
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.98 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30, delay: index * 0.1 }}
                       className="space-y-6"
                     >
                       <div className="flex items-center gap-4">
@@ -92,11 +92,11 @@ export function PaginaMateriais() {
                           <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
                             {tipo}
                           </h3>
-                          <span className="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-[#27272a] border border-gray-200 dark:border-zinc-700/50 text-[10px] font-bold text-gray-600 dark:text-zinc-400 uppercase tracking-widest flex items-center h-6 leading-none shadow-sm">
+                          <span className="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-[#121214] border border-gray-200 dark:border-white/[0.04] text-[10px] font-black text-gray-600 dark:text-zinc-500 uppercase tracking-widest flex items-center h-6 leading-none shadow-sm">
                             {lista.length} ITEM{lista.length !== 1 ? "S" : ""}
                           </span>
                         </div>
-                        <div className="flex-1 h-px bg-gray-200 dark:bg-white/5" />
+                        <div className="flex-1 h-px bg-gray-200 dark:bg-white/[0.04]" />
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6">

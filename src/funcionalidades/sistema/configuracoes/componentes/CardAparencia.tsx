@@ -34,7 +34,7 @@ export function CardAparencia({ pendente }: CardAparenciaProps) {
   const { modoTema, alternarTema, corPrimaria, definirCorPrimaria, fonte, definirFonte } = usarContextoTema();
 
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#18181b] p-4 md:p-5 flex flex-col gap-4 relative overflow-hidden group">
+    <div className="rounded-2xl border border-gray-100 dark:border-white/[0.04] bg-white dark:bg-[#121214] p-4 md:p-5 flex flex-col gap-4 relative overflow-hidden group hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] dark:hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] transition-all duration-700">
       <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/[0.03] to-zinc-500/[0.01] dark:from-zinc-500/[0.05] dark:to-zinc-500/[0.02] pointer-events-none" />
       <CabecalhoCard
         titulo="Aparência Visual"

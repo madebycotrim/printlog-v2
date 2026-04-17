@@ -170,6 +170,7 @@ export function FormularioInsumo({ aberto, insumoEditando, aoCancelar, aoSalvar 
     try {
       const payload = {
         ...data,
+        marca: data.marca?.trim() || "Genérico",
         quantidadeAtual: Number(data.quantidadeAtual) || 0,
         quantidadeMinima: Number(data.quantidadeMinima) || 0,
         custoMedioUnidade: Number(data.custoMedioUnidade) || 0,
@@ -261,7 +262,7 @@ export function FormularioInsumo({ aberto, insumoEditando, aoCancelar, aoSalvar 
                   rotulo="Valor Unitário"
                   placeholder="0,00"
                   erro={errors.custoMedioUnidade?.message}
-                  {...register("custoMedioUnidade", { required: "Obrigatório", valueAsNumber: true })}
+                  {...register("custoMedioUnidade", { required: "Obrigatório", setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })}
                 />
 
                 <CampoTexto
@@ -271,7 +272,7 @@ export function FormularioInsumo({ aberto, insumoEditando, aoCancelar, aoSalvar 
                   step={itemFracionavelAtivo ? "0.01" : "1"}
                   placeholder="0"
                   erro={errors.quantidadeAtual?.message}
-                  {...register("quantidadeAtual", { required: "Obrigatório", valueAsNumber: true })}
+                  {...register("quantidadeAtual", { required: "Obrigatório", setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })}
                 />
 
                 <Combobox
@@ -296,7 +297,7 @@ export function FormularioInsumo({ aberto, insumoEditando, aoCancelar, aoSalvar 
                   type="number"
                   placeholder="5"
                   erro={errors.quantidadeMinima?.message}
-                  {...register("quantidadeMinima", { required: "Obrigatório", valueAsNumber: true })}
+                  {...register("quantidadeMinima", { required: "Obrigatório", setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })}
                 />
 
                 <CampoTexto
@@ -358,7 +359,7 @@ export function FormularioInsumo({ aberto, insumoEditando, aoCancelar, aoSalvar 
                         erro={errors.rendimentoTotal?.message}
                         {...register("rendimentoTotal", {
                           required: itemFracionavelAtivo ? "Obrigatório" : false,
-                          valueAsNumber: true,
+                          setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0,
                         })}
                       />
                       <span className="absolute right-4 top-[46px] text-[10px] font-black text-gray-400 dark:text-zinc-600 pointer-events-none tracking-[0.2em] uppercase">

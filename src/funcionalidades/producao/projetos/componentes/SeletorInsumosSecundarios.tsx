@@ -93,10 +93,12 @@ export function SeletorInsumosSecundarios({ selecionados, aoAlterar }: Proprieda
 
                             <div className="flex items-center gap-2 w-24">
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="decimal"
+                                    pattern="[0-9]*[.,]?[0-9]*"
                                     min="1"
                                     value={item.quantidade}
-                                    onChange={(e) => atualizarItem(index, { quantidade: Number(e.target.value) || 0 })}
+                                    onChange={(e) => atualizarItem(index, { quantidade: Number(e.target.value.replace(",", ".")) || 0 })}
                                     className="w-full bg-transparent border-0 border-b border-zinc-200 dark:border-white/10 text-xs font-black text-center text-zinc-900 dark:text-white outline-none focus:border-sky-500 py-1"
                                 />
                                 <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Qtd</span>

@@ -163,7 +163,7 @@ export function FormularioLancamento({ aberto, aoSalvar, aoCancelar }: Formulari
                 erro={errors.valor?.message}
                 placeholder="0,00"
                 icone={tipoSelecionado === TipoLancamentoFinanceiro.ENTRADA ? ArrowUpRight : ArrowDownLeft}
-                {...register("valor", { valueAsNumber: true })}
+                {...register("valor", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })}
               />
             </div>
           </div>

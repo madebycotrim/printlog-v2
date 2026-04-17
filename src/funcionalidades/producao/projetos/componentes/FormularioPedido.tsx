@@ -319,7 +319,7 @@ export function FormularioPedido({ aberto, aoSalvar, aoCancelar, pedidoEdicao }:
                     type="number"
                     placeholder="0"
                     erro={errors.pesoGramas?.message}
-                    {...register("pesoGramas", { valueAsNumber: true })}
+                    {...register("pesoGramas", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })}
                   />
 
                   <CampoTexto
@@ -328,7 +328,7 @@ export function FormularioPedido({ aberto, aoSalvar, aoCancelar, pedidoEdicao }:
                     type="number"
                     placeholder="0"
                     erro={errors.tempoMinutos?.message}
-                    {...register("tempoMinutos", { valueAsNumber: true })}
+                    {...register("tempoMinutos", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })}
                   />
                 </GradeCampos>
               </div>
@@ -345,7 +345,7 @@ export function FormularioPedido({ aberto, aoSalvar, aoCancelar, pedidoEdicao }:
                 rotulo="Valor do Pedido"
                 placeholder="0,00"
                 erro={errors.valorCentavos?.message}
-                {...register("valorCentavos", { valueAsNumber: true })}
+                {...register("valorCentavos", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })}
               />
 
               <div className="col-span-1 md:col-span-2">

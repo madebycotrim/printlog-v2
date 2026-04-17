@@ -57,7 +57,7 @@ export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico }: Pro
   return (
     <div
       ref={referenciaCard}
-      className="group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-default bg-white dark:bg-card-fundo border border-gray-200 dark:border-white/5"
+      className="group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-700 hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] dark:hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] cursor-default bg-white dark:bg-[#121214] border border-gray-100 dark:border-white/[0.04]"
     >
       {/* Badge Superior Esquerdo (Tipo de Material) */}
       <div className="absolute top-4 left-4 z-20">
@@ -158,13 +158,13 @@ export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico }: Pro
       </div>
 
       {/* Rodapé: Fabricante | Nome | Quantidade Restante */}
-      <div className="px-5 py-5 flex items-end justify-between bg-transparent border-t border-gray-100 dark:border-white/5">
+      <div className="px-5 py-5 flex items-end justify-between bg-transparent border-t border-gray-100 dark:border-white/[0.04]">
         <div className="flex flex-col min-w-0 pr-4">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-zinc-500 mb-1.5 truncate">
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-zinc-600 mb-1.5 truncate">
             {material.fabricante}
           </span>
           <h4
-            className="text-2xl font-black text-gray-900 dark:text-white tracking-tight truncate leading-none"
+            className="text-xl font-black text-gray-900 dark:text-white tracking-tight truncate leading-none uppercase"
             title={material.nome}
           >
             {material.nome}
@@ -172,14 +172,14 @@ export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico }: Pro
         </div>
 
         <div className="flex flex-col items-end shrink-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 leading-none">
             {material.pesoRestanteGramas < 200 && <History size={14} className="text-rose-500 animate-pulse" />}
-            <span className={`text-[25px] font-black ${corProgressoTexto} leading-none tracking-tighter`}>
+            <span className={`text-[26px] font-black ${corProgressoTexto} leading-none tracking-tighter tabular-nums`}>
               {material.pesoRestanteGramas}
-              <span className="text-[14px] opacity-70 ml-[1px]">{unidade}</span>
+              <span className="text-[12px] opacity-70 ml-[2px] uppercase font-black">{unidade}</span>
             </span>
           </div>
-          <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400 dark:text-zinc-600 mt-2">
+          <span className="text-[8px] font-black uppercase tracking-[0.25em] text-gray-400 dark:text-zinc-700 mt-2">
             Restantes
           </span>
         </div>

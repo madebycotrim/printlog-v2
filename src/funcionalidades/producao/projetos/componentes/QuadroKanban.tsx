@@ -26,14 +26,14 @@ export function QuadroKanban({ pedidosInjetados, aoEditar, aoMover }: Propriedad
       cor: "bg-amber-500",
     },
     {
-      titulo: "Em Produção",
+      titulo: "Produzindo",
       status: StatusPedido.EM_PRODUCAO,
-      cor: "bg-sky-500",
+      cor: "bg-indigo-500",
     },
     {
       titulo: "Acabamento",
       status: StatusPedido.ACABAMENTO,
-      cor: "bg-violet-500",
+      cor: "bg-fuchsia-500",
     },
     {
       titulo: "Concluído",
@@ -47,7 +47,7 @@ export function QuadroKanban({ pedidosInjetados, aoEditar, aoMover }: Propriedad
   }
 
   return (
-    <div className="flex gap-8 overflow-x-auto pb-4 px-1 h-full scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-white/5">
+    <div className="flex gap-6 overflow-x-auto pb-6 px-1 h-full scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
       {colunas.map((coluna) => {
         const pedidosDaColuna = pedidos
           .filter((p) => p.status === coluna.status)

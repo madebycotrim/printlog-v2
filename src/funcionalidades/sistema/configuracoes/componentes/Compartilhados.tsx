@@ -58,7 +58,7 @@ export const SecaoConfiguracao = ({ titulo, descricao, children, semBorda = fals
 export function CabecalhoCard({ titulo, descricao, icone: Icone, corIcone, pendente }: PropsCabecalhoCard) {
     return (
         <div className="flex items-center gap-3 border-b border-gray-200 pb-4 dark:border-white/10 shrink-0 relative">
-            <span className="shrink-0 rounded-xl bg-gray-100 dark:bg-white/5 p-2.5">
+            <span className="shrink-0 rounded-xl bg-gray-100 dark:bg-white/5 p-2.5 transform group-hover:rotate-6 transition-transform">
                 <Icone size={20} className={corIcone} />
             </span>
             <div className="min-w-0 flex-1">
