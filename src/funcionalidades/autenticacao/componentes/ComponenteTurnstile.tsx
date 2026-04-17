@@ -1,5 +1,13 @@
 import { useEffect, useRef } from "react";
 
+/**
+ * Chave do Turnstile:
+ * - Produção: variável de ambiente VITE_TURNSTILE_SITE_KEY (configurar no Cloudflare Pages)
+ * - Desenvolvimento: fallback para chave de teste da Cloudflare (sempre passa)
+ */
+const CHAVE_TURNSTILE =
+    import.meta.env.VITE_TURNSTILE_SITE_KEY || "1x00000000000000000000AA";
+
 interface ComponenteTurnstileProps {
     aoValidar: (token: string) => void;
     aoExpirar?: () => void;
@@ -21,7 +29,7 @@ export function ComponenteTurnstile({ aoValidar, aoExpirar }: ComponenteTurnstil
         // Renderiza o widget
         if (containerRef.current && !widgetIdRef.current) {
             widgetIdRef.current = (window as any).turnstile.render(containerRef.current, {
-                sitekey: "1x00000000000000000000AA", // Chave de Teste da Cloudflare (Sempre funciona no localhost)
+                sitekey: CHAVE_TURNSTILE,
                 theme: "dark",
                 callback: (token: string) => {
                     aoValidar(token);

@@ -155,3 +155,15 @@ firebase-debug.log
 .env
 .env.*
 !.env.example
+!.env.exemplo
+
+# Banco de dados — dumps, schemas e backups
+*.sql
+*.dump
+*.db
+*.sqlite
+*.sqlite3
+
+# Arquivos de configuração sensíveis
+*.conf
+*.ini

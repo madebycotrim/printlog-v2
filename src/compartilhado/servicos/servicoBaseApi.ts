@@ -1,4 +1,5 @@
 import { autenticacao } from "./firebase";
+import { registrar } from "../utilitarios/registrador";
 
 const URL_API_BASE = import.meta.env.VITE_URL_API || "http://localhost:8787";
 
@@ -61,7 +62,11 @@ export const servicoBaseApi = {
 
       return await resposta.json();
     } catch (erro: unknown) {
-      console.error(`[API ERROR] ${caminho}:`, erro);
+      registrar.error(
+        { rastreioId: "api", servico: "servicoBaseApi", caminho },
+        "Erro na requisição à API",
+        erro
+      );
       throw erro;
     }
   },

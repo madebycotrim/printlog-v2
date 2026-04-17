@@ -6,6 +6,7 @@ import { Save, Tag, FileText, Calendar, User, ArrowUpRight, ArrowDownLeft } from
 import { Dialogo } from "@/compartilhado/componentes/Dialogo";
 import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
 import { CampoMonetario } from "@/compartilhado/componentes/CampoMonetario";
+import { AcoesDescarte } from "@/compartilhado/componentes/AcoesDescarte";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
 import { TipoLancamentoFinanceiro } from "@/compartilhado/tipos/modelos";
 import { CriarLancamentoInput } from "../tipos";
@@ -51,7 +52,7 @@ export function FormularioLancamento({ aberto, aoSalvar, aoCancelar }: Formulari
       valor: 0,
       categoria: "",
       idCliente: "",
-      data: new Date().toLocaleDateString("en-CA") as any,
+      data: new Date(),
     },
   });
 
@@ -118,7 +119,6 @@ export function FormularioLancamento({ aberto, aoSalvar, aoCancelar }: Formulari
     <Dialogo aberto={aberto} aoFechar={lidarComTentativaFechamento} titulo="Registro Financeiro" larguraMax="max-w-xl">
       <form onSubmit={handleSubmit(aoSubmeter)} className="flex flex-col bg-white dark:bg-[#18181b]">
         <div className="p-6 md:p-8 space-y-10">
-          {/* SEÇÃO 1: CLASSIFICAÇÃO & VALOR */}
           <div className="space-y-6">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
               Dados da Movimentação
@@ -168,7 +168,6 @@ export function FormularioLancamento({ aberto, aoSalvar, aoCancelar }: Formulari
             </div>
           </div>
 
-          {/* SEÇÃO 2: DETALHES */}
           <div className="space-y-6">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
               Categorização & Vínculo
@@ -218,14 +217,13 @@ export function FormularioLancamento({ aberto, aoSalvar, aoCancelar }: Formulari
           </div>
         </div>
 
-        {/* RODAPÉ */}
         <div className="p-6 border-t border-zinc-100 dark:border-white/5 bg-zinc-50/50 dark:bg-[#0e0e11]/50 flex flex-col items-end gap-3 rounded-b-[2rem]">
           {!confirmarDescarte ? (
             <div className="flex items-center gap-3 w-full justify-between md:justify-end">
               <button
                 type="button"
                 onClick={lidarComTentativaFechamento}
-                className="px-6 py-2.5 text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all"
+                className="px-6 py-2.5 text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-all"
               >
                 Cancelar
               </button>
@@ -242,22 +240,10 @@ export function FormularioLancamento({ aberto, aoSalvar, aoCancelar }: Formulari
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-3 w-full justify-between md:justify-end animate-in slide-in-from-bottom-2 fade-in duration-300">
-               <button
-                  type="button"
-                  onClick={aoCancelar}
-                  className="px-4 py-2 text-[11px] font-black uppercase tracking-widest text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all"
-                >
-                  Descartar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmarDescarte(false)}
-                  className="px-8 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
-                >
-                  Continuar
-                </button>
-            </div>
+            <AcoesDescarte
+              aoConfirmarDescarte={aoCancelar}
+              aoContinuarEditando={() => setConfirmarDescarte(false)}
+            />
           )}
         </div>
       </form>

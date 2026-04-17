@@ -1,4 +1,4 @@
-import { ChevronRight, PrinterOff } from "lucide-react";
+import { ChevronRight, Printer } from "lucide-react";
 import { StatusItem } from "./StatusItem";
 import { usarArmazemImpressoras } from "@/funcionalidades/producao/impressoras/estado/armazemImpressoras";
 import { StatusImpressora } from "@/compartilhado/tipos/modelos";
@@ -52,7 +52,7 @@ export function StatusTempoReal() {
                 </div>
             ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-4 border-2 border-dashed border-gray-100 dark:border-white/5 rounded-2xl">
-                    <PrinterOff size={40} className="text-gray-300 dark:text-zinc-700 mb-3" />
+                    <Printer size={40} className="text-gray-300 dark:text-zinc-700 mb-3" />
                     <p className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-widest">Nenhuma máquina ativa</p>
                 </div>
             )}

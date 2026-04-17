@@ -1,31 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import "./estilos-impressao.css";
 
 export function TermosUso() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#050507] text-zinc-900 dark:text-zinc-300 font-sans selection:bg-sky-500/30 selection:text-sky-900 dark:selection:text-sky-200 transition-colors duration-300 print:bg-white print:text-black">
-      {/* Estilos globais de impressão para este componente */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @media print {
-          @page { 
-            margin: 1cm 2cm 2cm 3cm; 
-            size: A4; 
-          }
-          body { background: white !important; color: black !important; font-family: Arial, sans-serif !important; width: 210mm !important; }
-          .print-abnt-text { font-size: 12pt !important; line-height: 1.5 !important; color: black !important; text-align: justify !important; }
-          .print-abnt-title { font-size: 12pt !important; font-weight: bold !important; color: black !important; text-align: center !important; text-transform: uppercase !important; break-after: avoid !important; }
-          .print-abnt-subtitle { font-size: 12pt !important; font-weight: bold !important; color: black !important; margin-top: 15pt !important; text-transform: uppercase !important; break-after: avoid !important; }
-          .print-container { width: 100% !important; max-width: none !important; padding: 0 !important; margin: 0 !important; }
-          .print-no-shadow { box-shadow: none !important; border: none !important; ring: none !important; }
-          .print-avoid-break { break-inside: avoid !important; page-break-inside: avoid !important; }
-          p { margin-bottom: 10pt !important; }
-          .indent-8 { text-indent: 1.25cm !important; }
-          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        }
-      `}} />
 
       <div className="relative z-10 container mx-auto px-6 py-20 max-w-4xl print:py-0 print:px-0 print:max-w-none print:w-full print-container">
         {/* — Navegação — */}

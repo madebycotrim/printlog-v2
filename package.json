@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "dev:live": "cross-env VITE_PROXY_TARGET=https://printlog.pages.dev npm run dev",
+    "prebuild": "npm audit --audit-level=high",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
+    "audit:seguranca": "npm audit && echo '✅ Nenhuma vulnerabilidade encontrada'",
     "deploy": "if exist dist rmdir /s /q dist && npm run build && npx wrangler pages deploy dist"
   },
   "dependencies": {

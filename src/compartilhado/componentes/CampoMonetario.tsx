@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, forwardRef, ElementType } from "react";
+import { InputHTMLAttributes, forwardRef, ElementType, ChangeEvent } from "react";
 import { DollarSign } from "lucide-react";
 
 interface CampoMonetarioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
@@ -8,8 +8,31 @@ interface CampoMonetarioProps extends Omit<InputHTMLAttributes<HTMLInputElement>
   icone?: ElementType;
 }
 
+/**
+ * Campo monetário que aceita tanto vírgula (,) quanto ponto (.) como separador decimal.
+ * Internamente converte vírgula → ponto para compatibilidade com parseFloat/valueAsNumber.
+ * @lgpd Sem coleta de dados pessoais.
+ */
 export const CampoMonetario = forwardRef<HTMLInputElement, CampoMonetarioProps>(
-  ({ rotulo, erro, prefixo = "BRL", icone: Icone = DollarSign, className = "", ...props }, ref) => {
+  ({ rotulo, erro, prefixo = "BRL", icone: Icone = DollarSign, className = "", onChange, ...props }, ref) => {
+
+    /**
+     * Intercepta o onChange para normalizar vírgula → ponto.
+     * Permite que o react-hook-form receba sempre o formato numérico correto.
+     */
+    const lidarComMudanca = (e: ChangeEvent<HTMLInputElement>) => {
+      // Substitui vírgula por ponto para o valor real
+      const valorCorrigido = e.target.value.replace(",", ".");
+      
+      // Cria um evento sintético com o valor corrigido
+      const eventoCorrigido = {
+        ...e,
+        target: { ...e.target, value: valorCorrigido },
+      } as ChangeEvent<HTMLInputElement>;
+
+      onChange?.(eventoCorrigido);
+    };
+
     return (
       <div className={`space-y-1.5 ${className}`}>
         {rotulo && (
@@ -30,9 +53,11 @@ export const CampoMonetario = forwardRef<HTMLInputElement, CampoMonetarioProps>(
           />
           <input
             ref={ref}
-            type="number"
-            step="0.01"
+            type="text"
+            inputMode="decimal"
+            pattern="[0-9]*[.,]?[0-9]*"
             {...props}
+            onChange={lidarComMudanca}
             className={`w-full h-10 bg-transparent border-0 border-b-2 outline-none transition-all duration-300 placeholder:text-gray-400/50 dark:placeholder:text-zinc-700 font-normal text-sm text-gray-900 dark:text-white pl-8 pr-12
                             ${
                               erro

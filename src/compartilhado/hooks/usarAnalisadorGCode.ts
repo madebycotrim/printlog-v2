@@ -7,6 +7,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { ResultadoAnaliseGCode } from "../utilitarios/trabalhadores/analisadorGCode.trabalhador";
 import { registrar } from "../utilitarios/registrador";
+import { validarArquivoUpload } from "../utilitarios/validar-upload";
 
 interface EstadoAnalise {
   analisando: boolean;
@@ -35,6 +36,18 @@ export function usarAnalisadorGCode() {
 
   const analisarArquivo = useCallback((arquivo: File) => {
     const rastreioId = crypto.randomUUID();
+
+    // Validação de segurança do arquivo antes de processar
+    const validacao = validarArquivoUpload(arquivo);
+    if (!validacao.valido) {
+      setEstado({ analisando: false, resultado: null, erro: validacao.erro ?? "Arquivo inválido." });
+      registrar.warn(
+        { rastreioId, servico: "Fatiamento", nomeArquivo: arquivo.name },
+        `Upload rejeitado: ${validacao.erro}`,
+      );
+      return;
+    }
+
     setEstado((prev) => ({ ...prev, analisando: true, erro: null }));
 
     // Inicializa o worker se não existir

@@ -4,6 +4,7 @@ import { Dialogo } from "@/compartilhado/componentes/Dialogo";
 import { Combobox } from "@/compartilhado/componentes/Combobox";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
 import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
+import { AcoesDescarte } from "@/compartilhado/componentes/AcoesDescarte";
 
 const MOTIVOS_ABATIMENTO = [
   { valor: "Falha de Impressão", rotulo: "Falha de Impressão" },
@@ -182,7 +183,7 @@ export function ModalAbatimentoPeso({ aberto, aoFechar, aoConfirmar, material }:
               <button
                 type="button"
                 onClick={lidarComTentativaFechamento}
-                className="px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-gray-900 dark:text-zinc-500 dark:hover:text-white transition-all"
+                className="px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-gray-900 transition-all"
               >
                 Cancelar
               </button>
@@ -190,36 +191,17 @@ export function ModalAbatimentoPeso({ aberto, aoFechar, aoConfirmar, material }:
                 type="submit"
                 disabled={!!erro || !quantidade}
                 style={{ backgroundColor: "var(--cor-primaria)" }}
-                className="px-6 py-2.5 flex-1 md:flex-none justify-center hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-sky-500/20 flex items-center gap-2 transition-all active:scale-95"
+                className="px-6 py-2.5 flex-1 md:flex-none justify-center hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg flex items-center gap-2 transition-all active:scale-95"
               >
                 <Save size={16} strokeWidth={3} />
                 Confirmar Baixa
               </button>
             </div>
           ) : (
-            <div className="flex flex-col items-end gap-2 w-full animate-in slide-in-from-bottom-2 fade-in duration-300">
-              <div className="flex items-center gap-3 w-full justify-between md:justify-end">
-                <button
-                  type="button"
-                  onClick={fecharModalRealmente}
-                  className="px-4 py-2 text-[11px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
-                >
-                  Descartar Alterações
-                </button>
-                <button
-                  type="button"
-                  onClick={() => definirConfirmarDescarte(false)}
-                  className="px-8 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
-                >
-                  Continuar Editando
-                </button>
-              </div>
-              {temAlteracoes && (
-                <span className="text-[9px] font-black text-red-600/70 dark:text-red-500/50 uppercase tracking-[0.2em] mr-2">
-                  Há alterações não salvas que serão perdidas
-                </span>
-              )}
-            </div>
+            <AcoesDescarte
+              aoConfirmarDescarte={fecharModalRealmente}
+              aoContinuarEditando={() => definirConfirmarDescarte(false)}
+            />
           )}
         </div>
       </form>

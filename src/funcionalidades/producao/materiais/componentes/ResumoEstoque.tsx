@@ -1,4 +1,4 @@
-﻿import { PackageSearch, DollarSign, AlertTriangle, Activity } from "lucide-react";
+import { PackageSearch, DollarSign, AlertTriangle, Activity } from "lucide-react";
 import { useState } from "react";
 import { GraficoConsumoMateriais } from "./GraficoConsumoMateriais";
 import { Material } from "@/funcionalidades/producao/materiais/tipos";
@@ -12,6 +12,9 @@ interface PropriedadesResumoEstoque {
   alertasBaixoEstoque: number;
 }
 
+/**
+ * Painel de resumo de estoque com métricas de patrimônio e alertas críticos.
+ */
 export function ResumoEstoque({
   materiais,
   totalEmbalagens,
@@ -22,10 +25,10 @@ export function ResumoEstoque({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-      <CardResumo titulo="Total em Estoque" valor={totalEmbalagens} unidade="itens" icone={PackageSearch} cor="sky" />
+      <CardResumo titulo="Volume de Insumos" valor={totalEmbalagens} unidade="rolos / potes" icone={PackageSearch} cor="sky" />
 
       <CardResumo
-        titulo="Valor Distribuído"
+        titulo="Patrimônio em Estoque"
         valor={valorInvestido.toLocaleString("pt-BR", {
           style: "currency",
           currency: "BRL",
@@ -35,17 +38,17 @@ export function ResumoEstoque({
       />
 
       <CardResumo
-        titulo="Alertas de Estoque"
+        titulo="Alertas Críticos"
         valor={alertasBaixoEstoque}
-        unidade="itens baixos"
+        unidade="materiais baixos"
         icone={AlertTriangle}
         cor={alertasBaixoEstoque > 0 ? "rose" : "zinc"}
       />
 
       <CardResumo
-        titulo="Padrão de Consumo"
+        titulo="Previsão de Uso"
         valor="Analisar"
-        unidade="consumo"
+        unidade="inteligência"
         icone={Activity}
         cor="indigo"
         aoClicar={() => definirModalGraficoAberto(true)}

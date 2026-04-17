@@ -153,8 +153,16 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
    */
   const login = async (email: string, senha: string) => {
     try {
-      await signInWithEmailAndPassword(autenticacao, email, senha);
+      const credencial = await signInWithEmailAndPassword(autenticacao, email, senha);
+      registrar.info(
+        { rastreioId: credencial.user.uid, servico: "Autenticacao", evento: "LOGIN_SUCESSO" },
+        "Login realizado com sucesso via email/senha"
+      );
     } catch (erro: unknown) {
+      registrar.warn(
+        { rastreioId: "desconhecido", servico: "Autenticacao", evento: "LOGIN_FALHA", metodo: "email" },
+        "Tentativa de login falhou"
+      );
       traduzirErroFirebase(erro);
     }
   };
@@ -169,6 +177,11 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
 
       await registrarAceiteTermos(credencial.user.uid);
 
+      registrar.info(
+        { rastreioId: credencial.user.uid, servico: "Autenticacao", evento: "CADASTRO_SUCESSO" },
+        "Novo usuário cadastrado com sucesso"
+      );
+
       // Atualiza o estado local imediatamente para refletir o nome
       definirUsuario({
         uid: credencial.user.uid,
@@ -178,6 +191,10 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
         provedorGoogle: false,
       });
     } catch (erro: unknown) {
+      registrar.warn(
+        { rastreioId: "desconhecido", servico: "Autenticacao", evento: "CADASTRO_FALHA" },
+        "Tentativa de cadastro falhou"
+      );
       traduzirErroFirebase(erro);
     }
   };
@@ -186,10 +203,15 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
    * Encerra a sessão do usuário.
    */
   const sair = async () => {
+    const uid = usuario?.uid || "desconhecido";
     try {
       await signOut(autenticacao);
+      registrar.info(
+        { rastreioId: uid, servico: "Autenticacao", evento: "LOGOUT" },
+        "Sessão encerrada pelo usuário"
+      );
     } catch (erro: unknown) {
-      registrar.error({ rastreioId: "sistema", servico: "Autenticacao" }, "Erro ao sair", erro);
+      registrar.error({ rastreioId: uid, servico: "Autenticacao", evento: "LOGOUT_FALHA" }, "Erro ao sair", erro);
     }
   };
 
@@ -210,8 +232,16 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
   const loginGoogle = async () => {
     try {
       const provedor = new GoogleAuthProvider();
-      await signInWithPopup(autenticacao, provedor);
+      const credencial = await signInWithPopup(autenticacao, provedor);
+      registrar.info(
+        { rastreioId: credencial.user.uid, servico: "Autenticacao", evento: "LOGIN_GOOGLE_SUCESSO" },
+        "Login realizado com sucesso via Google"
+      );
     } catch (erro: unknown) {
+      registrar.warn(
+        { rastreioId: "desconhecido", servico: "Autenticacao", evento: "LOGIN_GOOGLE_FALHA" },
+        "Tentativa de login via Google falhou"
+      );
       traduzirErroFirebase(erro);
     }
   };
@@ -227,7 +257,7 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
       // getIdToken(true) força a atualização se o token estiver perto de expirar
       return await autenticacao.currentUser.getIdToken();
     } catch (erro) {
-      console.error("[buscarToken] Erro ao recuperar token:", erro);
+      registrar.error({ rastreioId: "sistema", servico: "Autenticacao" }, "Erro ao recuperar token", erro);
       return null;
     }
   };

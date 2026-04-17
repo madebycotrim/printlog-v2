@@ -13,8 +13,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
 import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 
+import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
+import { Plus } from "lucide-react";
+
 export function PaginaMateriais() {
   const { estado, acoes } = usarGerenciadorMateriais();
+
+  usarDefinirCabecalho({
+    titulo: "Estoque de Insumos",
+    subtitulo: "Gestão inteligente de filamentos, resinas e patrimônio técnico",
+    placeholderBusca: "Buscar fabricante, cor ou tipo de material...",
+    aoBuscar: acoes.definirFiltro,
+    acao: {
+      texto: "Novo Material",
+      icone: Plus,
+      aoClicar: () => acoes.abrirEditar(null as unknown as Material),
+    },
+  });
 
   return (
     <div className="space-y-10">

@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Save, User, Mail, Phone, FileText, Shield, Star, Award, Clock, Ban } from "lucide-react";
 import { Dialogo } from "@/compartilhado/componentes/Dialogo";
 import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
+import { AcoesDescarte } from "@/compartilhado/componentes/AcoesDescarte";
 import { Cliente, StatusComercial, BaseLegalLGPD } from "../tipos";
 import { esquemaCliente, TipoDadosCliente } from "../esquemas";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
@@ -43,7 +44,6 @@ export function FormularioCliente({ aberto, clienteEditando, aoSalvar, aoCancela
 
   const statusAtual = useWatch({ control, name: "statusComercial" });
 
-  // Sincronização do formulário apenas quando o modal abre ou o objeto de edição muda
   useEffect(() => {
     if (aberto) {
       definirConfirmarDescarte(false);
@@ -81,11 +81,6 @@ export function FormularioCliente({ aberto, clienteEditando, aoSalvar, aoCancela
     }
   };
 
-  /**
-   * Decide se deve fechar o modal ou pedir confirmação.
-   * Só pede confirmação se o formulário estiver "sujo" (alterado) E
-   * se for uma edição ou se o usuário realmente preencheu algum campo (evita falso positivo).
-   */
   const lidarComTentativaFechamento = () => {
     const valores = control._formValues;
     const temConteudoReal = valores.nome || valores.email || valores.telefone || valores.observacoesCRM;
@@ -113,7 +108,6 @@ export function FormularioCliente({ aberto, clienteEditando, aoSalvar, aoCancela
     >
       <form onSubmit={handleSubmit(lidarComEnvio)} className="flex flex-col bg-white dark:bg-[#18181b]">
         <div className="p-6 md:p-8 space-y-12">
-          {/* SEÇÃO 1: IDENTIFICAÇÃO */}
           <section className="space-y-6">
             <div className="flex items-center gap-3">
               <span className="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-500 flex items-center justify-center">
@@ -153,7 +147,6 @@ export function FormularioCliente({ aberto, clienteEditando, aoSalvar, aoCancela
             </div>
           </section>
 
-          {/* SEÇÃO 2: NOTA E STATUS */}
           <section className="space-y-6">
             <div className="flex items-center gap-3">
               <span className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
@@ -201,7 +194,6 @@ export function FormularioCliente({ aberto, clienteEditando, aoSalvar, aoCancela
           </section>
         </div>
 
-        {/* RODAPÉ */}
         <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-[#0e0e11]/50 backdrop-blur-md flex flex-col gap-4 rounded-b-2xl">
           <div className="flex items-center gap-2 text-emerald-500">
              <Shield size={12} />
@@ -215,7 +207,7 @@ export function FormularioCliente({ aberto, clienteEditando, aoSalvar, aoCancela
               <button
                 type="button"
                 onClick={lidarComTentativaFechamento}
-                className="px-6 py-2.5 flex-1 md:flex-none text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-gray-900 dark:text-zinc-500 dark:hover:text-white transition-all"
+                className="px-6 py-2.5 flex-1 md:flex-none text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-gray-900 transition-all"
               >
                 Cancelar
               </button>
@@ -229,24 +221,10 @@ export function FormularioCliente({ aberto, clienteEditando, aoSalvar, aoCancela
               </button>
             </div>
           ) : (
-            <div className="flex flex-col items-end gap-2 w-full animate-in slide-in-from-bottom-2 fade-in duration-300">
-              <div className="flex items-center gap-3 w-full justify-between md:justify-end">
-                <button
-                  type="button"
-                  onClick={aoCancelar}
-                  className="px-4 py-2 text-[11px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
-                >
-                  Descartar Alterações
-                </button>
-                <button
-                  type="button"
-                  onClick={() => definirConfirmarDescarte(false)}
-                  className="px-8 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
-                >
-                  Continuar Editando
-                </button>
-              </div>
-            </div>
+            <AcoesDescarte
+              aoConfirmarDescarte={aoCancelar}
+              aoContinuarEditando={() => definirConfirmarDescarte(false)}
+            />
           )}
         </div>
       </form>

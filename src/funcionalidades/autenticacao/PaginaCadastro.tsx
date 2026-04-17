@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { usarAutenticacao } from "./contextos/ContextoAutenticacao";
 import { ComponenteTurnstile } from "./componentes/ComponenteTurnstile";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, User, ArrowRight, AlertCircle, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, AlertCircle, ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
 import { LayoutAutenticacao } from "./componentes/LayoutAutenticacao";
 import { PainelBranding } from "./componentes/PainelBranding";
 import { InputAuth } from "./componentes/InputAuth";
+import { validarForcaSenha, type ResultadoValidacaoSenha } from "@/compartilhado/utilitarios/validar-senha";
 
 export function PaginaCadastro() {
   const navegar = useNavigate();
@@ -17,6 +18,19 @@ export function PaginaCadastro() {
   const [erro, definirErro] = useState("");
   const [carregandoCadastro, definirCarregandoCadastro] = useState(false);
   const [tokenCaptcha, definirTokenCaptcha] = useState<string | null>(null);
+  const [resultadoSenha, definirResultadoSenha] = useState<ResultadoValidacaoSenha | null>(null);
+
+  /**
+   * Atualiza a senha e executa validação de força em tempo real.
+   */
+  const aoAlterarSenha = (valor: string) => {
+    definirSenha(valor);
+    if (valor.length > 0) {
+      definirResultadoSenha(validarForcaSenha(valor));
+    } else {
+      definirResultadoSenha(null);
+    }
+  };
 
   useEffect(() => {
     if (!carregando && usuario) {
@@ -43,8 +57,10 @@ export function PaginaCadastro() {
       return;
     }
 
-    if (senha.length < 8) {
-      definirErro("A senha deve ter pelo menos 8 caracteres.");
+    const validacao = validarForcaSenha(senha);
+    if (!validacao.valida) {
+      const pendentes = validacao.regras.filter((r) => !r.atendida).map((r) => r.descricao);
+      definirErro(`Senha não atende aos requisitos: ${pendentes.join(", ")}`);
       return;
     }
 
@@ -172,10 +188,64 @@ export function PaginaCadastro() {
             label="Senha"
             type="password"
             value={senha}
-            onChange={(e) => definirSenha(e.target.value)}
+            onChange={(e) => aoAlterarSenha(e.target.value)}
             placeholder="••••••••"
             icone={Lock}
           />
+
+          {/* Indicador visual de força da senha */}
+          {resultadoSenha && (
+            <div className="space-y-2 px-1">
+              {/* Barra de força */}
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      resultadoSenha.forca === "forte"
+                        ? "w-full bg-emerald-500"
+                        : resultadoSenha.forca === "media"
+                          ? "w-2/3 bg-amber-500"
+                          : "w-1/3 bg-red-500"
+                    }`}
+                  />
+                </div>
+                <span
+                  className={`text-xs font-semibold ${
+                    resultadoSenha.forca === "forte"
+                      ? "text-emerald-400"
+                      : resultadoSenha.forca === "media"
+                        ? "text-amber-400"
+                        : "text-red-400"
+                  }`}
+                >
+                  {resultadoSenha.forca === "forte"
+                    ? "Forte"
+                    : resultadoSenha.forca === "media"
+                      ? "Média"
+                      : "Fraca"}
+                </span>
+              </div>
+
+              {/* Lista de regras */}
+              <div className="grid grid-cols-1 gap-1">
+                {resultadoSenha.regras.map((regra) => (
+                  <div
+                    key={regra.id}
+                    className={`flex items-center gap-1.5 text-xs transition-colors ${
+                      regra.atendida ? "text-emerald-400" : "text-zinc-500"
+                    }`}
+                  >
+                    {regra.atendida ? (
+                      <CheckCircle2 size={12} />
+                    ) : (
+                      <XCircle size={12} />
+                    )}
+                    <span>{regra.descricao}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Termos de Uso (Checkbox) */}
           <div className="flex items-start gap-3 mt-2">
