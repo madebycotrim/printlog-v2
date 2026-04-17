@@ -39,10 +39,10 @@ export function PaginaImpressoras() {
         {estado.carregando && estado.impressoras.length > 0 && (
           <Carregamento tipo="global" mensagem="Carregando impressoras..." />
         )}
-        {estado.impressoras.length === 0 ? (
+        {estado.totais.total === 0 ? (
           <EstadoVazio
-            titulo="Nenhuma impressora encontrada"
-            descricao="Adicione sua primeira impressora 3D para expandir sua capacidade de produção."
+            titulo="Nenhuma impressora ativa"
+            descricao="Adicione sua primeira impressora 3D ou reative uma máquina arquivada para começar a produzir."
             icone={Printer}
             textoBotao="Cadastrar Máquina"
             aoClicarBotao={() => acoes.abrirEditar()}
@@ -68,11 +68,22 @@ export function PaginaImpressoras() {
               />
             </div>
 
-            {estado.impressorasFiltradas.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <Search size={36} strokeWidth={1.5} className="text-gray-300 dark:text-zinc-700 mb-4" />
-                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Nenhum resultado encontrado</h3>
-                <p className="text-sm text-gray-500 dark:text-zinc-400">Tente buscar com termos diferentes.</p>
+             {estado.impressorasFiltradas.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center bg-zinc-50/50 dark:bg-white/[0.02] rounded-[2.5rem] border border-dashed border-zinc-200 dark:border-white/5">
+                <Search size={40} strokeWidth={1} className="text-gray-300 dark:text-zinc-700 mb-4" />
+                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-2 uppercase tracking-tight">Nenhum resultado</h3>
+                <p className="text-sm text-gray-500 dark:text-zinc-400 mb-8 max-w-xs">
+                  Não encontramos máquinas com os critérios atuais de busca ou filtros.
+                </p>
+                <button
+                  onClick={() => {
+                    acoes.pesquisar("");
+                    acoes.filtrarPorTecnologia("Todas");
+                  }}
+                  className="px-6 py-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-white/10 transition-all shadow-sm"
+                >
+                  Limpar todos os filtros
+                </button>
               </div>
             ) : (
               <div className="flex flex-col gap-10">

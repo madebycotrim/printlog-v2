@@ -13,6 +13,8 @@ export const apiImpressoras = {
         
         return dados.map((i: any) => ({
             ...i,
+            marca: i.marca,
+            modeloBase: i.modelo_base,
             taxaHoraCentavos: i.taxa_hora_centavos,
             horimetroTotalMinutos: i.horimetro_total_minutos,
             intervaloRevisaoMinutos: i.intervalo_revisao_minutos,

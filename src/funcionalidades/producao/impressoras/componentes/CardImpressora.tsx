@@ -105,17 +105,24 @@ export function CardImpressora({
     >
       {/* ═══════ CABEÇALHO DE IDENTIDADE ═══════ */}
       <div className="p-8 pb-4 flex justify-between items-start relative z-20">
-        <div className="flex flex-col gap-1">
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600">
-            {impressora.marca || "Industrial"} // {impressora.tecnologia}
+        <div className="flex flex-col gap-1.5 min-w-0">
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600 truncate">
+            {impressora.marca || "Custom"} {impressora.modeloBase} // {impressora.tecnologia}
           </span>
-          <h4 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tighter leading-none uppercase">
+          <h4 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter leading-none uppercase truncate">
             {impressora.nome}
           </h4>
         </div>
         
         <div className="flex items-center gap-3" ref={referenciaMenu}>
-          <div className={`w-2.5 h-2.5 rounded-full ${statusManutencaoUI === "critico" ? 'bg-rose-500 animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'bg-emerald-500 opacity-20'}`} />
+          {/* LED de Status Adaptativo */}
+          <div 
+            className={`w-2.5 h-2.5 rounded-full transition-all duration-500 shadow-sm
+              ${statusManutencaoUI === "critico" ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.4)] animate-pulse' : 
+                estaImprimindo ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 
+                'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]'}`} 
+          />
+          
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -151,41 +158,34 @@ export function CardImpressora({
       </div>
 
       {/* ═══════ VISUALIZAÇÃO CENTRAL ═══════ */}
-      <div className="flex-1 relative flex items-center justify-center p-6 min-h-[220px]">
-        {/* Glow de Status Distribuído */}
+      <div className="flex-1 relative flex items-center justify-center p-6 min-h-[200px]">
+        {/* Glow de Status Adaptativo */}
         <div 
-          className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-32 blur-[80px] opacity-20 pointer-events-none transition-all duration-1000 group-hover:opacity-30"
-          style={{ backgroundColor: corDestaque }}
+          className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-24 blur-[80px] opacity-15 pointer-events-none transition-all duration-1000 group-hover:opacity-25"
+          style={{ backgroundColor: statusManutencaoUI === "critico" ? "#f43f5e" : configStatus.cor }}
         />
 
-        <div className="relative z-10 transition-transform duration-700 group-hover:scale-110">
+        <div className="relative z-10 transition-transform duration-700 group-hover:scale-105">
           {impressora.imagemUrl ? (
-            <img src={impressora.imagemUrl} alt={impressora.nome} className="max-h-[180px] object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]" />
+            <img src={impressora.imagemUrl} alt={impressora.nome} className="max-h-[170px] object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]" />
           ) : (
-            <div className="w-40 h-40 rounded-full border border-zinc-100 dark:border-white/5 flex items-center justify-center bg-zinc-50/50 dark:bg-white/[0.02] relative">
+            <div className="w-32 h-32 rounded-full border border-zinc-100 dark:border-white/5 flex items-center justify-center bg-zinc-50/50 dark:bg-white/[0.02] relative">
                <div className="absolute inset-2 border border-dashed border-zinc-200 dark:border-white/10 rounded-full animate-spin-slow opacity-20" />
-               <Activity size={40} className="text-zinc-200 dark:text-zinc-800" />
+               <Activity size={32} className="text-zinc-200 dark:text-zinc-800" />
             </div>
           )}
         </div>
       </div>
 
       {/* ═══════ MÓDULOS DE INFORMAÇÃO ═══════ */}
-      <div className="px-8 pb-8 space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-5 rounded-3xl bg-zinc-50/50 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/[0.05]">
-            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600 block mb-2">Operacional</span>
-            <div className={`flex items-center gap-2 text-sm font-black uppercase tracking-tight ${configStatus.texto}`}>
-              <configStatus.icone size={14} strokeWidth={3} className={estaImprimindo ? "animate-spin-slow" : ""} />
-              {configStatus.sub}
-            </div>
-          </div>
-
-          <div className="p-5 rounded-3xl bg-zinc-50/50 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/[0.05] text-right">
-            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600 block mb-1">Horímetro</span>
-            <div className="text-2xl font-black text-zinc-900 dark:text-white tracking-tighter tabular-nums">
-              {horasUsadas}<small className="text-[10px] ml-1 uppercase opacity-30">hrs</small>
-            </div>
+      <div className="px-8 pb-8">
+        <div className="flex flex-col items-center justify-center p-6 rounded-[2.5rem] bg-zinc-50/50 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/[0.05] shadow-inner">
+          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-zinc-400 dark:text-zinc-700 block mb-2">
+            Horímetro Acumulado
+          </span>
+          <div className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter tabular-nums flex items-baseline gap-1">
+            {horasUsadas}
+            <span className="text-[10px] uppercase opacity-30 font-bold tracking-widest">hrs</span>
           </div>
         </div>
 

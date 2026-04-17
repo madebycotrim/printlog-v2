@@ -203,8 +203,11 @@ export function usarGerenciadorImpressoras() {
 
   const impressorasFiltradas = useMemo(() => {
     let filtradas = estadoArmazem.impressoras.filter((i) => {
-      if (i.dataAposentadoria) return false;
-      const matchTexto = i.nome.toLowerCase().includes(estadoArmazem.filtroBusca.toLowerCase());
+      // Só esconde se realmente houver uma data válida de aposentadoria
+      if (i.dataAposentadoria && String(i.dataAposentadoria).trim().length > 0) return false;
+      
+      const termo = estadoArmazem.filtroBusca.trim().toLowerCase();
+      const matchTexto = i.nome.toLowerCase().includes(termo);
       const matchTecnologia =
         estadoArmazem.filtroTecnologia === "Todas" || i.tecnologia === estadoArmazem.filtroTecnologia;
       return matchTexto && matchTecnologia;
@@ -259,12 +262,14 @@ export function usarGerenciadorImpressoras() {
   }, [impressorasFiltradas]);
 
   const totais = useMemo(() => {
-    const total = estadoArmazem.impressoras.length;
-    const manutencao = estadoArmazem.impressoras.filter((i) => i.status === "manutencao").length;
-    const valorInvestido = estadoArmazem.impressoras.reduce((acc, i) => acc + (i.valorCompraCentavos || 0), 0);
-    const horasImpressao = estadoArmazem.impressoras.reduce((acc, i) => acc + (i.horimetroTotalMinutos || 0) / 60, 0);
+    const ativas = estadoArmazem.impressoras.filter(i => !i.dataAposentadoria);
+    
+    const total = ativas.length;
+    const manutencao = ativas.filter((i) => i.status === "manutencao").length;
+    const valorInvestido = ativas.reduce((acc, i) => acc + (i.valorCompraCentavos || 0), 0);
+    const horasImpressao = ativas.reduce((acc, i) => acc + (i.horimetroTotalMinutos || 0) / 60, 0);
 
-    const requerAtencao = estadoArmazem.impressoras.filter((i) => {
+    const requerAtencao = ativas.filter((i) => {
       const status = obterStatusManutencao(i.horimetroTotalMinutos || 0, i.intervaloRevisaoMinutos || 0);
       return status !== "normal";
     }).length;
