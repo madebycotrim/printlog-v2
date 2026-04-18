@@ -36,10 +36,15 @@ export function PaginaImpressoras() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        {estado.carregando && estado.impressoras.length > 0 && (
-          <Carregamento tipo="global" mensagem="Carregando impressoras..." />
+        {/* 1. Carregamento Inicial (Full Page) */}
+        {estado.carregando && estado.impressoras.length === 0 && (
+          <div className="py-20">
+            <Carregamento tipo="global" mensagem="Sincronizando seu parque de máquinas..." />
+          </div>
         )}
-        {estado.totais.total === 0 ? (
+
+        {/* 2. Estado Vazio (Após carregar e não achar nada) */}
+        {!estado.carregando && estado.totais.total === 0 && (
           <EstadoVazio
             titulo="Nenhuma impressora ativa"
             descricao="Adicione sua primeira impressora 3D ou reative uma máquina arquivada para começar a produzir."
@@ -47,8 +52,27 @@ export function PaginaImpressoras() {
             textoBotao="Cadastrar Máquina"
             aoClicarBotao={() => acoes.abrirEditar()}
           />
-        ) : (
+        )}
+
+        {/* 3. Conteúdo Real ou Atualização em Background */}
+        {estado.totais.total > 0 && (
           <>
+            <AnimatePresence>
+              {estado.carregando && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: -20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                  className="fixed top-24 right-10 z-[100] flex items-center gap-2 px-3 py-1.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200 dark:border-white/10 rounded-full shadow-2xl pointer-events-none"
+                >
+                  <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
+                    Sincronizando
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
             <ResumoImpressoras
               totalMaquinas={estado.totais.total}
               horasImpressao={estado.totais.horasImpressao}

@@ -1,4 +1,4 @@
-﻿import { Menu, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { usarCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { MenuNotificacoes } from "./MenuNotificacoes";
 import { usarProcessadorNotificacoes } from "../hooks/usarProcessadorNotificacoes";
@@ -73,7 +73,18 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
           </div>
         )}
 
-        <MenuNotificacoes />
+        {!dados.ocultarNotificacoes && <MenuNotificacoes />}
+
+        {/* Elementos Customizados da Página (Injetados via Contexto) */}
+        {dados.elementoAcao && (
+          <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-2 duration-300">
+             {/* Divisor se houver outras funções normais vindo depois */}
+            {(dados.acao || dados.segundaAcao) && (
+              <div className="hidden lg:block w-px h-8 bg-gray-100 dark:bg-white/5 mx-2" />
+            )}
+            {dados.elementoAcao}
+          </div>
+        )}
 
         {/* Ações Padronizadas */}
         <div className="flex items-center gap-2 md:gap-3">
@@ -116,9 +127,6 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
             </button>
           )}
         </div>
-
-        {/* Fallback para elementos customizados (Legado) */}
-        {!dados.acao && dados.elementoAcao && <div className="flex items-center">{dados.elementoAcao}</div>}
       </div>
     </header>
   );

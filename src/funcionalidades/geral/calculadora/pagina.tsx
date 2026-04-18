@@ -6,16 +6,21 @@ import {
   DollarSign,
   TrendingUp,
   RefreshCcw,
-  FileUp,
-  Sparkles,
-  Loader2,
+  Cpu,
+  Layers,
+  ChevronDown,
+  Check,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { useState, useMemo, useEffect } from "react";
 import { calcularCustoImpressao } from "@/compartilhado/utilitarios/calculosFinanceiros";
 import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
 import { usarAnalisadorGCode } from "@/compartilhado/hooks/usarAnalisadorGCode";
 import { motion, AnimatePresence } from "framer-motion";
+import { usarArmazemMateriais } from "@/funcionalidades/producao/materiais/estado/armazemMateriais";
+import { useShallow } from "zustand/react/shallow";
+import { usarGerenciadorImpressoras } from "@/funcionalidades/producao/impressoras/hooks/usarGerenciadorImpressoras";
 
 export function PaginaCalculadora() {
   // Estados do Formulário (Valores em Reais para facilitar input, convertidos depois)
@@ -26,22 +31,158 @@ export function PaginaCalculadora() {
   const [precoKwh, setPrecoKwh] = useState<number>(0.85); // R$ 0.85/kWh média
   const [maoDeObra, setMaoDeObra] = useState<number>(25); // R$ 25/hora
   const [margem, setMargem] = useState<number>(100); // 100% de lucro padrão
+  
+  // Estados Comerciais
+  const [taxaEcommerce, setTaxaEcommerce] = useState<number>(18); // 18% padrão
+  const [taxaFixa, setTaxaFixa] = useState<number>(3); // R$ 3,00 padrão
+  const [frete, setFrete] = useState<number>(0);
+  const [insumos, setInsumos] = useState<number>(5.50); // Caixa + Plástico bolha
+  const [materialSelecionadoId, setMaterialSelecionadoId] = useState<string>("");
+  const [impressoraSelecionadaId, setImpressoraSelecionadaId] = useState<string>("");
+  const [abertoSeletor, setAbertoSeletor] = useState(false);
 
-  const { analisando, resultado, analisarArquivo, limparAnalise, erro: erroAnalise } = usarAnalisadorGCode();
+  const { materiais } = usarArmazemMateriais(useShallow(s => ({ materiais: s.materiais })));
+  const { estado: { impressoras = [] } = {} } = usarGerenciadorImpressoras();
+
+  const { resultado, analisarArquivo, erro: erroAnalise } = usarAnalisadorGCode();
+
+  const elementoAcaoCalculadora = useMemo(() => (
+    <div className="flex items-center gap-1 bg-gray-50 dark:bg-white/5 p-1 rounded-2xl border border-gray-100 dark:border-white/5 shadow-inner">
+      {/* Seletor Customizado de Impressora */}
+      <div className="relative">
+        <button
+          onClick={() => setAbertoSeletor(!abertoSeletor)}
+          className={`flex items-center gap-3 px-4 h-11 rounded-xl transition-all duration-300 group
+            ${abertoSeletor 
+              ? "bg-white dark:bg-white/10 shadow-md" 
+              : "hover:bg-white/40 dark:hover:bg-white/5"}
+          `}
+        >
+          <div className={`p-1.5 rounded-lg transition-colors ${abertoSeletor ? "bg-sky-500 text-white" : "bg-sky-500/10 text-sky-500"}`}>
+            <Cpu size={14} />
+          </div>
+          <div className="flex flex-col items-start leading-tight">
+            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 group-hover:text-sky-500 transition-colors">Equipamento</span>
+            <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[120px]">
+              {impressoras.find(i => i.id === impressoraSelecionadaId)?.nome || "Selecionar..."}
+            </span>
+          </div>
+          <ChevronDown size={14} className={`text-gray-400 transition-transform duration-300 ${abertoSeletor ? "rotate-180" : ""}`} />
+        </button>
+
+        <AnimatePresence>
+          {abertoSeletor && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 15, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-[#121214]/95 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden z-[100]"
+            >
+              <div className="p-2 space-y-1">
+                <div className="px-3 py-2">
+                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">Suas Impressoras</span>
+                </div>
+                {impressoras.length === 0 ? (
+                  <div className="px-4 py-6 text-center">
+                    <p className="text-[10px] font-bold text-zinc-600 uppercase">Nenhuma máquina encontrada</p>
+                  </div>
+                ) : (
+                  impressoras.map(imp => (
+                    <button
+                      key={imp.id}
+                      onClick={() => {
+                        setImpressoraSelecionadaId(imp.id);
+                        setAbertoSeletor(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all group
+                        ${impressoraSelecionadaId === imp.id 
+                          ? "bg-sky-500/10 text-sky-500" 
+                          : "hover:bg-gray-50 dark:hover:bg-white/5 text-gray-600 dark:text-zinc-400"}
+                      `}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${imp.status === 'manutencao' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">{imp.nome}</span>
+                      </div>
+                      {impressoraSelecionadaId === imp.id && (
+                        <Check size={14} className="animate-in zoom-in duration-300" />
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Divisor Visual */}
+      <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+
+      {/* Botão G-Code Rápido */}
+      <label className="flex items-center gap-3 px-4 h-11 rounded-xl hover:bg-white/40 dark:hover:bg-white/5 text-zinc-400 hover:text-white transition-all cursor-pointer group">
+        <div className="p-1.5 rounded-lg bg-zinc-500/10 text-zinc-500 group-hover:bg-sky-500 group-hover:text-white transition-all">
+          <Layers size={14} />
+        </div>
+        <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">G-Code</span>
+        <input
+          type="file"
+          accept=".gcode"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) analisarArquivo(file);
+          }}
+        />
+      </label>
+    </div>
+  ), [abertoSeletor, impressoraSelecionadaId, impressoras, analisarArquivo]);
 
   usarDefinirCabecalho({
     titulo: "Calculadora Pro",
     subtitulo: "Engenharia de custos para estúdios 3D",
-    placeholderBusca: "ESTIMAR CUSTO...",
+    ocultarBusca: true,
+    ocultarNotificacoes: true,
+    elementoAcao: elementoAcaoCalculadora
   });
 
-  // Atualiza campos se houver análise de G-Code
+  // Feedback visual e auto-preenchimento
   useEffect(() => {
     if (resultado) {
       setPeso(resultado.pesoEstimadoGramas);
       setTempo(resultado.tempoEstimadoMinutos);
+      toast.success(`Parâmetros importados: ${resultado.fatiadorDetectado}`, {
+        icon: '🚀',
+        style: {
+          borderRadius: '12px',
+          background: '#121214',
+          color: '#fff',
+          fontSize: '10px',
+          fontWeight: 'bold',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          border: '1px solid rgba(255,255,255,0.1)'
+        }
+      });
     }
   }, [resultado]);
+
+  useEffect(() => {
+    if (erroAnalise) {
+      toast.error(erroAnalise, {
+        style: {
+          borderRadius: '12px',
+          background: '#121214',
+          color: '#fff',
+          fontSize: '10px',
+          fontWeight: 'bold',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          border: '1px solid rgba(255,255,255,0.1)'
+        }
+      });
+    }
+  }, [erroAnalise]);
 
   const calculo = useMemo(() => {
     return calcularCustoImpressao({
@@ -52,89 +193,37 @@ export function PaginaCalculadora() {
       precoKwhCentavos: Math.round(precoKwh * 100),
       taxaLucro: margem / 100,
       maoDeObraHoraCentavos: Math.round(maoDeObra * 100),
+      custoInsumosCentavos: Math.round(insumos * 100),
+      custoFreteCentavos: Math.round(frete * 100),
+      taxaEcommercePercentual: taxaEcommerce / 100,
+      taxaFixaVendaCentavos: Math.round(taxaFixa * 100),
     });
-  }, [peso, tempo, precoFilamento, potencia, precoKwh, margem, maoDeObra]);
+  }, [peso, tempo, precoFilamento, potencia, precoKwh, margem, maoDeObra, insumos, frete, taxaEcommerce, taxaFixa]);
+
+  // Sincroniza preço do material selecionado
+  useEffect(() => {
+    if (materialSelecionadoId) {
+      const mat = materiais.find(m => m.id === materialSelecionadoId);
+      if (mat) {
+        setPrecoFilamento((mat.precoCentavos / 100) / (mat.pesoGramas / 1000));
+      }
+    }
+  }, [materialSelecionadoId, materiais]);
+
+  // Sincroniza potência da impressora selecionada
+  useEffect(() => {
+    if (impressoraSelecionadaId) {
+      const imp = impressoras.find(i => i.id === impressoraSelecionadaId);
+      if (imp) {
+        setPotencia((imp.consumoKw ?? 0.1) * 1000); // Converte Kw para W com fallback de 100W
+      }
+    }
+  }, [impressoraSelecionadaId, impressoras]);
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* COLUNA DE INPUTS */}
       <div className="xl:col-span-8 space-y-6">
-        {/* DROPZONE G-CODE */}
-        <div
-          className={`relative p-8 rounded-3xl border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center gap-4 group overflow-hidden ${
-            analisando
-              ? "border-sky-500 bg-sky-500/5"
-              : resultado
-                ? "border-emerald-500/30 bg-emerald-500/5"
-                : "border-gray-100 dark:border-white/5 bg-white dark:bg-[#121214] hover:border-sky-500/30 shadow-sm"
-          }`}
-        >
-          <input
-            type="file"
-            accept=".gcode"
-            className="absolute inset-0 opacity-0 cursor-pointer z-20"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) analisarArquivo(file);
-            }}
-          />
-
-          <AnimatePresence mode="wait">
-            {analisando ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="flex flex-col items-center text-center"
-              >
-                <Loader2 size={40} className="text-sky-500 animate-spin mb-4" />
-                <h4 className="text-sm font-black uppercase tracking-widest">Processando Geometria...</h4>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">
-                  Extraindo parâmetros via Web Worker
-                </p>
-              </motion.div>
-            ) : resultado ? (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center text-center"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-4">
-                  <Sparkles size={24} />
-                </div>
-                <h4 className="text-sm font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-                  Parâmetros Importados com Sucesso!
-                </h4>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">
-                  {resultado.fatiadorDetectado} • {resultado.quantidadeLinhas.toLocaleString()} linhas
-                </p>
-                <button
-                  onClick={limparAnalise}
-                  className="mt-4 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-rose-500 transition-colors bg-gray-50 dark:bg-white/5 rounded-lg border border-transparent hover:border-rose-500/20"
-                >
-                  Carregar Outro Arquivo
-                </button>
-              </motion.div>
-            ) : (
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-sky-500 group-hover:bg-sky-500/10 transition-all duration-500">
-                  <FileUp size={32} strokeWidth={1.5} />
-                </div>
-                <h4 className="text-sm font-black uppercase tracking-widest mt-6">Solte seu G-Code aqui</h4>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">
-                  Auto-preenchimento inteligente de peso e tempo
-                </p>
-              </div>
-            )}
-          </AnimatePresence>
-
-          {erroAnalise && (
-            <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest mt-4 animate-bounce">
-              {erroAnalise}
-            </span>
-          )}
-        </div>
-
         {/* GRADES DE INPUTS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* CARD PROJETO */}
@@ -190,18 +279,39 @@ export function PaginaCalculadora() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
-                  Preço do Filamento (R$/kg)
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 font-['Inter']">
+                  Material Utilizado
                 </label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  pattern="[0-9]*[.,]?[0-9]*"
-                  value={precoFilamento}
-                  onChange={(e) => setPrecoFilamento(Number(e.target.value.replace(",", ".")) || 0)}
-                  className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-amber-500/50 transition-all outline-none font-black text-sm"
-                />
+                <select
+                  value={materialSelecionadoId}
+                  onChange={(e) => setMaterialSelecionadoId(e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-amber-500/50 transition-all outline-none font-black text-xs appearance-none"
+                >
+                  <option value="">Personalizado (R$ {precoFilamento.toFixed(2)}/kg)</option>
+                  {materiais.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nome} ({m.cor}) - {centavosParaReais(m.precoCentavos)}
+                    </option>
+                  ))}
+                </select>
               </div>
+              
+              {!materialSelecionadoId && (
+                <div className="col-span-2 animate-in fade-in duration-300">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                    Preço do Filamento (R$/kg)
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*[.,]?[0-9]*"
+                    value={precoFilamento}
+                    onChange={(e) => setPrecoFilamento(Number(e.target.value.replace(",", ".")) || 0)}
+                    className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-amber-500/50 transition-all outline-none font-black text-sm"
+                  />
+                </div>
+              )}
+              
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
                   Consumo (W)
@@ -228,6 +338,61 @@ export function PaginaCalculadora() {
                   className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-amber-500/50 transition-all outline-none font-black text-sm"
                 />
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════ SEÇÃO COMERCIAL & LOGÍSTICA ═══════ */}
+        <div className="p-8 rounded-3xl bg-white dark:bg-[#121214] border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
+          <div className="flex items-center gap-3 pb-4 border-b border-gray-50 dark:border-white/5">
+            <TrendingUp size={18} className="text-emerald-500" />
+            <h3 className="text-xs font-black uppercase tracking-widest">E-commerce & Logística</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                Taxa Marketplace (%)
+              </label>
+              <input
+                type="number"
+                value={taxaEcommerce}
+                onChange={(e) => setTaxaEcommerce(Number(e.target.value))}
+                className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-emerald-500/50 transition-all outline-none font-black text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                Taxa Fixa (R$)
+              </label>
+              <input
+                type="number"
+                value={taxaFixa}
+                onChange={(e) => setTaxaFixa(Number(e.target.value))}
+                className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-emerald-500/50 transition-all outline-none font-black text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                Insumos/Embalagem
+              </label>
+              <input
+                type="number"
+                value={insumos}
+                onChange={(e) => setInsumos(Number(e.target.value))}
+                className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-emerald-500/50 transition-all outline-none font-black text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                Custo de Frete (R$)
+              </label>
+              <input
+                type="number"
+                value={frete}
+                onChange={(e) => setFrete(Number(e.target.value))}
+                className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 border-transparent focus:border-emerald-500/50 transition-all outline-none font-black text-sm"
+              />
             </div>
           </div>
         </div>
@@ -328,17 +493,34 @@ export function PaginaCalculadora() {
                 <span className="text-sm font-black text-white">{centavosParaReais(calculo.custoMaoDeObra)}</span>
               </div>
 
-              <div className="pt-6 mt-6 border-t border-white/5 flex justify-between items-center">
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">
-                  Custo Total Real
+              <div className="flex justify-between items-center group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
+                    <DollarSign size={14} />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-gray-300 transition-colors">
+                    Taxas & Frete
+                  </span>
+                </div>
+                <span className="text-sm font-black text-rose-400">{centavosParaReais(calculo.taxaMarketplace + (Math.round(frete * 100)))}</span>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-white/5 flex justify-between items-center bg-emerald-500/5 -mx-10 px-10 py-4">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500/60">
+                    Líquido Real (Aproximado)
+                  </span>
+                  <span className="text-[7px] text-zinc-500 uppercase tracking-widest">Pós produção e taxas</span>
+                </div>
+                <span className="text-xl font-black text-emerald-400">
+                  {centavosParaReais(calculo.precoSugerido - calculo.taxaMarketplace - (Math.round(frete * 100)))}
                 </span>
-                <span className="text-lg font-black text-emerald-400">{centavosParaReais(calculo.custoTotal)}</span>
               </div>
             </div>
 
-            <button className="mt-12 w-full h-14 bg-white hover:bg-sky-400 text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl shadow-black/20">
+            <button className="mt-8 w-full h-14 bg-white hover:bg-sky-400 text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl shadow-black/20">
               <RefreshCcw size={16} strokeWidth={3} />
-              Refinar Estratégia
+              Salvar Orçamento
             </button>
           </div>
         </div>

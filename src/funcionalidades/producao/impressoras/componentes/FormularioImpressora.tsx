@@ -166,7 +166,7 @@ export function FormularioImpressora({
     const filtrados = termoMarca
       ? catalogoFiltrado.filter((p) => p.marca.toLowerCase() === termoMarca)
       : catalogoFiltrado;
-    return filtrados.map((p) => ({ valor: p.modelo, rotulo: `${p.nome}` }));
+    return filtrados.map((p) => ({ valor: p.modelo, rotulo: `${p.modelo}` }));
   }, [catalogoFiltrado, marcaAtiva]);
 
   /** Ao selecionar modelo, autopreenche imagem + consumo + apelido */
@@ -270,7 +270,7 @@ export function FormularioImpressora({
                 {/* FABRICANTE */}
                 <div className="space-y-2">
                   <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-                    Fabricante / Marca
+                    Marca
                   </label>
                   <Combobox
                     opcoes={opcoesFabricante}
@@ -294,7 +294,7 @@ export function FormularioImpressora({
                 {/* MODELO */}
                 <div className="space-y-2">
                   <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-                    Modelo Base
+                    Modelo
                   </label>
                   <Combobox
                     opcoes={opcoesModelo}

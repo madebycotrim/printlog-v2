@@ -14,18 +14,26 @@ interface ParametrosCusto {
   precoKwhCentavos: Centavos;
   taxaLucro?: number; // Ex: 0.3 para 30%
   maoDeObraHoraCentavos?: Centavos;
+  // Novos Parâmetros Comerciais
+  custoInsumosCentavos?: Centavos;
+  custoFreteCentavos?: Centavos;
+  taxaEcommercePercentual?: number; // Ex: 0.18 para 18%
+  taxaFixaVendaCentavos?: Centavos;
 }
 
 interface DetalhamentoCusto {
   custoMaterial: Centavos;
   custoEnergia: Centavos;
   custoMaoDeObra: Centavos;
-  custoTotal: Centavos;
+  custoInsumos: Centavos;
+  custoOperacional: Centavos; // Soma da produção
+  custoTotalReal: Centavos;     // Produção + Insumos + Frete + Taxas Fixas
+  taxaMarketplace: Centavos;  // Impacto da taxa % no preço final
   precoSugerido: Centavos;
 }
 
 /**
- * Calcula o custo detalhado de uma impressão.
+ * Calcula o custo detalhado de uma impressão com viés comercial.
  * @param params Objetos com pesos, tempos e custos base.
  */
 export function calcularCustoImpressao(params: ParametrosCusto): DetalhamentoCusto {
@@ -37,6 +45,10 @@ export function calcularCustoImpressao(params: ParametrosCusto): DetalhamentoCus
     precoKwhCentavos,
     taxaLucro = 0,
     maoDeObraHoraCentavos = 0,
+    custoInsumosCentavos = 0,
+    custoFreteCentavos = 0,
+    taxaEcommercePercentual = 0,
+    taxaFixaVendaCentavos = 0,
   } = params;
 
   // 1. Custo de Material: (g / 1000) * preco_kg
@@ -48,16 +60,29 @@ export function calcularCustoImpressao(params: ParametrosCusto): DetalhamentoCus
   // 3. Custo de Mão de Obra: (min / 60) * preco_hora
   const custoMaoDeObra = Math.round((tempoMinutos / 60) * maoDeObraHoraCentavos);
 
-  const custoTotal = custoMaterial + custoEnergia + custoMaoDeObra;
+  const custoOperacional = custoMaterial + custoEnergia + custoMaoDeObra;
 
-  // 4. Preço Sugerido com Margem
-  const precoSugerido = Math.round(custoTotal * (1 + taxaLucro));
+  // 4. Base de Lucro (Produção + Embalagem)
+  // Aplicamos a margem sobre o que o maker efetivamente "fabrica"
+  const baseLucro = (custoOperacional + custoInsumosCentavos) * (1 + taxaLucro);
+
+  // 5. Cálculo do Preço Final Revendo Taxas (Pell-formula para E-commerce)
+  // Preço Final = (BaseLucro + Frete + TaxaFixa) / (1 - Taxa%)
+  const precoSugerido = Math.round(
+    (baseLucro + custoFreteCentavos + taxaFixaVendaCentavos) / (1 - taxaEcommercePercentual)
+  );
+
+  const taxaMarketplace = Math.round(precoSugerido * taxaEcommercePercentual) + taxaFixaVendaCentavos;
+  const custoTotalReal = custoOperacional + custoInsumosCentavos + custoFreteCentavos + taxaMarketplace;
 
   return {
     custoMaterial,
     custoEnergia,
     custoMaoDeObra,
-    custoTotal,
+    custoInsumos: custoInsumosCentavos,
+    custoOperacional,
+    custoTotalReal,
+    taxaMarketplace,
     precoSugerido,
   };
 }

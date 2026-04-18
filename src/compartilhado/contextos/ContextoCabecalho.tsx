@@ -20,6 +20,7 @@ type DadosCabecalho = {
   subtitulo: string;
   placeholderBusca?: string;
   ocultarBusca?: boolean;
+  ocultarNotificacoes?: boolean;
   acao?: AcaoCabecalho;
   segundaAcao?: AcaoCabecalho;
   elementoAcao?: ReactNode; // Mantido para compatibilidade ou casos customizados
@@ -138,6 +139,8 @@ export function usarDefinirCabecalho(dadosInput: DadosCabecalho) {
     dadosInput.subtitulo,
     dadosInput.placeholderBusca,
     dadosInput.ocultarBusca,
+    dadosInput.ocultarNotificacoes,
+    dadosInput.elementoAcao,
     // Propriedades específicas da ação para disparar atualização visual
     dadosInput.acao?.texto,
     dadosInput.acao?.icone,

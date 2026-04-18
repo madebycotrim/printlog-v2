@@ -7,7 +7,8 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   AuthError,
   setPersistence,
   browserLocalPersistence,
@@ -97,8 +98,18 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
     const configurarPersistencia = async () => {
       try {
         await setPersistence(autenticacao, browserLocalPersistence);
+        
+        // Captura o resultado do redirecionamento (Google Login)
+        const resultado = await getRedirectResult(autenticacao);
+        if (resultado) {
+          registrar.info(
+            { rastreioId: resultado.user.uid, servico: "Autenticacao", evento: "LOGIN_REDIRECT_SUCESSO" },
+            "Retorno de redirecionamento do Google processado com sucesso"
+          );
+        }
       } catch (erro) {
-        registrar.error({ rastreioId: "sistema", servico: "Autenticacao" }, "Erro ao configurar persistência", erro);
+        registrar.error({ rastreioId: "sistema", servico: "Autenticacao" }, "Erro ao configurar persistência ou capturar redirect", erro);
+        // Opcional: tratar erros específicos de redirect aqui se necessário
       }
     };
     configurarPersistencia();
@@ -236,11 +247,8 @@ export function ProvedorAutenticacao({ children }: ProvedorAutenticacaoProps) {
   const loginGoogle = async () => {
     try {
       const provedor = new GoogleAuthProvider();
-      const credencial = await signInWithPopup(autenticacao, provedor);
-      registrar.info(
-        { rastreioId: credencial.user.uid, servico: "Autenticacao", evento: "LOGIN_GOOGLE_SUCESSO" },
-        "Login realizado com sucesso via Google"
-      );
+      // Usamos Redirect em vez de Popup para evitar erros de COOP/CORS em navegadores modernos
+      await signInWithRedirect(autenticacao, provedor);
     } catch (erro: unknown) {
       registrar.warn(
         { rastreioId: "desconhecido", servico: "Autenticacao", evento: "LOGIN_GOOGLE_FALHA" },
