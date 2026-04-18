@@ -6,7 +6,9 @@ import { useEffect, useRef, useState } from "react";
  * - Desenvolvimento: fallback para chave de teste da Cloudflare (sempre passa)
  */
 const CHAVE_TURNSTILE =
-    import.meta.env.VITE_TURNSTILE_SITE_KEY || "1x00000000000000000000AA";
+    (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"))
+        ? "1x00000000000000000000AA"
+        : import.meta.env.VITE_TURNSTILE_SITE_KEY || "1x00000000000000000000AA";
 
 interface ComponenteTurnstileProps {
     aoValidar: (token: string) => void;
@@ -47,7 +49,7 @@ export function ComponenteTurnstile({ aoValidar, aoExpirar }: ComponenteTurnstil
         let montado = true;
 
         const renderizarWidget = () => {
-            if (!containerRef.current || widgetIdRef.current) return;
+            if (!containerRef.current || widgetIdRef.current || !montado) return;
 
             try {
                 widgetIdRef.current = (window as any).turnstile.render(containerRef.current, {
@@ -59,15 +61,13 @@ export function ComponenteTurnstile({ aoValidar, aoExpirar }: ComponenteTurnstil
                     "expired-callback": () => {
                         if (montado) {
                             aoExpirar?.();
+                            // Reset apenas em expiração, pois o token ficou velho
                             if (widgetIdRef.current) (window as any).turnstile.reset(widgetIdRef.current);
                         }
                     },
                     "error-callback": (errorCode: string) => {
-                        console.error("[Turnstile] Erro de validação:", errorCode);
-                        // Tenta resetar automaticamente em caso de erro 110200 ou similares
-                        if (montado && widgetIdRef.current) {
-                            (window as any).turnstile.reset(widgetIdRef.current);
-                        }
+                        // Não resetamos em caso de erro crítico (110200 etc) para evitar loops infinitos
+                        console.warn(`[Turnstile] Erro ${errorCode}: Verifique se o domínio está autorizado para esta SiteKey.`);
                     }
                 });
             } catch (erro) {
