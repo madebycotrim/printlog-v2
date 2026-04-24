@@ -5,7 +5,7 @@
  */
 
 /** Extensões permitidas para upload no PrintLog */
-const EXTENSOES_PERMITIDAS = [".gcode"] as const;
+const EXTENSOES_PERMITIDAS = [".gcode", ".3mf"] as const;
 
 /** Tamanho máximo de arquivo: 50MB (G-Code pode ser grande) */
 const TAMANHO_MAXIMO_BYTES = 50 * 1024 * 1024;

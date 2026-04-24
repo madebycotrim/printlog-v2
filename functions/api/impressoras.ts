@@ -57,8 +57,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                     marca, modelo_base, imagem_url,
                     taxa_hora_centavos, horimetro_total_minutos,
                     intervalo_revisao_minutos, valor_compra_centavos,
-                    observacoes, data_criacao
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    observacoes, potencia_watts, consumo_kw, data_criacao
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
                 novoId, 
                 usuarioId, 
@@ -73,6 +73,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 dados.intervaloRevisaoMinutos ?? dados.intervalo_revisao_minutos ?? 30000,
                 dados.valorCompraCentavos ?? dados.valor_compra_centavos ?? 0,
                 dados.observacoes ?? null,
+                dados.potenciaWatts ?? dados.potencia_watts ?? 0,
+                dados.consumoKw ?? dados.consumo_kw ?? 0,
                 new Date().toISOString()
             ).run();
             return new Response(JSON.stringify({ id: novoId, sucesso: true }), { status: 201 });
@@ -86,7 +88,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                     marca = ?, modelo_base = ?, imagem_url = ?,
                     taxa_hora_centavos = ?, horimetro_total_minutos = ?,
                     intervalo_revisao_minutos = ?, valor_compra_centavos = ?,
-                    observacoes = ?, data_aposentadoria = ?
+                    observacoes = ?, potencia_watts = ?, consumo_kw = ?, data_aposentadoria = ?
                 WHERE id = ? AND id_usuario = ?
             `).bind(
                 dados.nome ?? null, 
@@ -100,6 +102,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 dados.intervaloRevisaoMinutos ?? dados.intervalo_revisao_minutos ?? 30000, 
                 dados.valorCompraCentavos ?? dados.valor_compra_centavos ?? 0,
                 dados.observacoes ?? null, 
+                dados.potenciaWatts ?? dados.potencia_watts ?? 0,
+                dados.consumoKw ?? dados.consumo_kw ?? 0,
                 dados.dataAposentadoria ?? dados.data_aposentadoria ?? null,
                 dados.id, 
                 usuarioId

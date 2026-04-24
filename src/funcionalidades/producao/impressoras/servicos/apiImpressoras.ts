@@ -20,6 +20,7 @@ export const apiImpressoras = {
             horimetroTotalMinutos: i.horimetro_total_minutos,
             intervaloRevisaoMinutos: i.intervalo_revisao_minutos,
             valorCompraCentavos: i.valor_compra_centavos,
+            potenciaWatts: i.potencia_watts,
             dataAposentadoria: i.data_aposentadoria,
             dataCriacao: i.data_criacao ? new Date(i.data_criacao) : new Date(),
             dataAtualizacao: new Date()
@@ -28,13 +29,27 @@ export const apiImpressoras = {
 
     salvar: async (dados: Partial<Impressora>, usuarioId: string): Promise<Impressora> => {
         const metodo = dados.id ? "PATCH" : "POST";
+        
+        // Converte camelCase para snake_case para o D1
+        const payload = {
+            ...dados,
+            modelo_base: dados.modeloBase,
+            imagem_url: dados.imagemUrl,
+            taxa_hora_centavos: dados.taxaHoraCentavos,
+            horimetro_total_minutos: dados.horimetroTotalMinutos,
+            intervalo_revisao_minutos: dados.intervaloRevisaoMinutos,
+            valor_compra_centavos: dados.valorCompraCentavos,
+            potencia_watts: dados.potenciaWatts,
+            data_aposentadoria: dados.dataAposentadoria
+        };
+
         const resposta = await fetch("/api/impressoras", {
             method: metodo,
             headers: { 
                 "Content-Type": "application/json",
                 "x-usuario-id": usuarioId 
             },
-            body: JSON.stringify(dados)
+            body: JSON.stringify(payload)
         });
 
         if (!resposta.ok) throw new Error("Erro ao salvar impressora no banco.");
