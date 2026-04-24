@@ -8,7 +8,6 @@ interface InterfaceTopico {
   conteudo: string;
   nivel: string;
   atualizado: string;
-  atualizado: string;
   categoria?: string;
   cor?: string;
   level?: string;
@@ -79,9 +78,6 @@ export function ModalDetalhesTopico({ topico, aoFechar }: Propriedades) {
             {topico.conteudo}
           </p>
         </div>
-
-        </div>
-      </div>
       </div>
     </Dialogo>
   );

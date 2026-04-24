@@ -1,6 +1,6 @@
 import { Zap, Clock, Wrench, Percent, Settings } from "lucide-react";
 import { CabecalhoCard, CampoDashboard } from "./Compartilhados";
-import { formatarMoedaBr, formatarPorcentagem } from "@/compartilhado/utilitarios/formatadores";
+import { formatarMoedaFinancas, formatarPorcentagem, extrairValorNumerico } from "@/compartilhado/utilitarios/formatadores";
 
 interface PropsCardOperacional {
     custoEnergia: string;
@@ -33,19 +33,19 @@ export function CardOperacional({
                 <CampoDashboard
                     label="Energia (R$/kWh)"
                     valor={custoEnergia}
-                    aoMudar={(v) => definirCustoEnergia(formatarMoedaBr(v))}
+                    aoMudar={(v) => definirCustoEnergia(formatarMoedaFinancas(extrairValorNumerico(v), 2))}
                     icone={Zap}
                 />
                 <CampoDashboard
                     label="Máquina (R$/h)"
                     valor={horaMaquina}
-                    aoMudar={(v) => definirHoraMaquina(formatarMoedaBr(v))}
+                    aoMudar={(v) => definirHoraMaquina(formatarMoedaFinancas(v.includes(",") ? Number(v.replace("R$", "").replace(",", ".")) : extrairValorNumerico(v), v.split(",")[1]?.length > 2 ? 3 : 2))}
                     icone={Clock}
                 />
                 <CampoDashboard
                     label="Operador (R$/h)"
                     valor={horaOperador}
-                    aoMudar={(v) => definirHoraOperador(formatarMoedaBr(v))}
+                    aoMudar={(v) => definirHoraOperador(formatarMoedaFinancas(extrairValorNumerico(v), 2))}
                     icone={Wrench}
                 />
                 <CampoDashboard
@@ -55,6 +55,7 @@ export function CardOperacional({
                     icone={Percent}
                 />
             </div>
+
             <div className="mt-auto bg-amber-50/80 dark:bg-amber-500/[0.05] p-4 rounded-2xl border border-amber-200 dark:border-amber-500/20 flex gap-3 items-start">
                 <Settings size={18} className="text-amber-500 shrink-0 mt-0.5" />
                 <p className="text-xs leading-relaxed text-amber-800 dark:text-amber-300/90 text-justify">

@@ -25,6 +25,31 @@ export function centavosParaReais(centavos: number): string {
 }
 
 /**
+ * Converte centavos ou valor decimal para string formatada de Reais com precisão variável.
+ * @param valor - Valor numérico
+ * @param decimais - Quantidade de casas decimais (padrão 2)
+ */
+export function formatarMoedaFinancas(valor: number, decimais = 2): string {
+    return valor.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: decimais,
+        maximumFractionDigits: decimais,
+    });
+}
+
+/**
+ * Extrai o valor numérico de uma string formatada (R$, %, etc)
+ * Suporta vírgula decimal brasileira.
+ */
+export function extrairValorNumerico(valor: string): number {
+    if (!valor) return 0;
+    const apenasValores = valor.replace("R$", "").replace("%", "").trim().replace(".", "").replace(",", ".");
+    const num = Number(apenasValores);
+    return isNaN(num) ? 0 : num;
+}
+
+/**
  * Formata um valor numérico para porcentagem (00,00%)
  * @param valor - String de dígitos
  * @returns String formatada com %
