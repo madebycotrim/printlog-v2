@@ -82,13 +82,14 @@ export const onRequest: PagesFunction<Env, any, { uid: string; email: string }> 
 
     // BLOQUEIO DE ADMIN: Se a rota for /api/admin, valida se o e-mail é o do dono
     if (url.pathname.startsWith("/api/admin")) {
-        const emailUsuario = context.data.email;
-        const emailDono = env.EMAIL_DONO;
+        const emailUsuario = (context.data.email || "").trim().toLowerCase();
+        const emailDono = (env.EMAIL_DONO || "").trim().toLowerCase();
 
-        if (!emailUsuario || !emailDono || emailUsuario.toLowerCase() !== emailDono.toLowerCase()) {
-            console.error(`[Seguranca] Tentativa de acesso não autorizado à rota admin por: ${emailUsuario} (UID: ${uid})`);
+        if (!emailUsuario || !emailDono || emailUsuario !== emailDono) {
+            console.error(`[Seguranca] Bloqueio Admin: Usuario(${emailUsuario}) vs Dono(${emailDono})`);
             return new Response(JSON.stringify({ 
-                erro: "Acesso negado. Esta área é restrita ao administrador.",
+                erro: "Acesso negado.",
+                motivo: `Comparação falhou. Logado: '${emailUsuario}' vs Esperado: '${emailDono}'`,
                 codigo: "ADMIN_REQUIRED"
             }), { 
                 status: 403,
