@@ -46,8 +46,8 @@ export function GraficoConsumo() {
     }, [materiais]);
 
     useEffect(() => {
-        // Aguarda um pouco mais para garantir que o layout CSS (Tailwind) terminou de processar
-        const construtor = setTimeout(() => setIsMounted(true), 150);
+        // Aguarda a animação de entrada da página (AnimatePresence) terminar
+        const construtor = setTimeout(() => setIsMounted(true), 500);
         return () => clearTimeout(construtor);
     }, []);
 
@@ -66,7 +66,7 @@ export function GraficoConsumo() {
 
             <div className="h-[300px] w-full relative min-h-[300px] overflow-hidden">
                 {isMounted && (
-                    <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                    <ResponsiveContainer width="99%" height="100%" debounce={100} minWidth={0}>
                         <AreaChart data={dadosGrafico} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">

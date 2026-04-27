@@ -1,13 +1,11 @@
 import { motion } from "framer-motion";
 
 interface PropriedadesCarregamento {
-  tipo?: "global" | "pulse";
+  tipo?: "global" | "pulse" | "ponto";
   mensagem?: string;
   texto?: string;
 }
 
-// Assuming BarraProgressoSuperior is a new component that needs to be defined or imported elsewhere.
-// For the purpose of this edit, we'll just include its usage as provided.
 function BarraProgressoSuperior() {
   return (
     <motion.div
@@ -26,10 +24,6 @@ function BarraProgressoSuperior() {
   );
 }
 
-/**
- * Componente de Carregamento Padronizado (v9.0)
- * Substitui spinners por uma experiência minimalista e instantânea.
- */
 export function Carregamento({ tipo = "global", mensagem, texto }: PropriedadesCarregamento) {
   if (tipo === "global") {
     return (
@@ -41,6 +35,34 @@ export function Carregamento({ tipo = "global", mensagem, texto }: PropriedadesC
               {mensagem || texto}
             </p>
           </div>
+        )}
+      </div>
+    );
+  }
+
+  if (tipo === "ponto") {
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex gap-1.5">
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0.2 }}
+              animate={{ opacity: [0.2, 1, 0.2] }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+                delay: i * 0.2,
+                ease: "easeInOut",
+              }}
+              className="w-1.5 h-1.5 rounded-full bg-sky-500"
+            />
+          ))}
+        </div>
+        {(mensagem || texto) && (
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600">
+            {mensagem || texto}
+          </span>
         )}
       </div>
     );

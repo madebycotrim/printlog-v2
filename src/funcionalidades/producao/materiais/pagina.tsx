@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Plus, PackageSearch } from "lucide-react";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { Carregamento } from "@/compartilhado/componentes/Carregamento";
@@ -29,24 +29,41 @@ export function PaginaMateriais() {
   });
 
   return (
-    <div className="space-y-10">
-      <motion.div
-        className="relative"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-      >
-        {estado.carregando && estado.materiais.length > 0 && <Carregamento texto="Carregando materiais..." />}
-        {estado.materiais.length === 0 ? (
-          <EstadoVazio
-            titulo="Nenhum material encontrado"
-            descricao="Adicione o seu primeiro material para gerenciar o seu estoque de matéria prima."
-            icone={PackageSearch}
-            textoBotao="Cadastrar Material"
-            aoClicarBotao={() => acoes.abrirEditar(null as unknown as Material)}
-          />
+    <div className="space-y-10 min-h-[60vh] flex flex-col">
+      <AnimatePresence mode="wait">
+        {estado.carregando && estado.materiais.length === 0 ? (
+          <motion.div
+            key="carregando"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex-1 flex flex-col items-center justify-center py-40"
+          >
+            <Carregamento tipo="ponto" mensagem="Sincronizando materiais e filamentos..." />
+          </motion.div>
+        ) : estado.materiais.length === 0 ? (
+          <motion.div
+            key="vazio"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <EstadoVazio
+              titulo="Nenhum material encontrado"
+              descricao="Adicione o seu primeiro material para gerenciar o seu estoque de matéria prima."
+              icone={PackageSearch}
+              textoBotao="Cadastrar Material"
+              aoClicarBotao={() => acoes.abrirEditar(null as unknown as Material)}
+            />
+          </motion.div>
         ) : (
-          <>
+          <motion.div
+            key="conteudo"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="relative"
+          >
             <ResumoEstoque
               materiais={estado.materiais}
               totalEmbalagens={estado.metricas.totalEmbalagens}
@@ -72,9 +89,9 @@ export function PaginaMateriais() {
               aoHistorico={(m, aba) => acoes.abrirHistorico(m.id, aba)}
               aoExcluir={(m) => acoes.abrirExcluir(m.id)}
             />
-          </>
+          </motion.div>
         )}
-      </motion.div>
+      </AnimatePresence>
 
       {/* Modal de Cadastro/Edição */}
       <FormularioMaterial

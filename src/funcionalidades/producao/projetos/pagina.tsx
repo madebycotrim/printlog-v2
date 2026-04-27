@@ -12,6 +12,8 @@ import { CriarPedidoInput, Pedido } from "./tipos";
 import { filtrarPedidosAtrasados } from "@/compartilhado/utilitarios/gestaoAtrasos";
 import { AlertTriangle } from "lucide-react";
 import { ResumoProjetos } from "./componentes/ResumoProjetos";
+import { motion, AnimatePresence } from "framer-motion";
+import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 
 export function PaginaProjetos() {
   const [modalAberto, setModalAberto] = useState(false);
@@ -54,30 +56,54 @@ export function PaginaProjetos() {
   };
 
   return (
-    <div className="flex-1 flex flex-col space-y-8 animate-in fade-in duration-500 overflow-hidden">
-      {pedidos.length > 0 && (
-        <ResumoProjetos 
-          pedidos={pedidos} 
-          aoAbrirArquivo={() => setModalArquivoAberto(true)} 
-          aoAbrirAtrasados={() => setModalAtrasadosAberto(true)} 
-        />
-      )}
+    <div className="flex-1 flex flex-col min-h-[60vh]">
+      <AnimatePresence mode="wait">
+        {carregando && pedidos.length === 0 ? (
+          <motion.div
+            key="carregando"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex-1 flex flex-col items-center justify-center py-40"
+          >
+            <Carregamento tipo="ponto" mensagem="Organizando fluxo de produção..." />
+          </motion.div>
+        ) : pedidos.length === 0 ? (
+          <motion.div
+            key="vazio"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex-1 flex items-center justify-center"
+          >
+            <EstadoVazio
+              titulo="Nenhum pedido no fluxo"
+              descricao="Crie o seu primeiro pedido para iniciar a gestão de produção no Kanban."
+              icone={FolderKanban}
+              textoBotao="Novo Pedido"
+              aoClicarBotao={() => setModalAberto(true)}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="conteudo"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="flex-1 flex flex-col space-y-8 overflow-hidden"
+          >
+            <ResumoProjetos 
+              pedidos={pedidos} 
+              aoAbrirArquivo={() => setModalArquivoAberto(true)} 
+              aoAbrirAtrasados={() => setModalAtrasadosAberto(true)} 
+            />
 
-      {pedidos.length === 0 && !carregando ? (
-        <div className="flex-1 flex items-center justify-center">
-          <EstadoVazio
-            titulo="Nenhum pedido no fluxo"
-            descricao="Crie o seu primeiro pedido para iniciar a gestão de produção no Kanban."
-            icone={FolderKanban}
-            textoBotao="Novo Pedido"
-            aoClicarBotao={() => setModalAberto(true)}
-          />
-        </div>
-      ) : (
-        <div className="flex-1 min-h-0">
-          <QuadroKanban pedidosInjetados={pedidosFiltrados} aoEditar={aoEditar} aoMover={moverPedido} />
-        </div>
-      )}
+            <div className="flex-1 min-h-0">
+              <QuadroKanban pedidosInjetados={pedidosFiltrados} aoEditar={aoEditar} aoMover={moverPedido} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <FormularioPedido
         aberto={modalAberto}

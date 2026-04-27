@@ -1,6 +1,6 @@
 import { RegistroManutencao } from "../tipos";
 import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
-import { registroManutencaoSchema } from "../schemas";
+import { registroManutencaoSchema } from "../esquemas";
 
 /**
  * Serviço de comunicação com a API de Manutenções do Cloudflare D1.

@@ -1,6 +1,6 @@
 import { PecaDesgaste } from "../tipos";
 import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
-import { pecaDesgasteSchema } from "../schemas";
+import { pecaDesgasteSchema } from "../esquemas";
 
 /**
  * Serviço de comunicação com a API de Peças de Desgaste do Cloudflare D1.

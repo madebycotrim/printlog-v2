@@ -1,6 +1,6 @@
 import { LancamentoFinanceiro, CriarLancamentoInput } from "../tipos";
 import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
-import { criarLancamentoSchema } from "../schemas";
+import { criarLancamentoSchema } from "../esquemas";
 
 /**
  * Serviço de comunicação com a API Financeira do Cloudflare D1.

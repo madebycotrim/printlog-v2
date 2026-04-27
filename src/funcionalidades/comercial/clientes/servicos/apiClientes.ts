@@ -1,6 +1,6 @@
 import { Cliente } from "../tipos";
 import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
-import { clienteSchema } from "../schemas";
+import { esquemaCliente } from "../esquemas";
 
 /**
  * Serviço de comunicação com a API de Clientes do Cloudflare D1.
@@ -23,7 +23,7 @@ export const apiClientes = {
 
     salvar: async (dados: Partial<Cliente>, _usuarioId: string): Promise<Cliente> => {
         // Validação de segurança no cliente
-        const dadosValidados = clienteSchema.partial().parse(dados);
+        const dadosValidados = esquemaCliente.partial().parse(dados);
         const metodo = dados.id ? "PATCH" : "POST";
 
         return servicoBaseApi.requisicao<Cliente>("/api/clientes", {

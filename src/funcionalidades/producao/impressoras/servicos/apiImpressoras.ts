@@ -1,6 +1,6 @@
 import { Impressora } from "../tipos";
 import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
-import { impressoraSchema } from "../schemas";
+import { impressoraSchema } from "../esquemas";
 
 /**
  * Serviço de comunicação com a API de Impressoras do Cloudflare D1.

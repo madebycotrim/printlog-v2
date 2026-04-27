@@ -27,25 +27,41 @@ export function PaginaClientes() {
   });
 
   return (
-    <div className="space-y-10">
-      <motion.div
-        className="relative space-y-8"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-      >
-        {estado.carregando && <Carregamento texto="Sincronizando base de clientes..." />}
-
-        {estado.clientes.length === 0 ? (
-          <EstadoVazio
-            titulo="Nenhum cliente no radar"
-            descricao="Sua base de clientes está vazia. Comece cadastrando um cliente VIP para iniciar seu ecossistema."
-            icone={Users}
-            textoBotao="Novo Cadastro Manual"
-            aoClicarBotao={() => acoes.abrirEditar()}
-          />
+    <div className="space-y-10 min-h-[60vh] flex flex-col">
+      <AnimatePresence mode="wait">
+        {estado.carregando && estado.clientes.length === 0 ? (
+          <motion.div
+            key="carregando"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex-1 flex flex-col items-center justify-center py-40"
+          >
+            <Carregamento tipo="ponto" mensagem="Sincronizando base comercial..." />
+          </motion.div>
+        ) : estado.clientes.length === 0 ? (
+          <motion.div
+            key="vazio"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <EstadoVazio
+              titulo="Nenhum cliente no radar"
+              descricao="Sua base de clientes está vazia. Comece cadastrando um cliente VIP para iniciar seu ecossistema."
+              icone={Users}
+              textoBotao="Novo Cadastro Manual"
+              aoClicarBotao={() => acoes.abrirEditar()}
+            />
+          </motion.div>
         ) : (
-          <>
+          <motion.div
+            key="conteudo"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="relative space-y-8"
+          >
             <ResumoClientes clientes={estado.clientes} />
 
             <div className="mt-8">
@@ -82,9 +98,9 @@ export function PaginaClientes() {
                 </AnimatePresence>
               </div>
             )}
-          </>
+          </motion.div>
         )}
-      </motion.div>
+      </AnimatePresence>
 
       <FormularioCliente
         aberto={estado.modalAberto}

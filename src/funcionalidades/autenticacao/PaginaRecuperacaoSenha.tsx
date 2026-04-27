@@ -106,7 +106,7 @@ export function PaginaRecuperacaoSenha() {
                   <span className="animate-pulse">Enviando...</span>
                 ) : (
                   <>
-                    <span>Enviar Link de Recuperação</span>
+                    <span>Redefinir Senha</span>
                     <ArrowRight size={18} />
                   </>
                 )}

@@ -1,6 +1,6 @@
 import { Pedido } from "../tipos";
 import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
-import { criarPedidoSchema, atualizarPedidoSchema, CriarPedidoInput, AtualizarPedidoInput } from "../schemas";
+import { criarPedidoSchema, atualizarPedidoSchema, CriarPedidoInput, AtualizarPedidoInput } from "../esquemas";
 
 /**
  * Serviço de comunicação com a API de Pedidos do Cloudflare.

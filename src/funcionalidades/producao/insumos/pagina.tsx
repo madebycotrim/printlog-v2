@@ -30,25 +30,40 @@ export function PaginaInsumos() {
   });
 
   return (
-    <div className="space-y-10">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-      >
-        {estado.carregando && estado.insumos.length > 0 && (
-          <Carregamento tipo="global" mensagem="Carregando insumos..." />
-        )}
-        {estado.insumos.length === 0 ? (
-          <EstadoVazio
-            titulo="Nenhum insumo encontrado"
-            descricao="Adicione o seu primeiro insumo para gerenciar o seu estoque de apoio logístico."
-            icone={Box}
-            textoBotao="Cadastrar Insumo"
-            aoClicarBotao={() => acoes.abrirEditar()}
-          />
+    <div className="space-y-10 min-h-[60vh] flex flex-col">
+      <AnimatePresence mode="wait">
+        {estado.carregando && estado.insumos.length === 0 ? (
+          <motion.div
+            key="carregando"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex-1 flex flex-col items-center justify-center py-40"
+          >
+            <Carregamento tipo="ponto" mensagem="Sincronizando almoxarifado..." />
+          </motion.div>
+        ) : estado.insumos.length === 0 ? (
+          <motion.div
+            key="vazio"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <EstadoVazio
+              titulo="Nenhum insumo encontrado"
+              descricao="Adicione o seu primeiro insumo para gerenciar o seu estoque de apoio logístico."
+              icone={Box}
+              textoBotao="Cadastrar Insumo"
+              aoClicarBotao={() => acoes.abrirEditar()}
+            />
+          </motion.div>
         ) : (
-          <div className=" ">
+          <motion.div
+            key="conteudo"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <ResumoInsumos
               totalItensUnicos={estado.kpis.totalItens}
               valorInvestido={estado.kpis.valorInvestido}
@@ -98,7 +113,7 @@ export function PaginaInsumos() {
                       </div>
 
                       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                        {lista.map((ins, index) => (
+                        {lista.map((ins) => (
                           <CardInsumo
                             key={ins.id}
                             insumo={ins}
@@ -115,9 +130,9 @@ export function PaginaInsumos() {
                 </AnimatePresence>
               </div>
             )}
-          </div>
+          </motion.div>
         )}
-      </motion.div>
+      </AnimatePresence>
 
       {/* MODAIS DE APOIO */}
       <FormularioInsumo

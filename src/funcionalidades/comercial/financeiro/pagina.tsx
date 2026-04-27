@@ -51,25 +51,41 @@ export function PaginaFinanceiro() {
   });
 
   return (
-    <div className="space-y-10">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="space-y-8"
-      >
-        {carregando && lancamentos.length > 0 ? (
-          <Carregamento tipo="pulse" texto="Sincronizando Lançamentos" />
+    <div className="space-y-10 min-h-[60vh] flex flex-col">
+      <AnimatePresence mode="wait">
+        {carregando && lancamentos.length === 0 ? (
+          <motion.div
+            key="carregando"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex-1 flex flex-col items-center justify-center py-40"
+          >
+            <Carregamento tipo="ponto" mensagem="Calculando rentabilidade e fluxo..." />
+          </motion.div>
         ) : lancamentos.length === 0 ? (
-          <EstadoVazio
-            titulo="Fluxo de caixa vazio"
-            descricao="Comece registrando suas contas para visualizar sua rentabilidade e margem de lucro real."
-            icone={ReceiptText}
-            textoBotao="Novo Lançamento"
-            aoClicarBotao={() => setModalAberto(true)}
-          />
+          <motion.div
+            key="vazio"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <EstadoVazio
+              titulo="Fluxo de caixa vazio"
+              descricao="Comece registrando suas contas para visualizar sua rentabilidade e margem de lucro real."
+              icone={ReceiptText}
+              textoBotao="Novo Lançamento"
+              aoClicarBotao={() => setModalAberto(true)}
+            />
+          </motion.div>
         ) : (
-          <>
+          <motion.div
+            key="conteudo"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="space-y-8"
+          >
             <ResumoFinanceiroComponente resumo={resumo} lucratividadePercentual={dre.lucratividadePercentual} />
 
             {/* Banner de Status DRE Premium */}
@@ -132,9 +148,9 @@ export function PaginaFinanceiro() {
                 </motion.div>
               </AnimatePresence>
             )}
-          </>
+          </motion.div>
         )}
-      </motion.div>
+      </AnimatePresence>
 
       <FormularioLancamento
         aberto={modalAberto}

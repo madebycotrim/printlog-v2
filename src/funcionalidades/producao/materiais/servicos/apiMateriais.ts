@@ -1,6 +1,6 @@
 import { Material } from "../tipos";
 import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
-import { materialSchema, registroUsoSchema } from "../schemas";
+import { materialSchema, registroUsoSchema } from "../esquemas";
 
 /**
  * Serviço de integração com o Cloudflare D1 via Pages Functions.

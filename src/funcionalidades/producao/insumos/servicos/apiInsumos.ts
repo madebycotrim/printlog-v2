@@ -1,6 +1,6 @@
 import { Insumo, RegistroMovimentacaoInsumo } from "../tipos";
 import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
-import { insumoSchema, registroMovimentacaoInsumoSchema } from "../schemas";
+import { insumoSchema, registroMovimentacaoInsumoSchema } from "../esquemas";
 
 /**
  * Serviço de integração com o Cloudflare D1 via Pages Functions.

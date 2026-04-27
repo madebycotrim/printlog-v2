@@ -20,7 +20,7 @@ import { usarBeta } from "@/compartilhado/contextos/ContextoBeta";
 import { usarArmazemConfiguracoes } from "./estado/armazemConfiguracoes";
 
 export function PaginaConfiguracoes() {
-  const { usuario, atualizarPerfil, recuperarSenha } = usarAutenticacao();
+  const { usuario, atualizarPerfil, recuperarSenha, sair } = usarAutenticacao();
   const contextoTema = usarContextoTema();
   const beta = usarBeta();
   const config = usarArmazemConfiguracoes();
@@ -219,6 +219,8 @@ export function PaginaConfiguracoes() {
               definirNome={definirNome}
               sucessoEmail={sucessoLink}
               lidarComTrocaSenha={lidarComTrocaSenha}
+              lidarComSalvar={lidarComSalvar}
+              lidarComSair={sair}
               pendente={perfilPendente}
             />
           </motion.div>

@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 import { 
   Settings, Check, X, Plus, 
   ChevronDown, Box, Package, History
@@ -36,7 +38,8 @@ export function PaginaCalculadora() {
   const { usuario } = usarAutenticacao();
   const config = usarArmazemConfiguracoes();
   const { criarPedido } = usarPedidos();
-  const { estado: { impressoras = [] } = {} } = usarGerenciadorImpressoras();
+  const { estado } = usarGerenciadorImpressoras();
+  const { impressoras = [] } = estado;
   const { materiais } = usarArmazemMateriais();
   const { insumos: insumosEstoque, adicionarOuAtualizarInsumo, abrirEditar: abrirCriarInsumo, modalCricaoAberto: modalInsumoAberto, fecharEditar: fecharInsumoAberto, insumoEditando } = usarArmazemInsumos();
   const { estado: estadoMateriais, acoes: acoesMateriais } = usarGerenciadorMateriais();
@@ -190,6 +193,8 @@ export function PaginaCalculadora() {
     </div>
   ), [abertoSeletor, hook.impressoraSelecionadaId, impressoraSelecionada?.nome, impressoras]);
 
+  const carregandoDados = estadoMateriais.carregando || (estado && estado.carregando && impressoras.length === 0);
+
   usarDefinirCabecalho({ 
     titulo: "Precificação Inteligente", 
     subtitulo: "Engenharia de custos e rentabilidade", 
@@ -198,7 +203,25 @@ export function PaginaCalculadora() {
   });
 
   return (
-    <div className="absolute inset-0 grid grid-cols-1 xl:grid-cols-12 gap-8 overflow-hidden px-6 md:px-12">
+    <AnimatePresence mode="wait">
+      {carregandoDados ? (
+        <motion.div
+          key="carregando"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 flex flex-col items-center justify-center bg-white dark:bg-[#0c0c0e]"
+        >
+          <Carregamento tipo="ponto" mensagem="Sincronizando inteligência de custos..." />
+        </motion.div>
+      ) : (
+        <motion.div
+          key="conteudo"
+          initial={{ opacity: 0, scale: 0.99 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="absolute inset-0 grid grid-cols-1 xl:grid-cols-12 gap-8 overflow-hidden px-6 md:px-12"
+        >
       <div className="xl:col-span-8 space-y-6 h-full overflow-y-auto pt-8 pb-20 scrollbar-hide">
         
         <CardMateriais 
@@ -576,6 +599,8 @@ export function PaginaCalculadora() {
       </ModalListagemPremium>
 
       <FormularioInsumo aberto={modalInsumoAberto} aoCancelar={fecharInsumoAberto} insumoEditando={insumoEditando} aoSalvar={(dados) => adicionarOuAtualizarInsumo({ ...dados, id: dados.id || crypto.randomUUID(), dataCriacao: dados.dataCriacao || new Date(), dataAtualizacao: new Date(), historico: dados.historico || [] } as any)} />
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -1,5 +1,5 @@
 import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
-import { configuracoesSchema } from "../schemas";
+import { configuracoesSchema } from "../esquemas";
 
 export interface ConfiguracoesSalvas {
   custoEnergia: string;

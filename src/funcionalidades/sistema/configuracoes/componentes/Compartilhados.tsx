@@ -15,16 +15,17 @@ export function CampoDashboard({ label, valor, aoMudar, placeholder, icone: Icon
                 {label}
             </label>
             <div className="relative group">
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-600 group-focus-within:text-gray-900 dark:group-focus-within:text-white transition-colors duration-300">
-                    <Icone size={16} />
-                </span>
-                <input
-                    type="text"
-                    value={valor}
-                    onChange={(e) => aoMudar(e.target.value)}
-                    placeholder={placeholder}
-                    className="h-11 w-full bg-transparent border-b-2 border-gray-200 dark:border-white/10 pl-8 pr-3 text-sm font-bold text-gray-800 dark:text-white outline-none focus:border-zinc-800 dark:focus:border-white transition-all placeholder:text-gray-300 dark:placeholder:text-zinc-800"
-                />
+                <div className="absolute inset-0 bg-gray-50 dark:bg-white/[0.02] rounded-xl border border-gray-200/50 dark:border-white/[0.05] group-focus-within:border-[var(--cor-primaria)] group-focus-within:bg-white dark:group-focus-within:bg-white/[0.04] transition-all duration-300 shadow-sm group-focus-within:shadow-md" />
+                <div className="relative h-12 w-full flex items-center px-4 gap-3">
+                    <Icone size={18} className="text-gray-400 dark:text-zinc-600 group-focus-within:text-[var(--cor-primaria)] transition-colors duration-300 shrink-0" />
+                    <input
+                        type="text"
+                        value={valor}
+                        onChange={(e) => aoMudar(e.target.value)}
+                        placeholder={placeholder}
+                        className="flex-1 bg-transparent text-sm font-bold text-gray-800 dark:text-white outline-none placeholder:text-gray-300 dark:placeholder:text-zinc-800"
+                    />
+                </div>
             </div>
         </div>
     );

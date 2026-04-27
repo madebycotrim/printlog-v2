@@ -30,33 +30,43 @@ export function PaginaImpressoras() {
   });
 
   return (
-    <div className="space-y-10">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-      >
-        {/* 1. Carregamento Inicial (Full Page) */}
-        {estado.carregando && estado.impressoras.length === 0 && (
-          <div className="py-20">
-            <Carregamento tipo="global" mensagem="Sincronizando seu parque de máquinas..." />
-          </div>
-        )}
-
-        {/* 2. Estado Vazio (Após carregar e não achar nada) */}
-        {!estado.carregando && estado.totais.total === 0 && (
-          <EstadoVazio
-            titulo="Nenhuma impressora ativa"
-            descricao="Adicione sua primeira impressora 3D ou reative uma máquina arquivada para começar a produzir."
-            icone={Printer}
-            textoBotao="Cadastrar Máquina"
-            aoClicarBotao={() => acoes.abrirEditar()}
-          />
-        )}
-
-        {/* 3. Conteúdo Real ou Atualização em Background */}
-        {estado.totais.total > 0 && (
-          <>
+    <div className="space-y-10 min-h-[60vh] flex flex-col">
+      <AnimatePresence mode="wait">
+        {estado.carregando && estado.impressoras.length === 0 ? (
+          <motion.div
+            key="carregando"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex-1 flex flex-col items-center justify-center py-40"
+          >
+            <Carregamento tipo="ponto" mensagem="Preparando parque..." />
+          </motion.div>
+        ) : !estado.carregando && estado.totais.total === 0 ? (
+          <motion.div
+            key="vazio"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <EstadoVazio
+              titulo="Nenhuma impressora ativa"
+              descricao="Adicione sua primeira impressora 3D ou reative uma máquina arquivada para começar a produzir."
+              icone={Printer}
+              textoBotao="Cadastrar Máquina"
+              aoClicarBotao={() => acoes.abrirEditar()}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="conteudo"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="w-full"
+          >
+            {estado.totais.total > 0 && (
+              <>
             <AnimatePresence>
               {estado.carregando && (
                 <motion.div
@@ -151,9 +161,11 @@ export function PaginaImpressoras() {
                 </AnimatePresence>
               </div>
             )}
-          </>
+              </>
+            )}
+          </motion.div>
         )}
-      </motion.div>
+      </AnimatePresence>
 
       <FormularioImpressora
         aberto={estado.modalAberto}
