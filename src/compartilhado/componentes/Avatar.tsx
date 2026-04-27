@@ -1,5 +1,6 @@
 import { HTMLAttributes, useState, useEffect } from "react";
 import { gerarIniciais, gerarCorPorNome } from "@/compartilhado/utilitarios/avatar";
+import { PlanoUsuario } from "../tipos/modelos";
 
 interface PropriedadesAvatar extends HTMLAttributes<HTMLDivElement> {
   /** Nome do usuário para gerar iniciais e cor */
@@ -10,8 +11,10 @@ interface PropriedadesAvatar extends HTMLAttributes<HTMLDivElement> {
   tamanho?: string;
   /** Se deve ser arredondado ou levemente arredondado */
   variante?: "circular" | "quadrado";
-  /** Se o usuário é PRO para ativar efeitos de elite */
+  /** @deprecated Use 'plano' em vez disso. Se o usuário é PRO para ativar efeitos de elite */
   pro?: boolean;
+  /** Plano do usuário para efeitos visuais específicos */
+  plano?: PlanoUsuario;
 }
 
 /**
@@ -24,6 +27,7 @@ export function Avatar({
   tamanho = "h-9 w-9",
   variante = "quadrado",
   pro = false,
+  plano,
   className = "",
   style,
   ...outrasPropriedades
@@ -43,9 +47,16 @@ export function Avatar({
 
   const mostrarIniciais = !fotoUrl || imagemFalhou;
 
+  const efeitoElite = () => {
+    const p = plano || (pro ? "PRO" : "FREE");
+    if (p === "FUNDADOR") return "ring-2 ring-sky-500/50 shadow-[0_0_15px_rgba(14,165,233,0.4)]";
+    if (p === "PRO") return "ring-2 ring-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.4)]";
+    return "";
+  };
+
   return (
     <div
-      className={`${tamanho} ${arredondamento} flex items-center justify-center text-base font-black shrink-0 relative overflow-hidden border border-black/5 dark:border-white/5 ${pro ? "ring-2 ring-sky-500/50 shadow-[0_0_15px_rgba(14,165,233,0.4)]" : ""} ${className}`}
+      className={`${tamanho} ${arredondamento} flex items-center justify-center text-base font-black shrink-0 relative overflow-hidden border border-black/5 dark:border-white/5 ${efeitoElite()} ${className}`}
       style={{
         backgroundColor: mostrarIniciais ? corFundo : "transparent",
         color: "white",

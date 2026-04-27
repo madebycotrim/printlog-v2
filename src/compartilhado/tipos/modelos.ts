@@ -54,6 +54,8 @@ export enum BaseLegalLGPD {
   INTERESSE_LEGITIMO = "interesse_legitimo", // Art. 7º, IX
 }
 
+export type PlanoUsuario = "FREE" | "PRO" | "FUNDADOR";
+
 /**
  * Interface de Usuário Autenticado.
  */
@@ -63,7 +65,7 @@ export interface Usuario {
   nome: string | null;
   fotoUrl: string | null;
   provedorGoogle: boolean;
-  plano?: "FREE" | "PRO";
+  plano?: PlanoUsuario;
 }
 
 /**

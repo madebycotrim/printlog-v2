@@ -2,6 +2,8 @@ import { User, Mail, Lock, Crown } from "lucide-react";
 import { CabecalhoCard, CampoDashboard } from "./Compartilhados";
 import { Usuario } from "@/compartilhado/tipos/modelos";
 import { Avatar } from "@/compartilhado/componentes/Avatar";
+import { SeloPlano } from "@/compartilhado/componentes/SeloPlano";
+import { Zap } from "lucide-react";
 
 /**
  * Propriedades para o componente CardPerfil.
@@ -19,12 +21,31 @@ interface PropsCardPerfil {
     lidarComTrocaSenha: () => void;
     /** Indica se há uma operação pendente (carregando) */
     pendente?: boolean;
+    /** Oculta ferramentas administrativas */
+    esconderFerramentasAdmin?: boolean;
+    /** Plano selecionado no estado pai */
+    planoSelecionado?: PlanoUsuario;
+    /** Callback para mudar o plano */
+    aoMudarPlano?: (p: PlanoUsuario) => void;
 }
+
+import { PlanoUsuario } from "@/compartilhado/tipos/modelos";
+import { ShieldCheck } from "lucide-react";
 
 /**
  * Componente para exibição e edição do perfil do usuário.
  */
-export function CardPerfil({ usuario, nome, definirNome, sucessoEmail, lidarComTrocaSenha, pendente }: PropsCardPerfil) {
+export function CardPerfil({ 
+    usuario, 
+    nome, 
+    definirNome, 
+    sucessoEmail, 
+    lidarComTrocaSenha, 
+    pendente,
+    esconderFerramentasAdmin = true,
+    planoSelecionado,
+    aoMudarPlano
+}: PropsCardPerfil) {
     return (
         <div className="rounded-2xl border border-gray-100 dark:border-white/[0.04] bg-white dark:bg-[#121214] p-5 md:p-6 flex flex-col gap-5 relative overflow-hidden group hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] dark:hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] transition-all duration-700">
             <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/[0.03] to-zinc-500/[0.01] dark:from-zinc-500/[0.05] dark:to-zinc-500/[0.02] pointer-events-none" />
@@ -34,7 +55,7 @@ export function CardPerfil({ usuario, nome, definirNome, sucessoEmail, lidarComT
                 <div className="flex flex-col items-center justify-center shrink-0 w-32 rounded-xl p-4 bg-gray-50/70 dark:bg-white/[0.02]">
                     <div className="relative group/avatar">
                         <Avatar 
-                            pro={usuario?.plano === "PRO"}
+                            plano={usuario?.plano}
                             nome={nome} 
                             // Se o nome mudou, ocultamos a foto para mostrar o "novo avatar" (preview de cor/iniciais)
                             fotoUrl={nome !== usuario?.nome ? null : usuario?.fotoUrl} 
@@ -42,9 +63,15 @@ export function CardPerfil({ usuario, nome, definirNome, sucessoEmail, lidarComT
                             className="text-3xl transition-transform duration-500 group-hover/avatar:rotate-3 group-hover/avatar:scale-105"
                         />
                         
-                        {usuario?.plano === "PRO" && (
+                        {usuario?.plano === "FUNDADOR" && (
                             <div className="absolute -top-5 -right-4 rotate-[15deg] z-10 drop-shadow-[0_0_15px_rgba(14,165,233,0.8)] transition-transform duration-700 group-hover/avatar:rotate-[25deg] group-hover/avatar:scale-110">
                                 <Crown size={32} className="text-sky-500 fill-sky-500/20 stroke-[1.5px]" />
+                            </div>
+                        )}
+
+                        {usuario?.plano === "PRO" && (
+                            <div className="absolute -top-5 -right-4 rotate-[15deg] z-10 drop-shadow-[0_0_15px_rgba(99,102,241,0.8)] transition-transform duration-700 group-hover/avatar:rotate-[25deg] group-hover/avatar:scale-110">
+                                <Zap size={32} className="text-indigo-500 fill-indigo-500/20 stroke-[1.5px]" />
                             </div>
                         )}
                     </div>
@@ -72,6 +99,39 @@ export function CardPerfil({ usuario, nome, definirNome, sucessoEmail, lidarComT
                     </div>
                 </div>
             </div>
+
+            {/* FERRAMENTAS ADMIN (Visíveis apenas para o dono) */}
+            {!esconderFerramentasAdmin && (
+                <div className="mt-2 p-4 rounded-xl border border-amber-500/20 bg-amber-500/[0.03] space-y-3">
+                    <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500">
+                        <ShieldCheck size={14} strokeWidth={3} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Painel Administrativo (Dono)</span>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                        <label className="block text-[9px] font-bold text-amber-700/60 dark:text-amber-500/40 uppercase tracking-wider ml-1">Atribuir Cargo/Plano</label>
+                        <div className="flex flex-wrap gap-2">
+                            {(["FREE", "PRO", "FUNDADOR"] as PlanoUsuario[]).map((p) => {
+                                const ativo = planoSelecionado === p;
+                                return (
+                                    <button
+                                        key={p}
+                                        onClick={() => aoMudarPlano?.(p)}
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all border
+                                            ${ativo 
+                                                ? "bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/20" 
+                                                : "bg-white dark:bg-white/5 border-amber-500/20 text-amber-600 dark:text-amber-500 hover:border-amber-500/40"
+                                            }
+                                        `}
+                                    >
+                                        {p}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {!sucessoEmail && (
                 <button

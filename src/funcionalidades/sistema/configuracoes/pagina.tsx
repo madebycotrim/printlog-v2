@@ -18,6 +18,8 @@ import { CardEstudio } from "./componentes/CardEstudio";
 import { usarContextoTema } from "@/configuracoes/tema/tema_provider";
 import { usarBeta } from "@/compartilhado/contextos/ContextoBeta";
 import { usarArmazemConfiguracoes } from "./estado/armazemConfiguracoes";
+import { ehAdmin } from "@/compartilhado/constantes/admin";
+import { PlanoUsuario } from "@/compartilhado/tipos/modelos";
 
 export function PaginaConfiguracoes() {
   const { usuario, atualizarPerfil, recuperarSenha } = usarAutenticacao();
@@ -38,6 +40,7 @@ export function PaginaConfiguracoes() {
   const [horaMaquina, definirHoraMaquina] = useState(config.horaMaquina);
   const [horaOperador, definirHoraOperador] = useState(config.horaOperador);
   const [margemLucro, definirMargemLucro] = useState(config.margemLucro);
+  const [plano, definirPlano] = useState<PlanoUsuario>(config.plano);
 
   // Estados de UI
   const [salvando, definirSalvando] = useState(false);
@@ -67,7 +70,8 @@ export function PaginaConfiguracoes() {
     definirHoraMaquina(config.horaMaquina);
     definirHoraOperador(config.horaOperador);
     definirMargemLucro(config.margemLucro);
-  }, [config.custoEnergia, config.horaMaquina, config.horaOperador, config.margemLucro]);
+    definirPlano(config.plano);
+  }, [config.custoEnergia, config.horaMaquina, config.horaOperador, config.margemLucro, config.plano]);
 
   // Redirecionamento de seção via URL
   useEffect(() => {
@@ -90,7 +94,8 @@ export function PaginaConfiguracoes() {
     custoEnergia !== config.custoEnergia || 
     horaMaquina !== config.horaMaquina || 
     horaOperador !== config.horaOperador || 
-    margemLucro !== config.margemLucro;
+    margemLucro !== config.margemLucro ||
+    plano !== config.plano;
 
   const aparenciaPendente =
     contextoTema.modoTema !== inicialAparencia.modo ||
@@ -137,6 +142,7 @@ export function PaginaConfiguracoes() {
     definirHoraMaquina(config.horaMaquina);
     definirHoraOperador(config.horaOperador);
     definirMargemLucro(config.margemLucro);
+    definirPlano(config.plano);
 
     // Reset Estudio
     definirParticiparPrototipos(beta.participarPrototipos);
@@ -168,6 +174,7 @@ export function PaginaConfiguracoes() {
       config.definirHoraMaquina(horaMaquina);
       config.definirHoraOperador(horaOperador);
       config.definirMargemLucro(margemLucro);
+      config.definirPlano(plano);
       await config.salvarNoD1(usuario!.uid);
 
       // 3. Atualizar Estado Inicial de Aparência
@@ -236,6 +243,9 @@ export function PaginaConfiguracoes() {
               sucessoEmail={sucessoLink}
               lidarComTrocaSenha={lidarComTrocaSenha}
               pendente={perfilPendente}
+              esconderFerramentasAdmin={!ehAdmin(usuario?.email)}
+              planoSelecionado={plano}
+              aoMudarPlano={definirPlano}
             />
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.08 }}>

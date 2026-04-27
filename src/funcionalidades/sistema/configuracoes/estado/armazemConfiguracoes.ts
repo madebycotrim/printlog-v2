@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { apiConfiguracoes } from "../servicos/apiConfiguracoes";
+import { PlanoUsuario } from "@/compartilhado/tipos/modelos";
 
 /**
  * Interface para as configurações operacionais do estúdio.
@@ -15,7 +16,7 @@ interface ArmazemConfiguracoes {
   margemLucro: string;
   nomeEstudio: string;
   sloganEstudio: string;
-  plano: "FREE" | "PRO";
+  plano: PlanoUsuario;
   carregando: boolean;
 
   // Ações
@@ -25,7 +26,7 @@ interface ArmazemConfiguracoes {
   definirHoraOperador: (valor: string) => void;
   definirMargemLucro: (valor: string) => void;
   definirIdentidadeEstudio: (nome: string, slogan: string) => void;
-  definirPlano: (plano: "FREE" | "PRO") => void;
+  definirPlano: (plano: PlanoUsuario) => void;
   salvarNoD1: (usuarioId: string) => Promise<void>;
 
   /** Reseta as configurações para os padrões de fábrica */
@@ -39,7 +40,7 @@ export const VALORES_PADRAO = {
   margemLucro: "150,00%",
   nomeEstudio: "",
   sloganEstudio: "",
-  plano: "PRO" as const,
+  plano: "PRO" as PlanoUsuario,
 };
 
 /**

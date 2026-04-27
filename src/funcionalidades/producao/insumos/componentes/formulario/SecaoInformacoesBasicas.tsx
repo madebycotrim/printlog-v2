@@ -1,12 +1,13 @@
 import { Box, Tag } from "lucide-react";
 import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
 import { CATEGORIAS } from "../../constantes";
+import { CategoriaInsumo } from "../../tipos";
 
 interface PropriedadesSecaoBasica {
   register: any;
   errors: any;
-  categoriaAtiva: string;
-  aoMudarCategoria: (cat: string) => void;
+  categoriaAtiva: CategoriaInsumo;
+  aoMudarCategoria: (cat: CategoriaInsumo) => void;
 }
 
 export function SecaoInformacoesBasicas({ register, errors, categoriaAtiva, aoMudarCategoria }: PropriedadesSecaoBasica) {
@@ -45,7 +46,7 @@ export function SecaoInformacoesBasicas({ register, errors, categoriaAtiva, aoMu
               <button
                 key={cat.id}
                 type="button"
-                onClick={() => aoMudarCategoria(cat.id)}
+                onClick={() => aoMudarCategoria(cat.id as CategoriaInsumo)}
                 className={`h-10 px-4 rounded-xl flex items-center justify-center gap-2.5 text-[10px] font-black tracking-widest transition-all whitespace-nowrap border shrink-0
                   ${
                     estaSelecionado

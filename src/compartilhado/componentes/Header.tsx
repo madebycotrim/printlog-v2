@@ -5,6 +5,7 @@ import { MenuNotificacoes } from "./MenuNotificacoes";
 import { usarProcessadorNotificacoes } from "../hooks/usarProcessadorNotificacoes";
 import { usarBeta } from "@/compartilhado/contextos/ContextoBeta";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
+import { SeloPlano } from "./SeloPlano";
 
 type PropriedadesCabecalho = {
   aoAbrirBarraLateral: () => void;
@@ -48,11 +49,8 @@ export function Cabecalho({ aoAbrirBarraLateral }: PropriedadesCabecalho) {
               </div>
             )}
 
-            {usuario?.plano === "PRO" && exibirSeloElite && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.15)] transform hover:scale-105 transition-transform cursor-default">
-                <Crown size={10} className="fill-sky-500 animate-pulse" />
-                <span className="text-[9px] font-black uppercase tracking-widest">Maker Fundador</span>
-              </div>
+            {exibirSeloElite && (
+              <SeloPlano plano={usuario?.plano} className="transform hover:scale-105 transition-transform cursor-default" />
             )}
 
             <div

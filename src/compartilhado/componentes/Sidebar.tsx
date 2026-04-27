@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Crown,
+  ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
@@ -23,6 +24,8 @@ import { registrar } from "@/compartilhado/utilitarios/registrador";
 import { SeletorEstudio } from "@/funcionalidades/beta/multi_estudos/componentes/SeletorEstudio";
 import { usarBeta } from "@/compartilhado/contextos/ContextoBeta";
 import { Avatar } from "./Avatar";
+import { SeloPlano } from "./SeloPlano";
+import { ehAdmin } from "@/compartilhado/constantes/admin";
 
 type PropriedadesBarraLateral = {
   abertaMobile?: boolean;
@@ -91,6 +94,16 @@ export function BarraLateral({ abertaMobile = false, aoFechar }: PropriedadesBar
       ],
     },
   ];
+
+  // Adiciona grupo administrativo se for o dono
+  if (ehAdmin(usuario?.email)) {
+    grupos.push({
+      titulo: "Administração",
+      itens: [
+        { nome: "Gestão Master", icone: ShieldCheck, caminho: "/admin/gestao-fundadores" },
+      ],
+    });
+  }
 
   function itemAtivo(caminho: string, exato?: boolean) {
     return exato ? localizacao.pathname === caminho : localizacao.pathname.startsWith(caminho);
@@ -263,16 +276,7 @@ export function BarraLateral({ abertaMobile = false, aoFechar }: PropriedadesBar
                       {usuario?.nome?.split(" ")[0] || "Usuário"}
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      {usuario?.plano === "PRO" ? (
-                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-sky-500/10 border border-sky-500/20 text-[8px] font-black text-sky-400 uppercase tracking-widest leading-none shadow-[0_0_10px_rgba(14,165,233,0.15)] group-hover:scale-105 transition-transform">
-                          <Crown size={8} className="fill-sky-400" />
-                          Maker Fundador
-                        </div>
-                      ) : (
-                        <span className="px-1.5 py-0.5 rounded-md bg-primaria/10 dark:bg-primaria/20 text-[8px] font-black text-primaria uppercase tracking-widest leading-none border border-primaria/20">
-                          Maker
-                        </span>
-                      )}
+                      <SeloPlano plano={usuario?.plano} tamanho="pequeno" exibirSempre />
                     </div>
                   </div>
 

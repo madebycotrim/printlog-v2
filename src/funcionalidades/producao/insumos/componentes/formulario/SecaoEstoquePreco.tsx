@@ -3,12 +3,13 @@ import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
 import { CampoMonetario } from "@/compartilhado/componentes/CampoMonetario";
 import { Combobox } from "@/compartilhado/componentes/Combobox";
 import { UNIDADES } from "../../constantes";
+import { UnidadeInsumo } from "../../tipos";
 
 interface PropriedadesSecaoEstoque {
   register: any;
   errors: any;
   setValue: any;
-  unidadeMedidaAtiva: string;
+  unidadeMedidaAtiva: UnidadeInsumo;
   itemFracionavelAtivo: boolean;
 }
 

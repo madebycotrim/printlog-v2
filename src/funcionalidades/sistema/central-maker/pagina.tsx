@@ -4,6 +4,7 @@ import { ModalSuporte } from "./componentes/ModalSuporte";
 import { ModalDetalhesTopico } from "./componentes/ModalDetalhesTopico";
 import { RodapeLGPD } from "./componentes/RodapeLGPD";
 import { ResultadosBusca } from "./componentes/ResultadosBusca";
+import { BannerExclusividade } from "./componentes/BannerExclusividade";
 import { usarCentralMaker } from "./hooks/usarCentralMaker";
 
 /**
@@ -38,10 +39,13 @@ export function PaginaAjuda() {
 
       {/* CONTEÚDO PRINCIPAL (OCULTO DURANTE BUSCA) */}
       {!busca && (
-        <GridWiki 
-          categorias={wikiFiltrada} 
-          aoSelecionarTopico={definirTopicoSelecionado} 
-        />
+        <>
+          <BannerExclusividade />
+          <GridWiki 
+            categorias={wikiFiltrada} 
+            aoSelecionarTopico={definirTopicoSelecionado} 
+          />
+        </>
       )}
 
       {/* FAQ SEMPRE DISPONÍVEL (FILTRADA) */}

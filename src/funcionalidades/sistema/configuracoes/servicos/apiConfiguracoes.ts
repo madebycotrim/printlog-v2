@@ -8,7 +8,7 @@ export interface ConfiguracoesSalvas {
   margemLucro: string;
   nomeEstudio?: string;
   sloganEstudio?: string;
-  plano?: "FREE" | "PRO";
+  plano?: "FREE" | "PRO" | "FUNDADOR";
 }
 
 /**

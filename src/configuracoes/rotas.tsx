@@ -119,6 +119,11 @@ const PaginaAjuda = lazy(() =>
     default: m.PaginaAjuda,
   })),
 );
+const PaginaAdmin = lazy(() =>
+  import("@/funcionalidades/sistema/admin/PaginaAdmin").then((m) => ({
+    default: m.PaginaAdmin,
+  })),
+);
 
 export function RoteadorPrincipal() {
   return (
@@ -275,6 +280,16 @@ export function RoteadorPrincipal() {
                     <RotaProtegida>
                       <Layout>
                         <PaginaAjuda />
+                      </Layout>
+                    </RotaProtegida>
+                  }
+                />
+                <Route
+                  path="/admin/gestao-fundadores"
+                  element={
+                    <RotaProtegida>
+                      <Layout>
+                        <PaginaAdmin />
                       </Layout>
                     </RotaProtegida>
                   }
