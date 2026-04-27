@@ -10,6 +10,7 @@ import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 
 import { CardPerfil } from "./componentes/CardPerfil";
 import { CardOperacional } from "./componentes/CardOperacional";
+import { CardPlanoPremium } from "./componentes/CardPlanoPremium";
 import { CardAparencia } from "./componentes/CardAparencia";
 import { CardMetricas } from "./componentes/CardMetricas";
 import { CardPrivacidade } from "./componentes/CardPrivacidade";
@@ -268,6 +269,16 @@ export function PaginaConfiguracoes() {
             <CardMetricas />
           </motion.div>
         </div>
+
+        {config.plano !== "FREE" && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.28 }}>
+            <CardPlanoPremium
+              plano={config.plano}
+              cicloPagamento={config.cicloPagamento}
+              vencimentoPlano={config.vencimentoPlano}
+            />
+          </motion.div>
+        )}
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.32 }}>
           <CardEstudio
