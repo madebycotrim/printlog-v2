@@ -1,8 +1,11 @@
-import { Box, Zap, Timer, Activity, Package, DollarSign, PieChart, ShieldCheck, FolderKanban, Download } from "lucide-react";
+import { Box, Zap, Timer, Activity, Package, DollarSign, PieChart, ShieldCheck, FolderKanban, Download, Sparkles, BrainCircuit } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
 import { CalculoResultado } from "../tipos";
+import { servicoIA, SugestaoPrecoIA } from "../servicos/servicoIA";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 interface PainelResultadosProps {
   calculo: CalculoResultado;
@@ -18,6 +21,31 @@ interface PainelResultadosProps {
 export function PainelResultados({
   calculo, dadosPizza, aba, setAba, salvarProjeto, gerarPdf, carregandoPdf, temImpressora
 }: PainelResultadosProps) {
+  const [sugestaoIA, setSugestaoIA] = useState<SugestaoPrecoIA | null>(null);
+  const [carregandoIA, setCarregandoIA] = useState(false);
+
+  const obterSugestaoIA = async () => {
+    try {
+      setCarregandoIA(true);
+      const resultado = await servicoIA.obterSugestaoPreco({
+        nomePeca: "Impressão 3D", // Poderia vir de um campo de nome
+        pesoGramas: 0, // Poderia vir do hook
+        tempoMinutos: 0, // Poderia vir do hook
+        custoMaterial: calculo.custoMaterial,
+        custoEnergia: calculo.custoEnergia,
+        custoTrabalho: calculo.custoMaoDeObra,
+        custoDepreciacao: calculo.custoDepreciacao,
+        lucroDesejadoPercentual: 100 // Margem desejada padrão
+      });
+      setSugestaoIA(resultado);
+      toast.success("Sugestão gerada pela IA!");
+    } catch (erro) {
+      toast.error("Erro ao consultar a IA.");
+    } finally {
+      setCarregandoIA(false);
+    }
+  };
+
   return (
     <div className="p-8 rounded-[2.5rem] bg-zinc-900 border border-white/5 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] flex flex-col items-center text-center overflow-hidden relative h-fit w-full mx-auto animate-in fade-in duration-1000">
       <div className="absolute top-0 inset-x-0 h-48 bg-gradient-to-b from-sky-500/20 to-transparent blur-3xl" />
@@ -124,6 +152,62 @@ export function PainelResultados({
             </div>
           </div>
         )}
+
+        {/* Sugestão de IA - Botão e Resultados */}
+        <div className="mt-8 pt-8 border-t border-zinc-800/50 w-full">
+            {!sugestaoIA ? (
+                <button 
+                  onClick={obterSugestaoIA}
+                  disabled={carregandoIA || calculo.precoSugerido <= 0}
+                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-violet-600 to-sky-600 p-[1px] group transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100"
+                >
+                    <div className="flex items-center justify-center gap-2 w-full h-full bg-zinc-900 rounded-2xl transition-colors group-hover:bg-transparent">
+                      {carregandoIA ? (
+                          <Activity className="animate-spin text-sky-400" size={16} />
+                      ) : (
+                          <Sparkles className="text-violet-400 group-hover:text-white transition-colors" size={16} />
+                      )}
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
+                        {carregandoIA ? "Consultando Neurons..." : "Sugerir Preço com IA"}
+                      </span>
+                    </div>
+                </button>
+            ) : (
+                <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
+                    <div className="flex items-center justify-between px-2">
+                        <div className="flex items-center gap-2 text-violet-400">
+                            <BrainCircuit size={14} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Inteligência de Mercado</span>
+                        </div>
+                        <button onClick={() => setSugestaoIA(null)} className="text-[9px] font-bold text-zinc-600 hover:text-zinc-400 uppercase">Limpar</button>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                        {[
+                            { label: 'Piso', dados: sugestaoIA.piso, cor: 'rose' },
+                            { label: 'Ideal', dados: sugestaoIA.recomendado, cor: 'sky' },
+                            { label: 'Premium', dados: sugestaoIA.premium, cor: 'emerald' }
+                        ].map(faixa => {
+                            const corTexto = faixa.cor === 'rose' ? 'text-rose-400' : faixa.cor === 'sky' ? 'text-sky-400' : 'text-emerald-400';
+                            const corBorda = faixa.cor === 'rose' ? 'border-rose-500/10' : faixa.cor === 'sky' ? 'border-sky-500/10' : 'border-emerald-500/10';
+                            
+                            return (
+                                <div key={faixa.label} className={`p-2.5 rounded-2xl bg-zinc-800/10 border ${corBorda} flex flex-col items-center text-center`}>
+                                    <span className={`text-[8px] font-black uppercase tracking-widest ${corTexto} mb-1`}>{faixa.label}</span>
+                                    <span className="text-[11px] font-black text-white">{centavosParaReais(faixa.dados.valor * 100)}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    
+                    <div className="p-3.5 rounded-2xl bg-violet-500/5 border border-violet-500/10 text-left">
+                        <p className="text-[10px] text-zinc-400 leading-relaxed italic">
+                            "{sugestaoIA.dica}"
+                        </p>
+                    </div>
+                </div>
+            )}
+        </div>
 
         <div className="h-px bg-zinc-800/50 my-8 w-full" />
 
