@@ -11,7 +11,7 @@ import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
 import { CriarPedidoInput, Pedido } from "./tipos";
 import { filtrarPedidosAtrasados } from "@/compartilhado/utilitarios/gestaoAtrasos";
 import { AlertTriangle } from "lucide-react";
-import { CardResumo } from "@/compartilhado/componentes/CardResumo";
+import { ResumoProjetos } from "./componentes/ResumoProjetos";
 
 export function PaginaProjetos() {
   const [modalAberto, setModalAberto] = useState(false);
@@ -19,8 +19,6 @@ export function PaginaProjetos() {
   const [modalAtrasadosAberto, setModalAtrasadosAberto] = useState(false);
   const [pedidoEdicao, setPedidoEdicao] = useState<Pedido | null>(null);
   const { pedidos, pedidosFiltrados, criarPedido, atualizarPedido, moverPedido, pesquisar, carregando } = usarPedidos();
-
-  const pedidosArquivadosTotal = pedidos.filter((p) => p.status === StatusPedido.ARQUIVADO).length;
 
   usarDefinirCabecalho({
     titulo: "Fluxo de Produção",
@@ -55,61 +53,14 @@ export function PaginaProjetos() {
     }
   };
 
-  const pedidosAtivos = pedidos.filter(
-    (p) => p.status !== StatusPedido.CONCLUIDO && p.status !== StatusPedido.ARQUIVADO,
-  ).length;
-  const pedidosAtrasados = filtrarPedidosAtrasados(pedidos).length;
-  const concluidosHoje = pedidos.filter(
-    (p) =>
-      p.status === StatusPedido.CONCLUIDO &&
-      p.dataConclusao &&
-      new Date(p.dataConclusao).toDateString() === new Date().toDateString(),
-  ).length;
-
-  const cards = [
-    {
-      titulo: "Pedidos Ativos",
-      valor: pedidosAtivos,
-      unidade: "em fluxo",
-      icone: FolderKanban,
-      cor: "indigo" as const,
-    },
-    {
-      titulo: "Atrasados",
-      valor: pedidosAtrasados,
-      unidade: "atenção",
-      icone: AlertTriangle,
-      cor: "rose" as const,
-      aoClicar: () => setModalAtrasadosAberto(true),
-      textoAcao: "Resolver",
-    },
-    {
-      titulo: "Concluídos Hoje",
-      valor: concluidosHoje,
-      unidade: "entregues",
-      icone: Plus,
-      cor: "emerald" as const,
-    },
-  ];
-
   return (
     <div className="flex-1 flex flex-col space-y-8 animate-in fade-in duration-500 overflow-hidden">
       {pedidos.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 shrink-0">
-          {cards.map((card, index) => (
-            <CardResumo key={index} {...card} />
-          ))}
-
-          <CardResumo
-            titulo="Projetos Arquivados"
-            valor={pedidosArquivadosTotal}
-            unidade="no arquivo"
-            icone={Archive}
-            cor="zinc"
-            aoClicar={() => setModalArquivoAberto(true)}
-            textoAcao="Ver tudo"
-          />
-        </div>
+        <ResumoProjetos 
+          pedidos={pedidos} 
+          aoAbrirArquivo={() => setModalArquivoAberto(true)} 
+          aoAbrirAtrasados={() => setModalAtrasadosAberto(true)} 
+        />
       )}
 
       {pedidos.length === 0 && !carregando ? (
