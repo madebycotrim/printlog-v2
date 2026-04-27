@@ -1,15 +1,14 @@
 import { Cliente } from "../tipos";
+import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
+import { clienteSchema } from "../schemas";
 
 /**
  * Serviço de comunicação com a API de Clientes do Cloudflare D1.
+ * Refatorado para usar o servicoBaseApi com autenticação segura via Token e validação Zod.
  */
 export const apiClientes = {
-    buscarTodos: async (usuarioId: string): Promise<Cliente[]> => {
-        const resposta = await fetch("/api/clientes", {
-            headers: { "x-usuario-id": usuarioId }
-        });
-        if (!resposta.ok) throw new Error("Erro ao carregar clientes do banco.");
-        const dados = await resposta.json();
+    buscarTodos: async (_usuarioId: string): Promise<Cliente[]> => {
+        const dados = await servicoBaseApi.get<any[]>("/api/clientes");
         
         // Mapeamento de snake_case para camelCase
         return dados.map((c: any) => ({
@@ -22,26 +21,18 @@ export const apiClientes = {
         }));
     },
 
-    salvar: async (dados: Partial<Cliente>, usuarioId: string): Promise<Cliente> => {
+    salvar: async (dados: Partial<Cliente>, _usuarioId: string): Promise<Cliente> => {
+        // Validação de segurança no cliente
+        const dadosValidados = clienteSchema.partial().parse(dados);
         const metodo = dados.id ? "PATCH" : "POST";
-        const resposta = await fetch("/api/clientes", {
-            method: metodo,
-            headers: { 
-                "Content-Type": "application/json",
-                "x-usuario-id": usuarioId 
-            },
-            body: JSON.stringify(dados)
-        });
 
-        if (!resposta.ok) throw new Error("Erro ao salvar cliente no banco.");
-        return resposta.json();
+        return servicoBaseApi.requisicao<Cliente>("/api/clientes", {
+            method: metodo,
+            body: JSON.stringify(dadosValidados)
+        });
     },
 
-    remover: async (id: string, usuarioId: string): Promise<void> => {
-        const resposta = await fetch(`/api/clientes?id=${id}`, {
-            method: "DELETE",
-            headers: { "x-usuario-id": usuarioId }
-        });
-        if (!resposta.ok) throw new Error("Erro ao remover cliente do banco.");
+    remover: async (id: string, _usuarioId: string): Promise<void> => {
+        await servicoBaseApi.delete(`/api/clientes?id=${id}`);
     }
 };

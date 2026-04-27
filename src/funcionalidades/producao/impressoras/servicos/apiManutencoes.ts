@@ -1,18 +1,14 @@
 import { RegistroManutencao } from "../tipos";
+import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
+import { registroManutencaoSchema } from "../schemas";
 
 /**
  * Serviço de comunicação com a API de Manutenções do Cloudflare D1.
+ * Refatorado para usar o servicoBaseApi com autenticação segura via Token e validação Zod.
  */
 export const apiManutencoes = {
-    buscarPorImpressora: async (usuarioId: string, idImpressora: string): Promise<RegistroManutencao[]> => {
-        const resposta = await fetch(`/api/manutencoes?idImpressora=${idImpressora}`, {
-            headers: { "x-usuario-id": usuarioId }
-        });
-        if (!resposta.ok) {
-            const erroJson = await resposta.json().catch(() => ({}));
-            throw new Error(`Erro ao carregar manutenções: ${erroJson.erro || resposta.statusText}`);
-        }
-        const dados = await resposta.json();
+    buscarPorImpressora: async (_usuarioId: string, idImpressora: string): Promise<RegistroManutencao[]> => {
+        const dados = await servicoBaseApi.get<any[]>(`/api/manutencoes?idImpressora=${idImpressora}`);
         
         return dados.map((m: any) => ({
             ...m,
@@ -25,24 +21,14 @@ export const apiManutencoes = {
         }));
     },
 
-    salvar: async (dados: Partial<RegistroManutencao>, usuarioId: string): Promise<void> => {
-        const resposta = await fetch("/api/manutencoes", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "x-usuario-id": usuarioId 
-            },
-            body: JSON.stringify(dados)
-        });
+    salvar: async (dados: Partial<RegistroManutencao>, _usuarioId: string): Promise<void> => {
+        // Validação de segurança no cliente
+        const dadosValidados = registroManutencaoSchema.partial().parse(dados);
 
-        if (!resposta.ok) throw new Error("Erro ao salvar manutenção no banco.");
+        await servicoBaseApi.post("/api/manutencoes", dadosValidados);
     },
 
-    remover: async (id: string, usuarioId: string): Promise<void> => {
-        const resposta = await fetch(`/api/manutencoes?id=${id}`, {
-            method: "DELETE",
-            headers: { "x-usuario-id": usuarioId }
-        });
-        if (!resposta.ok) throw new Error("Erro ao remover manutenção do banco.");
+    remover: async (id: string, _usuarioId: string): Promise<void> => {
+        await servicoBaseApi.delete(`/api/manutencoes?id=${id}`);
     }
 };

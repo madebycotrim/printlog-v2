@@ -1,59 +1,44 @@
 import { Insumo, RegistroMovimentacaoInsumo } from "../tipos";
+import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
+import { insumoSchema, registroMovimentacaoInsumoSchema } from "../schemas";
 
 /**
  * Serviço de integração com o Cloudflare D1 via Pages Functions.
- * Gerencia a persistência de Insumos da Produção.
+ * Refatorado para usar o servicoBaseApi com autenticação segura via Token e validação Zod.
  */
 export const apiInsumos = {
   /**
    * Busca todos os insumos do usuário
    */
-  async listar(usuarioId: string): Promise<Insumo[]> {
-    const resposta = await fetch("/api/insumos", {
-      headers: { "x-usuario-id": usuarioId }
-    });
-    if (!resposta.ok) throw new Error("Falha ao carregar insumos.");
-    return await resposta.json();
+  async listar(_usuarioId: string): Promise<Insumo[]> {
+    return servicoBaseApi.get<Insumo[]>("/api/insumos");
   },
 
   /**
-   * Salva um novo insumo
+   * Salva um novo insumo com validação de segurança
    */
-  async salvar(insumo: Insumo, usuarioId: string): Promise<void> {
-    const resposta = await fetch("/api/insumos", {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "x-usuario-id": usuarioId 
-      },
-      body: JSON.stringify(insumo)
-    });
-    if (!resposta.ok) throw new Error("Erro ao salvar insumo.");
+  async salvar(insumo: Insumo, _usuarioId: string): Promise<void> {
+    const dadosValidados = insumoSchema.parse(insumo);
+    await servicoBaseApi.post("/api/insumos", dadosValidados);
   },
 
   /**
-   * Atualiza estoque/custo e registra movimentação
+   * Atualiza estoque/custo e registra movimentação com validação de segurança
    */
-  async atualizar(insumo: Partial<Insumo> & { id: string }, usuarioId: string, movimentacao?: RegistroMovimentacaoInsumo): Promise<void> {
-    const resposta = await fetch("/api/insumos", {
+  async atualizar(insumo: Partial<Insumo> & { id: string }, _usuarioId: string, movimentacao?: RegistroMovimentacaoInsumo): Promise<void> {
+    const insumoValidado = insumoSchema.partial().parse(insumo);
+    const movValidada = movimentacao ? registroMovimentacaoInsumoSchema.parse(movimentacao) : undefined;
+
+    await servicoBaseApi.requisicao("/api/insumos", {
       method: "PATCH",
-      headers: { 
-        "Content-Type": "application/json",
-        "x-usuario-id": usuarioId 
-      },
-      body: JSON.stringify({ ...insumo, movimentacao })
+      body: JSON.stringify({ ...insumoValidado, movimentacao: movValidada })
     });
-    if (!resposta.ok) throw new Error("Erro ao atualizar insumo.");
   },
 
   /**
-   * Remove um insumo do banco de dados
+   * Remove um insumo do banco de dados de forma segura
    */
-  async remover(id: string, usuarioId: string): Promise<void> {
-    const resposta = await fetch(`/api/insumos?id=${id}`, {
-      method: "DELETE",
-      headers: { "x-usuario-id": usuarioId }
-    });
-    if (!resposta.ok) throw new Error("Erro ao remover insumo.");
+  async remover(id: string, _usuarioId: string): Promise<void> {
+    await servicoBaseApi.delete(`/api/insumos?id=${id}`);
   }
 };

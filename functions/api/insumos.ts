@@ -11,9 +11,11 @@ interface Env {
 /**
  * BUSCAR INSUMOS (Apenas Ativos)
  */
-export const onRequestGet: PagesFunction<Env> = async (context) => {
-    const { env, request } = context;
-    const usuarioId = request.headers.get("x-usuario-id");
+export const onRequest: PagesFunction<Env, any, { uid: string }> = async (context) => {
+    const { env, data } = context;
+
+    // Obtido com segurança via Middleware JWT
+    const usuarioId = data.uid;
     if (!usuarioId) return new Response("Não autorizado", { status: 401 });
 
     try {
@@ -53,9 +55,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 /**
  * CRIAR INSUMO (POST)
  */
-export const onRequestPost: PagesFunction<Env> = async (context) => {
-    const { env, request } = context;
-    const usuarioId = request.headers.get("x-usuario-id");
+export const onRequestPost: PagesFunction<Env, any, { uid: string }> = async (context) => {
+    const { env, request, data } = context;
+    const usuarioId = data.uid;
     if (!usuarioId) return new Response("Não autorizado", { status: 401 });
 
     try {
@@ -116,9 +118,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 /**
  * ATUALIZAR INSUMO (PATCH)
  */
-export const onRequestPatch: PagesFunction<Env> = async (context) => {
-    const { env, request } = context;
-    const usuarioId = request.headers.get("x-usuario-id");
+export const onRequestPatch: PagesFunction<Env, any, { uid: string }> = async (context) => {
+    const { env, request, data } = context;
+    const usuarioId = data.uid;
     if (!usuarioId) return new Response("Não autorizado", { status: 401 });
 
     try {
@@ -161,9 +163,9 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
 /**
  * ARQUIVAR INSUMO (DELETE como SOFT DELETE)
  */
-export const onRequestDelete: PagesFunction<Env> = async (context) => {
-    const { env, request } = context;
-    const usuarioId = request.headers.get("x-usuario-id");
+export const onRequestDelete: PagesFunction<Env, any, { uid: string }> = async (context) => {
+    const { env, request, data } = context;
+    const usuarioId = data.uid;
     if (!usuarioId) return new Response("Não autorizado", { status: 401 });
 
     const url = new URL(request.url);

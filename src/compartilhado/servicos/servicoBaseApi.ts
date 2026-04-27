@@ -1,7 +1,8 @@
+import { onAuthStateChanged } from "firebase/auth";
 import { autenticacao } from "./firebase";
 import { registrar } from "../utilitarios/registrador";
 
-const URL_API_BASE = import.meta.env.VITE_URL_API || "http://localhost:8787";
+const URL_API_BASE = import.meta.env.VITE_URL_API || "";
 
 /**
  * Interface para erros padronizados da API
@@ -11,6 +12,33 @@ export interface ErroApi {
   mensagem: string;
   codigo?: string;
 }
+
+/**
+ * Tenta obter o token do usuário atual, aguardando a inicialização se necessário.
+ * Resolve problemas de corrida onde a API é chamada antes do Firebase carregar o estado.
+ */
+const obterTokenSeguro = async (): Promise<string | null> => {
+  const usuarioAtual = autenticacao.currentUser;
+  if (usuarioAtual) return usuarioAtual.getIdToken();
+
+  // Se não houver usuário imediato, aguarda a primeira mudança de estado (inicialização)
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(autenticacao, async (user) => {
+      unsubscribe();
+      if (user) {
+        resolve(await user.getIdToken());
+      } else {
+        resolve(null);
+      }
+    });
+
+    // Limite de espera de 3 segundos para não travar a aplicação
+    setTimeout(() => {
+      unsubscribe();
+      resolve(null);
+    }, 3000);
+  });
+};
 
 /**
  * Serviço base para realizar requisições autenticadas para o backend na Cloudflare.
@@ -26,14 +54,20 @@ export const servicoBaseApi = {
   ): Promise<T> {
     const url = `${URL_API_BASE}${caminho}`;
     
-    // Busca o token atualizado do Firebase
+    // Busca o token de forma resiliente
     const usuario = autenticacao.currentUser;
-    const token = usuario ? await usuario.getIdToken() : null;
+    const token = await obterTokenSeguro();
 
     const headers = new Headers(opcoes.headers);
     headers.set("Content-Type", "application/json");
+    
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    // Temporário: Mantém compatibilidade com o backend atual
+    if (usuario) {
+      headers.set("x-usuario-id", usuario.uid);
     }
 
     try {
@@ -43,47 +77,40 @@ export const servicoBaseApi = {
       });
 
       if (resposta.status === 401) {
-        const erro: ErroApi = { status: 401, mensagem: "Sessão expirada. Por favor, logue novamente." };
-        throw erro;
+        throw { 
+          status: 401, 
+          mensagem: "Sessão expirada ou não autorizada. Por favor, logue novamente." 
+        } as ErroApi;
       }
 
       if (!resposta.ok) {
         const erroJson = (await resposta.json().catch(() => ({}))) as Record<string, string>;
-        const erro: ErroApi = {
+        throw {
           status: resposta.status,
           mensagem: erroJson.mensagem || "Erro inesperado no servidor.",
           codigo: erroJson.codigo
-        };
-        throw erro;
+        } as ErroApi;
       }
 
-      // Se for 204 No Content
       if (resposta.status === 204) return {} as T;
-
       return await resposta.json();
-    } catch (erro: unknown) {
-      registrar.error(
-        { rastreioId: "api", servico: "servicoBaseApi", caminho },
-        "Erro na requisição à API",
-        erro
-      );
+    } catch (erro: any) {
+      // Evita logar erros de cancelamento ou aborto que são normais em React
+      if (erro.name !== "AbortError") {
+        registrar.error(
+          { rastreioId: "api", servico: "servicoBaseApi", caminho },
+          "Erro na requisição à API",
+          erro
+        );
+      }
       throw erro;
     }
   },
 
-  /**
-   * Realiza uma requisição GET.
-   * @param caminho - Endpoint da API
-   */
   get<T>(caminho: string): Promise<T> {
     return this.requisicao<T>(caminho, { method: "GET" });
   },
 
-  /**
-   * Realiza uma requisição POST.
-   * @param caminho - Endpoint da API
-   * @param dados - Corpo da requisição
-   */
   post<T>(caminho: string, dados: unknown): Promise<T> {
     return this.requisicao<T>(caminho, {
       method: "POST",
@@ -91,11 +118,6 @@ export const servicoBaseApi = {
     });
   },
 
-  /**
-   * Realiza uma requisição PUT.
-   * @param caminho - Endpoint da API
-   * @param dados - Corpo da requisição
-   */
   put<T>(caminho: string, dados: unknown): Promise<T> {
     return this.requisicao<T>(caminho, {
       method: "PUT",
@@ -103,10 +125,6 @@ export const servicoBaseApi = {
     });
   },
 
-  /**
-   * Realiza uma requisição DELETE.
-   * @param caminho - Endpoint da API
-   */
   delete<T>(caminho: string): Promise<T> {
     return this.requisicao<T>(caminho, { method: "DELETE" });
   },

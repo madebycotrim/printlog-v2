@@ -1,5 +1,4 @@
-import { DollarSign, Activity, Calculator } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { DollarSign, Activity } from "lucide-react";
 
 interface CardOperacionalProps {
   maoDeObra: number;
@@ -23,13 +22,13 @@ export function CardOperacional({
         </div>
         <div className="space-y-6">
           <div>
-            <label className="block text-[10px] font-black uppercase text-gray-400 mb-2">Valor da Hora (R$/h)</label>
+            <label className="block text-xs font-black uppercase text-gray-400 mb-2">Valor da Hora (R$/h)</label>
             <input type="number" value={maoDeObra} onChange={(e) => setMaoDeObra(Number(e.target.value))} className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-sm" />
           </div>
           <div>
             <div className="flex justify-between mb-3">
-              <label className="text-[10px] font-black uppercase text-gray-400">Margem de Lucro</label>
-              <span className="text-xs font-black text-sky-500">{margem}%</span>
+              <label className="text-xs font-black uppercase text-gray-400">Margem de Lucro</label>
+              <span className="text-sm font-black text-sky-500">{margem}%</span>
             </div>
             <input type="range" min="0" max="500" step="10" value={margem} onChange={(e) => setMargem(Number(e.target.value))} className="w-full h-2 bg-gray-100 dark:bg-white/5 rounded-lg appearance-none cursor-pointer accent-sky-500" />
           </div>
@@ -43,12 +42,12 @@ export function CardOperacional({
         </div>
         <div className="space-y-6">
           <div>
-            <label className="block text-[10px] font-black uppercase text-gray-400 mb-2">Depreciação (R$/h)</label>
+            <label className="block text-xs font-black uppercase text-gray-400 mb-2">Depreciação (R$/h)</label>
             <input type="number" value={depreciacao} onChange={(e) => setDepreciacao(Number(e.target.value))} className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-sm" />
           </div>
           <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 flex justify-between items-center">
-            <span className="text-[9px] font-black uppercase text-rose-500">Custo Total Desgaste:</span>
-            <span className="text-xs font-black text-rose-500">R$ {((tempo / 60) * depreciacao).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+            <span className="text-[11px] font-black uppercase text-rose-500">Custo Total Desgaste:</span>
+            <span className="text-sm font-black text-rose-500">R$ {((tempo / 60) * depreciacao).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
           </div>
         </div>
       </div>

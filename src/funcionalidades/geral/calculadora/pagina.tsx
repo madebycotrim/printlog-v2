@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { 
-  ChevronDown, Check, Settings, X, History
+  Settings, Check, X, Plus, 
+  ChevronDown, Box, Package, History
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +18,8 @@ import { Dialogo } from "@/compartilhado/componentes/Dialogo";
 import { ModalListagemPremium } from "@/compartilhado/componentes/ModalListagemPremium";
 import { FormularioMaterial } from "@/funcionalidades/producao/materiais/componentes/FormularioMaterial";
 import { FormularioInsumo } from "@/funcionalidades/producao/insumos/componentes/FormularioInsumo";
-import { formatarMoedaFinancas, formatarPorcentagem } from "@/compartilhado/utilitarios/formatadores";
+import { Carretel, GarrafaResina } from "@/compartilhado/componentes/Icones3D";
+import { formatarMoedaFinancas, formatarPorcentagem, centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
 
 // Hook e Componentes Refatorados
 import { usarCalculadora } from "./hooks/usarCalculadora";
@@ -46,11 +48,41 @@ export function PaginaCalculadora() {
   // Estados de UI locais
   const [abertoSeletor, setAbertoSeletor] = useState(false);
   const [modalArmazemAberto, setModalArmazemAberto] = useState(false);
+  const [modalArmazemInsumosAberto, setModalArmazemInsumosAberto] = useState(false);
+  const [modalCanaisAberto, setModalCanaisAberto] = useState(false);
   const [modalConfigAberto, setModalConfigAberto] = useState(false);
   const [modalHistoricoAberto, setModalHistoricoAberto] = useState(false);
   const [abaResultado, setAbaResultado] = useState<'orcamento' | 'metricas'>('orcamento');
   const [buscaMaterial, setBuscaMaterial] = useState("");
+  const [buscaMaterialArmazem, setBuscaMaterialArmazem] = useState("");
+  const [filtroTipoMaterial, setFiltroTipoMaterial] = useState<'TODOS' | 'FDM' | 'SLA'>('TODOS');
   const [buscaInsumo, setBuscaInsumo] = useState("");
+
+   const materiaisFiltrados = useMemo(() => {
+    let lista = materiais.filter(m => !m.arquivado);
+    
+    // Filtro por Tipo
+    if (filtroTipoMaterial !== 'TODOS') {
+      lista = lista.filter(m => m.tipo === filtroTipoMaterial);
+    }
+
+    if (!buscaMaterialArmazem) return lista;
+    const termo = buscaMaterialArmazem.toLowerCase();
+    return lista.filter(m => 
+      m.nome.toLowerCase().includes(termo) || 
+      m.fabricante?.toLowerCase().includes(termo) || 
+      m.tipoMaterial?.toLowerCase().includes(termo)
+    );
+  }, [materiais, buscaMaterialArmazem, filtroTipoMaterial]);
+
+  const insumosFiltrados = useMemo(() => {
+    if (!buscaInsumo) return insumosEstoque;
+    const termo = buscaInsumo.toLowerCase();
+    return insumosEstoque.filter(i => 
+      i.nome.toLowerCase().includes(termo) || 
+      i.categoria?.toLowerCase().includes(termo)
+    );
+  }, [insumosEstoque, buscaInsumo]);
 
   const impressoraSelecionada = useMemo(() => 
     impressoras.find(i => i.id === hook.impressoraSelecionadaId),
@@ -125,25 +157,23 @@ export function PaginaCalculadora() {
                     {impressoraSelecionada.marca} {impressoraSelecionada.modeloBase}
                   </span>
                 )}
-                {impressoraSelecionada.potenciaWatts && (
-                  <span className="text-[8px] font-black text-sky-500 uppercase tracking-tighter">• {impressoraSelecionada.potenciaWatts}W</span>
-                )}
+                <span className="text-[8px] font-black text-sky-500 uppercase tracking-tighter">• {impressoraSelecionada.potenciaWatts}W</span>
               </div>
             )}
           </div>
           <ChevronDown size={14} className={`text-zinc-400 group-hover:text-sky-500 transition-transform ${abertoSeletor ? "rotate-180" : ""}`} />
         </button>
         {abertoSeletor && (
-          <div className="absolute top-full left-0 right-0 mt-2 p-2 rounded-2xl bg-white dark:bg-[#0c0c0e] border border-gray-100 dark:border-white/10 shadow-2xl z-[100] min-w-[250px]">
+          <div className="absolute top-full left-0 mt-2 p-2 rounded-2xl bg-white dark:bg-[#0c0c0e] border border-gray-100 dark:border-white/10 shadow-2xl z-[100] w-max min-w-full">
             {impressoras.map((imp) => (
               <button 
                 key={imp.id}
                 onClick={() => { hook.setImpressoraSelecionadaId(imp.id); localStorage.setItem("printlog_ultima_impressora", imp.id); setAbertoSeletor(false); if (imp.potenciaWatts) hook.setPotencia(imp.potenciaWatts); }}
                 className={`w-full flex flex-col items-start px-4 py-3 rounded-xl transition-all ${hook.impressoraSelecionadaId === imp.id ? "bg-sky-500/10 text-sky-500" : "hover:bg-gray-50 dark:hover:bg-white/5"}`}
               >
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-[10px] font-black uppercase tracking-widest">{imp.nome}</span>
-                  {hook.impressoraSelecionadaId === imp.id && <Check size={14} />}
+                <div className="flex items-center gap-4 w-full">
+                  <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{imp.nome}</span>
+                  {hook.impressoraSelecionadaId === imp.id && <Check size={14} className="ml-auto" />}
                 </div>
                 {(imp.marca || imp.modeloBase) && (
                   <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter mt-0.5">
@@ -191,6 +221,15 @@ export function PaginaCalculadora() {
           precoKwh={hook.precoKwh} setPrecoKwh={hook.setPrecoKwh}
           custoEnergia={hook.calculo.custoEnergia / 100}
           posProcesso={hook.itensPosProcesso} setPosProcesso={hook.setItensPosProcesso}
+          impressoras={impressoras}
+          idImpressoraSelecionada={hook.impressoraSelecionadaId}
+          aoSelecionarImpressora={(id) => {
+            hook.setImpressoraSelecionadaId(id);
+            const imp = impressoras.find(i => i.id === id);
+            if (imp?.potenciaWatts) hook.setPotencia(imp.potenciaWatts);
+            // Sincroniza também a depreciação se houver
+            if (imp?.taxaHoraCentavos) hook.setDepreciacaoHora(imp.taxaHoraCentavos / 100);
+          }}
         />
 
         <CardOperacional 
@@ -203,14 +242,21 @@ export function PaginaCalculadora() {
         <CardInsumos 
           insumos={insumosEstoque.filter(i => i.nome.toLowerCase().includes(buscaInsumo.toLowerCase()))}
           selecionados={hook.insumosSelecionados}
+          alertas={hook.alertasInsumos}
           busca={buscaInsumo} setBusca={setBuscaInsumo}
           alternar={(insumo) => {
             const existe = hook.insumosSelecionados.find(i => i.id === insumo.id);
             if (existe) hook.setInsumosSelecionados(prev => prev.filter(i => i.id !== insumo.id));
-            else hook.setInsumosSelecionados(prev => [...prev, { id: insumo.id, nome: insumo.nome, custoCentavos: insumo.custoMedioUnidade }]);
+            else hook.setInsumosSelecionados(prev => [...prev, { id: insumo.id, nome: insumo.nome, quantidade: 1, custoCentavos: insumo.custoMedioUnidade }]);
+          }}
+          atualizarQtd={(id, qtd) => {
+            hook.setInsumosSelecionados(prev => prev.map(i => i.id === id ? { ...i, quantidade: qtd } : i));
+          }}
+          remover={(id) => {
+            hook.setInsumosSelecionados(prev => prev.filter(i => i.id !== id));
           }}
           insumosFixos={hook.insumosFixos} setInsumosFixos={hook.setInsumosFixos}
-          abrirGerenciar={() => {}}
+          abrirGerenciar={() => setModalArmazemInsumosAberto(true)}
           abrirNovo={() => abrirCriarInsumo()}
         />
 
@@ -223,14 +269,13 @@ export function PaginaCalculadora() {
           impostos={hook.impostos} setImpostos={hook.setImpostos}
           icms={hook.icms} setIcms={hook.setIcms}
           iss={hook.iss} setIss={hook.setIss}
-          abrirPerfis={() => {}}
+          abrirPerfis={() => setModalCanaisAberto(true)}
         />
       </div>
 
       <div className="xl:col-span-4 h-full xl:sticky xl:top-0 flex flex-col justify-center py-8">
         <PainelResultados 
           calculo={hook.calculo}
-          estimativa={hook.estimativaPrazo}
           dadosPizza={hook.dadosGraficoPizza}
           aba={abaResultado} setAba={setAbaResultado}
           salvarProjeto={salvarComoProjeto}
@@ -241,13 +286,125 @@ export function PaginaCalculadora() {
       </div>
 
       {/* Modais de Gerenciamento (Zustand) */}
-      <ModalListagemPremium aberto={modalArmazemAberto} aoFechar={() => setModalArmazemAberto(false)} titulo="Armazém de Materiais" iconeTitulo={Settings} corDestaque="sky" termoBusca="" aoMudarBusca={() => {}} temResultados={true} totalResultados={materiais.length}>
+      <ModalListagemPremium 
+        aberto={modalArmazemAberto} 
+        aoFechar={() => setModalArmazemAberto(false)} 
+        titulo="Armazém de Materiais" 
+        iconeTitulo={Settings} 
+        corDestaque="sky" 
+        termoBusca={buscaMaterialArmazem} 
+        aoMudarBusca={setBuscaMaterialArmazem} 
+        temResultados={true} 
+        totalResultados={materiaisFiltrados.length}
+        elementoExtra={
+          <div className="flex items-center gap-1 p-1 h-full">
+            {[
+              { id: 'TODOS', label: 'Tudo' },
+              { id: 'FDM', label: 'Filamento' },
+              { id: 'SLA', label: 'Resina' }
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setFiltroTipoMaterial(f.id as any)}
+                className={`px-6 h-full min-w-[100px] rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  filtroTipoMaterial === f.id 
+                    ? "bg-sky-500 text-white shadow-lg shadow-sky-500/20" 
+                    : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        }
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {materiais.map(m => (
-            <button key={m.id} onClick={() => alternarMaterial(m.id)} className={`p-4 rounded-2xl border-2 transition-all text-left ${hook.materiaisSelecionados.some(s => s.id === m.id) ? "border-sky-500 bg-sky-500/5" : "border-gray-50 dark:border-white/5 hover:border-sky-500/30"}`}>
-              <h4 className="text-[11px] font-black uppercase">{m.nome}</h4>
-            </button>
-          ))}
+          {/* Botão Novo Material */}
+          <button 
+            onClick={() => {
+              setModalArmazemAberto(false);
+              acoesMateriais.abrirEditar(null as any);
+            }}
+            className="p-3 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-sky-500/50 hover:bg-sky-500/5 transition-all flex items-center gap-4 h-24 group"
+          >
+            <div className="shrink-0 w-14 flex items-center justify-center">
+              <div className="w-11 h-11 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-all">
+                <Plus size={22} />
+              </div>
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white">Novo Material</span>
+              <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter">Adicionar ao catálogo</span>
+            </div>
+          </button>
+
+          {materiaisFiltrados.map(m => {
+            const selecionado = hook.materiaisSelecionados.some(s => s.id === m.id);
+            const unidade = m.tipo === 'SLA' ? 'ml' : 'g';
+            const totalKgOuL = m.pesoGramas / 1000;
+            const precoPorUnidade = (m.precoCentavos / 100) / totalKgOuL;
+            
+            return (
+              <button 
+                key={m.id} 
+                onClick={() => alternarMaterial(m.id)} 
+                className={`p-3 rounded-2xl border-2 transition-all text-left flex items-center gap-4 relative overflow-hidden h-24 bg-white dark:bg-zinc-900/50 ${
+                  selecionado ? "shadow-md" : "hover:shadow-lg"
+                }`}
+                style={{ 
+                  borderColor: selecionado ? m.cor : `${m.cor}22`,
+                  backgroundColor: selecionado ? `${m.cor}11` : undefined
+                }}
+              >
+                <div 
+                  className="absolute left-0 top-0 bottom-0 w-1 opacity-40"
+                  style={{ backgroundColor: m.cor || '#888' }}
+                />
+
+                <div className="shrink-0 w-14 flex items-center justify-center">
+                  <div className="group-hover:scale-110 transition-transform duration-500">
+                    {m.tipo === 'SLA' ? (
+                      <GarrafaResina cor={m.cor} tamanho={36} porcentagem={(m.pesoRestanteGramas / m.pesoGramas) * 100} />
+                    ) : (
+                      <Carretel cor={m.cor} tamanho={42} porcentagem={(m.pesoRestanteGramas / m.pesoGramas) * 100} />
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1 min-w-0 flex flex-col justify-between h-full py-1">
+                  <div className="flex justify-between items-start">
+                    <div className="min-w-0">
+                      <h4 className="text-[10px] font-black uppercase tracking-wider text-zinc-900 dark:text-white truncate">
+                        {m.nome}
+                      </h4>
+                      <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter truncate">
+                        {m.fabricante} • {m.tipoMaterial}
+                      </p>
+                    </div>
+                    {selecionado && (
+                      <div className="shrink-0 w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-white shadow-lg z-10">
+                        <Check size={12} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-end justify-between gap-2 border-t border-gray-100 dark:border-white/5 pt-2 mt-1">
+                    <div className="flex flex-col">
+                      <span className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">Saldo</span>
+                      <span className={`text-[9px] font-black tabular-nums ${m.pesoRestanteGramas < 100 ? 'text-rose-500' : 'text-zinc-600 dark:text-zinc-300'}`}>
+                        {m.pesoRestanteGramas}{unidade}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-black text-emerald-500 tracking-tighter tabular-nums">
+                        R$ {precoPorUnidade.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </ModalListagemPremium>
 
@@ -277,6 +434,147 @@ export function PaginaCalculadora() {
       </Dialogo>
 
       <FormularioMaterial aberto={estadoMateriais.modalAberto} aoSalvar={acoesMateriais.salvarMaterial} aoCancelar={acoesMateriais.fecharEditar} materialEditando={estadoMateriais.materialSendoEditado} />
+      
+      {/* Modal Canais de Venda */}
+      <ModalListagemPremium 
+        aberto={modalCanaisAberto} 
+        aoFechar={() => setModalCanaisAberto(false)} 
+        titulo="Canais de Venda" 
+        iconeTitulo={ChevronDown} 
+        corDestaque="amber" 
+        termoBusca="" 
+        aoMudarBusca={() => {}} 
+        temResultados={true} 
+        totalResultados={hook.perfisMarketplace.length}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {hook.perfisMarketplace.map(p => {
+            const selecionado = hook.perfilAtivo === p.nome;
+            return (
+              <button 
+                key={p.nome} 
+                onClick={() => {
+                  hook.setPerfilAtivo(p.nome);
+                  setModalCanaisAberto(false);
+                }} 
+                className={`p-5 rounded-2xl border-2 transition-all text-left flex items-center gap-4 relative overflow-hidden group ${
+                  selecionado ? "border-amber-500 bg-amber-500/5 shadow-md" : "border-gray-50 dark:border-white/5 hover:border-amber-500/30 bg-white dark:bg-zinc-900/50"
+                }`}
+              >
+                <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${selecionado ? "bg-amber-500 text-white" : "bg-gray-100 dark:bg-white/5 text-zinc-400 group-hover:text-amber-500"}`}>
+                  <Settings size={20} />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-[11px] font-black uppercase tracking-wider text-zinc-900 dark:text-white truncate">
+                    {p.nome}
+                  </h4>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">Taxa: {p.taxa}%</span>
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">Fixa: {centavosParaReais(p.fixa * 100)}</span>
+                  </div>
+                </div>
+
+                {selecionado && (
+                  <div className="shrink-0 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-white shadow-lg">
+                    <Check size={14} />
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </ModalListagemPremium>
+
+      {/* Modal Armazém de Insumos */}
+      <ModalListagemPremium 
+        aberto={modalArmazemInsumosAberto} 
+        aoFechar={() => setModalArmazemInsumosAberto(false)} 
+        titulo="Armazém de Insumos" 
+        iconeTitulo={Box} 
+        corDestaque="indigo" 
+        termoBusca={buscaInsumo} 
+        aoMudarBusca={setBuscaInsumo} 
+        temResultados={true} 
+        totalResultados={insumosFiltrados.length}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Botão Novo Insumo */}
+          <button 
+            onClick={() => {
+              setModalArmazemInsumosAberto(false);
+              abrirCriarInsumo();
+            }}
+            className="p-3 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all flex items-center gap-4 h-24 group"
+          >
+            <div className="shrink-0 w-14 flex items-center justify-center">
+              <div className="w-11 h-11 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                <Plus size={22} />
+              </div>
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white">Novo Insumo</span>
+              <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter">Adicionar ao estoque</span>
+            </div>
+          </button>
+
+          {insumosFiltrados.map(i => {
+            const selecionado = hook.insumosSelecionados.some(s => s.id === i.id);
+            return (
+              <button 
+                key={i.id} 
+                onClick={() => {
+                  const existe = hook.insumosSelecionados.find(s => s.id === i.id);
+                  if (existe) hook.setInsumosSelecionados(prev => prev.filter(p => p.id !== i.id));
+                  else hook.setInsumosSelecionados(prev => [...prev, { id: i.id, nome: i.nome, quantidade: 1, custoCentavos: i.custoMedioUnidade }]);
+                }} 
+                className={`p-3 rounded-2xl border-2 transition-all text-left flex items-center gap-4 relative overflow-hidden h-24 bg-white dark:bg-zinc-900/50 ${
+                  selecionado ? "border-indigo-500 shadow-md bg-indigo-500/5" : "border-gray-50 dark:border-white/5 hover:border-indigo-500/30"
+                }`}
+              >
+                <div className="shrink-0 w-14 flex items-center justify-center">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${selecionado ? "bg-indigo-500 text-white" : "bg-gray-100 dark:bg-white/5 text-zinc-400 group-hover:text-indigo-500"}`}>
+                    <Package size={22} />
+                  </div>
+                </div>
+
+                <div className="flex-1 min-w-0 flex flex-col justify-between h-full py-1">
+                  <div className="flex justify-between items-start">
+                    <div className="min-w-0">
+                      <h4 className="text-[10px] font-black uppercase tracking-wider text-zinc-900 dark:text-white truncate">
+                        {i.nome}
+                      </h4>
+                      <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter truncate">
+                        {i.categoria || 'Geral'}
+                      </p>
+                    </div>
+                    {selecionado && (
+                      <div className="shrink-0 w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-white shadow-lg">
+                        <Check size={12} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-end justify-between gap-2 border-t border-gray-100 dark:border-white/5 pt-2 mt-auto">
+                    <div className="flex flex-col">
+                      <span className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">Saldo</span>
+                      <span className={`text-[9px] font-black tabular-nums ${i.quantidadeAtual <= i.quantidadeMinima ? 'text-rose-500' : 'text-zinc-600 dark:text-zinc-300'}`}>
+                        {i.quantidadeAtual} {i.unidadeMedida}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-black text-indigo-500 tracking-tighter tabular-nums">
+                        {centavosParaReais(i.custoMedioUnidade)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </ModalListagemPremium>
+
       <FormularioInsumo aberto={modalInsumoAberto} aoCancelar={fecharInsumoAberto} insumoEditando={insumoEditando} aoSalvar={(dados) => adicionarOuAtualizarInsumo({ ...dados, id: dados.id || crypto.randomUUID(), dataCriacao: dados.dataCriacao || new Date(), dataAtualizacao: new Date(), historico: dados.historico || [] } as any)} />
     </div>
   );

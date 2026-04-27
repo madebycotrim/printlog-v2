@@ -7,7 +7,7 @@ interface ListaMateriaisProps {
   materiais: Material[];
   agrupadosPorTipo: [string, Material[]][];
   aoEditar: (m: Material) => void;
-  aoHistorico: (m: Material) => void;
+  aoHistorico: (m: Material, aba?: "extrato" | "novo") => void;
   aoExcluir: (m: Material) => void;
 }
 

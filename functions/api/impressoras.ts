@@ -4,9 +4,11 @@ interface Env {
     DB: D1Database;
 }
 
-export const onRequest: PagesFunction<Env> = async (context) => {
-    const { env, request } = context;
-    const usuarioId = request.headers.get("x-usuario-id");
+export const onRequest: PagesFunction<Env, any, { uid: string }> = async (context) => {
+    const { env, request, data } = context;
+
+    // Obtido com segurança via Middleware JWT
+    const usuarioId = data.uid;
     if (!usuarioId) return new Response("Não autorizado", { status: 401 });
 
     const url = new URL(request.url);

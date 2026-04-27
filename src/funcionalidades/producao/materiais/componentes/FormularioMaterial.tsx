@@ -1,9 +1,9 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Carretel, GarrafaResina } from "@/compartilhado/componentes/Icones3D";
-import { Save, Plus, Building2, Layers, Tag, Weight, BoxSelect, Beaker } from "lucide-react";
+import { Save, Building2, Layers, Tag, Weight, BoxSelect } from "lucide-react";
 import { Combobox } from "@/compartilhado/componentes/Combobox";
 import { Dialogo } from "@/compartilhado/componentes/Dialogo";
 import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
@@ -86,7 +86,6 @@ interface PropriedadesFormularioMaterial {
 export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEditando }: PropriedadesFormularioMaterial) {
   const estaEditando = Boolean(materialEditando);
   const [confirmarDescarte, definirConfirmarDescarte] = useState(false);
-  const inputCorRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -176,8 +175,11 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEdita
     }
   };
 
+  const termoMaterial = tipoSelecionado === "FDM" ? "Filamento" : "Resina";
+  const unidadeMedida = tipoSelecionado === "FDM" ? "G" : "ML";
+
   return (
-    <Dialogo aberto={aberto} aoFechar={lidarComTentativaFechamento} titulo={estaEditando ? "Refinar Insumo" : "Novo Material Maker"} larguraMax="max-w-5xl">
+    <Dialogo aberto={aberto} aoFechar={lidarComTentativaFechamento} titulo={estaEditando ? `Refinar ${termoMaterial}` : "Novo Material Maker"} larguraMax="max-w-5xl">
        <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] min-h-[500px] bg-white dark:bg-[#18181b]">
           <div className="bg-zinc-50 dark:bg-black/20 border-r border-zinc-100 dark:border-white/5 p-8 flex flex-col items-center justify-center relative overflow-hidden">
              <div className="absolute top-8 inset-x-8 flex bg-white/50 dark:bg-black/20 p-1.5 rounded-2xl border border-zinc-200 dark:border-white/5 z-20 backdrop-blur-md">
@@ -209,13 +211,18 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEdita
                          <Combobox opcoes={opcoesMaterialAtual} valor={tipoMaterialSelecionado} aoAlterar={(val) => setValue("tipoMaterial", val, { shouldDirty: true })} permitirNovo={true} icone={Layers} />
                       </div>
                       <div className="md:col-span-2">
-                        <CampoTexto rotulo="Apelido / Nome Amigável" icone={Tag} placeholder="Ex: PLA Amarelo Ouro" {...register("nomePersonalizado")} />
+                        <CampoTexto 
+                           rotulo="Apelido / Nome Amigável" 
+                           icone={Tag} 
+                           placeholder={tipoSelecionado === "FDM" ? "Ex: PLA Amarelo Ouro" : "Ex: Resina Cinza Padrão"} 
+                           {...register("nomePersonalizado")} 
+                        />
                       </div>
                    </div>
                 </section>
 
                 <section className="space-y-6">
-                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Cor do Insumo</h4>
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Cor do {termoMaterial}</h4>
                    <div className="flex flex-wrap gap-2.5 p-4 bg-zinc-50 dark:bg-black/10 rounded-2xl border border-zinc-100 dark:border-white/5">
                       {CORES_PREDEFINIDAS.map(c => (
                         <button key={c} type="button" onClick={() => setValue("cor", c, { shouldDirty: true })} className={`w-8 h-8 rounded-xl border-2 transition-all ${corSelecionada === c ? "border-sky-500 scale-110 shadow-lg" : "border-white dark:border-zinc-800 hover:border-zinc-300"}`} style={{ backgroundColor: c }} />
@@ -227,8 +234,8 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEdita
                 <section className="space-y-6">
                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Preço e Quantidade</h4>
                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <CampoMonetario rotulo="Preço do Rolo" erro={errors.preco?.message} {...register("preco", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })} />
-                      <CampoTexto rotulo={`Peso (${tipoSelecionado === "FDM" ? "G" : "ML"})`} type="number" icone={Weight} {...register("peso", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })} />
+                      <CampoMonetario rotulo={`Preço ${tipoSelecionado === "FDM" ? "do Rolo" : "da Garrafa"}`} erro={errors.preco?.message} {...register("preco", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })} />
+                      <CampoTexto rotulo={`${tipoSelecionado === "FDM" ? "Peso" : "Volume"} (${unidadeMedida})`} type="number" icone={Weight} {...register("peso", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })} />
                       <CampoTexto rotulo="Qtd. em Estoque" type="number" icone={BoxSelect} {...register("estoqueInicial", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })} />
                    </div>
                 </section>
@@ -240,7 +247,7 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEdita
                       <button type="button" onClick={lidarComTentativaFechamento} className="px-6 py-2.5 text-[11px] font-black uppercase text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all">Cancelar</button>
                       <button type="submit" style={{ backgroundColor: "var(--cor-primaria)" }} className="px-8 py-3 flex-1 md:flex-none justify-center text-white text-[11px] font-black uppercase rounded-2xl shadow-xl transition-all active:scale-95 flex items-center gap-2">
                          <Save size={16} strokeWidth={3} />
-                         {estaEditando ? "Salvar Alterações" : "Cadastrar Insumo"}
+                         {estaEditando ? "Salvar Alterações" : `Cadastrar ${termoMaterial}`}
                       </button>
                    </div>
                 ) : (

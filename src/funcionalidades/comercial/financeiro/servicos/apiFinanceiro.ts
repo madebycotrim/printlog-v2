@@ -1,15 +1,14 @@
 import { LancamentoFinanceiro, CriarLancamentoInput } from "../tipos";
+import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
+import { criarLancamentoSchema } from "../schemas";
 
 /**
  * Serviço de comunicação com a API Financeira do Cloudflare D1.
+ * Refatorado para usar o servicoBaseApi com autenticação segura via Token e validação Zod.
  */
 export const apiFinanceiro = {
-    buscarTodos: async (usuarioId: string): Promise<LancamentoFinanceiro[]> => {
-        const resposta = await fetch("/api/financeiro", {
-            headers: { "x-usuario-id": usuarioId }
-        });
-        if (!resposta.ok) throw new Error("Erro ao carregar dados financeiros.");
-        const dados = await resposta.json();
+    buscarTodos: async (_usuarioId: string): Promise<LancamentoFinanceiro[]> => {
+        const dados = await servicoBaseApi.get<any[]>("/api/financeiro");
         
         return dados.map((l: any) => ({
             ...l,
@@ -20,25 +19,14 @@ export const apiFinanceiro = {
         }));
     },
 
-    registrar: async (dados: CriarLancamentoInput, usuarioId: string): Promise<LancamentoFinanceiro> => {
-        const resposta = await fetch("/api/financeiro", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "x-usuario-id": usuarioId 
-            },
-            body: JSON.stringify(dados)
-        });
+    registrar: async (dados: CriarLancamentoInput, _usuarioId: string): Promise<LancamentoFinanceiro> => {
+        // Validação de segurança no cliente
+        const dadosValidados = criarLancamentoSchema.parse(dados);
 
-        if (!resposta.ok) throw new Error("Erro ao registrar no banco.");
-        return resposta.json();
+        return servicoBaseApi.post<LancamentoFinanceiro>("/api/financeiro", dadosValidados);
     },
 
-    remover: async (id: string, usuarioId: string): Promise<void> => {
-        const resposta = await fetch(`/api/financeiro?id=${id}`, {
-            method: "DELETE",
-            headers: { "x-usuario-id": usuarioId }
-        });
-        if (!resposta.ok) throw new Error("Erro ao remover do banco.");
+    remover: async (id: string, _usuarioId: string): Promise<void> => {
+        await servicoBaseApi.delete(`/api/financeiro?id=${id}`);
     }
 };

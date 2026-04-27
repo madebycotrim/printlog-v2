@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { usarArmazemConfiguracoes } from "@/funcionalidades/sistema/configuracoes/estado/armazemConfiguracoes";
 import { usarArmazemMateriais } from "@/funcionalidades/producao/materiais/estado/armazemMateriais";
+import { usarArmazemInsumos } from "@/funcionalidades/producao/insumos/estado/armazemInsumos";
 import { usarPedidos } from "@/funcionalidades/producao/projetos/hooks/usarPedidos";
 import { extrairValorNumerico } from "@/compartilhado/utilitarios/formatadores";
 import { toast } from "react-hot-toast";
@@ -17,6 +18,7 @@ import {
 export function usarCalculadora() {
   const config = usarArmazemConfiguracoes();
   const { materiais } = usarArmazemMateriais();
+  const { insumos: insumosEstoque } = usarArmazemInsumos();
   const { pedidos } = usarPedidos();
 
   // --- ESTADOS BASE ---
@@ -72,7 +74,7 @@ export function usarCalculadora() {
   // --- LÓGICA DE CÁLCULO (Sólida) ---
   const calculo = useMemo((): CalculoResultado => {
     const custoMaterialTotalCentavos = materiaisSelecionados.reduce((acc, m) => acc + (m.quantidade / 1000) * m.precoKgCentavos, 0);
-    const custoInsumosDinamicosCentavos = insumosSelecionados.reduce((acc, i) => acc + i.custoCentavos, 0);
+    const custoInsumosDinamicosCentavos = insumosSelecionados.reduce((acc, i) => acc + (i.quantidade * i.custoCentavos), 0);
     
     const horasDecimais = tempo / 60;
     const custoEnergiaCentavos = Math.round((potencia / 1000) * horasDecimais * precoKwh * 100);
@@ -146,6 +148,22 @@ export function usarCalculadora() {
       return null;
     }).filter(a => a !== null);
   }, [materiaisSelecionados, materiais]);
+
+  const alertasInsumos = useMemo(() => {
+    return insumosSelecionados.map(sel => {
+      const real = insumosEstoque.find((i: any) => i.id === sel.id);
+      if (!real) return null;
+      if (sel.quantidade > real.quantidadeAtual) {
+        return {
+          insumoId: sel.id,
+          nome: sel.nome,
+          falta: sel.quantidade - real.quantidadeAtual,
+          disponivel: real.quantidadeAtual
+        };
+      }
+      return null;
+    }).filter(a => a !== null);
+  }, [insumosSelecionados, insumosEstoque]);
 
   // --- FEATURE 4: ESTIMATIVA DE PRAZO ---
   const estimativaPrazo = useMemo(() => {
@@ -299,6 +317,7 @@ export function usarCalculadora() {
     // Resultados
     calculo,
     alertasEstoque,
+    alertasInsumos,
     estimativaPrazo,
     dadosGraficoPizza,
     

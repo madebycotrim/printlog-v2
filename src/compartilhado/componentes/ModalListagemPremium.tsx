@@ -25,6 +25,7 @@ interface PropriedadesModalListagemPremium {
   // Rodapé
   infoRodape?: string;
   loading?: boolean;
+  elementoExtra?: ReactNode;
 }
 
 /**
@@ -47,6 +48,7 @@ export function ModalListagemPremium({
   iconeVazio,
   infoRodape,
   loading = false,
+  elementoExtra,
 }: PropriedadesModalListagemPremium) {
   const mapasCores = {
     indigo: "rose-500", // Fallback para rose em destaque se necessário
@@ -64,28 +66,36 @@ export function ModalListagemPremium({
     <Dialogo aberto={aberto} aoFechar={aoFechar} titulo={titulo} larguraMax="max-w-7xl" telaCheia={false} semScroll={true}>
       <div className="flex flex-col bg-white dark:bg-[var(--bg-card)] h-[80vh]">
         {/* 🔍 Barra de Busca Superior */}
-        <div
+         <div
           className={`px-6 py-4 border-b border-gray-100 dark:border-white/5 bg-${corDestaque}-50/30 dark:bg-${corDestaque}-500/[0.02] backdrop-blur-sm sticky top-0 z-20`}
         >
-          <div className="relative group">
-            <Search
-              className={`absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-${corHex} transition-colors`}
-              size={18}
-            />
-            <input
-              type="text"
-              value={termoBusca}
-              onChange={(e) => aoMudarBusca(e.target.value)}
-              placeholder={placeholderBusca}
-              className={`w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-white/5 border border-transparent focus:border-${corHex}/30 rounded-2xl text-xs font-bold uppercase tracking-widest outline-none transition-all`}
-            />
-            {termoBusca && (
-              <button
-                onClick={() => aoMudarBusca("")}
-                className={`absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-${corHex} transition-colors`}
-              >
-                <X size={16} />
-              </button>
+          <div className={`flex items-center bg-white/50 dark:bg-white/5 border border-transparent focus-within:border-${corHex}/30 rounded-2xl overflow-hidden h-14 transition-all`}>
+            <div className="relative flex-1 h-full group">
+              <Search
+                className={`absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-${corHex} transition-colors`}
+                size={18}
+              />
+              <input
+                type="text"
+                value={termoBusca}
+                onChange={(e) => aoMudarBusca(e.target.value)}
+                placeholder={placeholderBusca}
+                className="w-full h-full pl-12 pr-4 bg-transparent text-xs font-bold uppercase tracking-widest outline-none"
+              />
+              {termoBusca && (
+                <button
+                  onClick={() => aoMudarBusca("")}
+                  className={`absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-${corHex} transition-colors`}
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+
+            {elementoExtra && (
+              <div className="shrink-0 flex items-center px-1 h-full">
+                {elementoExtra}
+              </div>
             )}
           </div>
         </div>

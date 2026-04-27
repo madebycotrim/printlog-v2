@@ -8,8 +8,8 @@ import { pluralizar, centavosParaReais } from "@/compartilhado/utilitarios/forma
 interface PropriedadesCardMaterial {
   material: Material;
   aoEditar: (material: Material) => void;
-  aoExcluir: (id: string) => void;
-  aoHistorico: (id: string, abaInicial?: "extrato" | "novo") => void;
+  aoExcluir: (material: Material) => void;
+  aoHistorico: (material: Material, abaInicial?: "extrato" | "novo") => void;
 }
 
 export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico }: PropriedadesCardMaterial) {
@@ -102,7 +102,7 @@ export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico }: Pro
         <button
           onClick={(e) => {
             e.stopPropagation();
-            aoHistorico(material.id, "novo");
+            aoHistorico(material, "novo");
           }}
           title="Registrar consumo (balança)"
           className="p-2 rounded-xl text-zinc-400 hover:bg-emerald-500/10 hover:text-emerald-500 transition-all border border-transparent hover:border-emerald-500/20"
@@ -132,7 +132,7 @@ export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico }: Pro
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    aoHistorico(material.id);
+                    aoHistorico(material);
                     definirMenuAberto(false);
                   }}
                   className="w-full flex items-center gap-3 px-3 py-2 text-[10px] font-black text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white rounded-xl transition-all uppercase tracking-widest"
@@ -158,7 +158,7 @@ export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico }: Pro
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    aoExcluir(material.id);
+                    aoExcluir(material);
                     definirMenuAberto(false);
                   }}
                   className="w-full flex items-center gap-3 px-3 py-2 text-[10px] font-black text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all uppercase tracking-widest"

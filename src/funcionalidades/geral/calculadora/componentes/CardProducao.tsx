@@ -1,5 +1,4 @@
-import { Zap, Plus, Trash2 } from "lucide-react";
-import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
+import { Zap, Plus, Trash2, ChevronDown } from "lucide-react";
 import { ItemPosProcesso } from "../tipos";
 import { useState } from "react";
 
@@ -13,19 +12,88 @@ interface CardProducaoProps {
   custoEnergia: number;
   posProcesso: ItemPosProcesso[];
   setPosProcesso: (v: ItemPosProcesso[]) => void;
+  impressoras?: any[];
+  idImpressoraSelecionada?: string;
+  aoSelecionarImpressora?: (id: string) => void;
 }
 
 export function CardProducao({
-  tempo, setTempo, potencia, setPotencia, precoKwh, setPrecoKwh, custoEnergia, posProcesso, setPosProcesso
+  tempo, setTempo, potencia, setPotencia, precoKwh, setPrecoKwh, custoEnergia, posProcesso, setPosProcesso,
+  impressoras = [], idImpressoraSelecionada, aoSelecionarImpressora
 }: CardProducaoProps) {
   const [novoItemNome, setNovoItemNome] = useState("");
   const [novoItemValor, setNovoItemValor] = useState(0);
+  const [seletorAberto, setSeletorAberto] = useState(false);
+
+  const impressoraAtiva = impressoras.find(i => i.id === idImpressoraSelecionada);
 
   return (
     <div className="p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
-      <div className="flex items-center gap-3 pb-4 border-b border-gray-50 dark:border-white/5">
-        <Zap size={18} className="text-amber-500" />
-        <h3 className="text-xs font-black uppercase tracking-widest">Produção</h3>
+      <div className="flex items-center justify-between pb-4 border-b border-gray-50 dark:border-white/5">
+        <div className="flex items-center gap-3">
+          <Zap size={18} className="text-amber-500" />
+          <h3 className="text-xs font-black uppercase tracking-widest">Produção</h3>
+        </div>
+
+        {/* Seletor Inteligente de Impressora (Estilo Premium) */}
+        <div className="relative">
+          <button 
+            type="button"
+            onClick={() => setSeletorAberto(!seletorAberto)}
+            className={`flex items-center gap-3 px-4 py-2 rounded-2xl border transition-all group ${
+              impressoraAtiva 
+                ? "bg-zinc-50 dark:bg-white/5 border-gray-100 dark:border-white/10 shadow-sm" 
+                : "bg-zinc-100 dark:bg-white/5 border-transparent text-zinc-400"
+            }`}
+          >
+            <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)] ${impressoraAtiva ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+            
+            <div className="flex flex-col items-start leading-tight">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs font-black uppercase tracking-tight text-zinc-900 dark:text-white">
+                  {impressoraAtiva ? impressoraAtiva.nome : "Selecionar Máquina"}
+                </span>
+                {impressoraAtiva && (
+                  <div className="flex items-center gap-1.5 translate-y-[-0.5px]">
+                    <span className="text-[10px] text-zinc-300 dark:text-zinc-600 font-black leading-none">•</span>
+                    <span className="text-[11px] font-black text-sky-500 tracking-tighter leading-none">{impressoraAtiva.potenciaWatts}W</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <ChevronDown size={14} className={`text-zinc-400 transition-transform ml-2 ${seletorAberto ? "rotate-180" : ""}`} />
+          </button>
+
+          {seletorAberto && (
+            <div className="absolute top-full right-0 mt-2 w-56 p-2 rounded-2xl bg-white dark:bg-[#0c0c0e] border border-gray-100 dark:border-white/10 shadow-2xl z-50">
+              {impressoras.length === 0 ? (
+                <div className="p-4 text-[10px] font-bold text-center text-zinc-500 uppercase">Nenhuma máquina cadastrada</div>
+              ) : (
+                <div className="space-y-1 max-h-48 overflow-y-auto scrollbar-hide">
+                  {impressoras.map(imp => (
+                    <button
+                      key={imp.id}
+                      type="button"
+                      onClick={() => {
+                        aoSelecionarImpressora?.(imp.id);
+                        setSeletorAberto(false);
+                      }}
+                      className={`w-full px-4 py-2.5 rounded-xl text-left text-xs font-black uppercase tracking-tight transition-colors ${
+                        idImpressoraSelecionada === imp.id 
+                          ? "bg-sky-500 text-white" 
+                          : "hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-500"
+                      }`}
+                    >
+                      {imp.nome}
+                      <span className="block text-[10px] opacity-60 font-bold">{imp.marca} {imp.modeloBase}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
@@ -33,11 +101,11 @@ export function CardProducao({
         <div className="space-y-8">
           <div className="flex gap-4">
             <div className="flex-1">
-              <label className="block h-4 text-[10px] font-black uppercase text-gray-400 mb-2">Horas</label>
+              <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2">Horas</label>
               <input type="number" placeholder="0" value={Math.floor(tempo / 60) || ""} onChange={(e) => setTempo(Number(e.target.value) * 60 + (tempo % 60))} className="w-full h-14 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-sm" />
             </div>
             <div className="flex-1">
-              <label className="block h-4 text-[10px] font-black uppercase text-gray-400 mb-2">Minutos</label>
+              <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2">Minutos</label>
               <input type="number" placeholder="0" value={tempo % 60 || ""} onChange={(e) => setTempo(Math.floor(tempo / 60) * 60 + Number(e.target.value))} className="w-full h-14 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-sm" />
             </div>
           </div>
@@ -45,19 +113,34 @@ export function CardProducao({
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col group">
               <div className="flex items-center justify-between h-4 mb-2">
-                <label className="block text-[10px] font-black uppercase text-gray-400">Energia (R$)</label>
-                <div className="px-1.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-[8px] font-black text-orange-500 uppercase flex items-center">
-                  <input type="number" value={potencia || ""} onChange={(e) => setPotencia(Number(e.target.value))} className="bg-transparent outline-none text-right placeholder:text-orange-500/50 w-8" placeholder="0" />
-                  <span>W</span>
+                <label className="block text-xs font-black uppercase text-gray-400">Energia (R$)</label>
+                <div className={`px-2 py-0.5 rounded-md border text-[10px] font-black uppercase flex items-center gap-0.5 w-fit transition-colors ${
+                  impressoraAtiva 
+                    ? "bg-sky-500/10 border-sky-500/20 text-sky-500" 
+                    : "bg-orange-500/10 border-orange-500/20 text-orange-500"
+                }`}>
+                  <input 
+                    type="number" 
+                    value={potencia || ""} 
+                    onChange={(e) => setPotencia(Number(e.target.value))} 
+                    className="bg-transparent outline-none text-right placeholder:current-color leading-none" 
+                    style={{ width: `${Math.max(1, (potencia || 0).toString().length)}ch` }}
+                    placeholder="0" 
+                  />
+                  <span className="leading-none">W</span>
                 </div>
               </div>
-              <div className="w-full h-14 px-4 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center border border-transparent group-hover:border-orange-500/30 transition-all">
+              <div className={`w-full h-14 px-4 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center border transition-all ${
+                impressoraAtiva ? 'border-sky-500/20 group-hover:border-sky-500/40' : 'border-transparent group-hover:border-orange-500/30'
+              }`}>
                 <span className="text-gray-400 font-black text-xs mr-2">R$</span>
-                <span className="font-black text-sm text-gray-900 dark:text-white">{custoEnergia.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                <span className={`font-black text-sm ${impressoraAtiva ? 'text-sky-500' : 'text-gray-900 dark:text-white'}`}>
+                  {custoEnergia.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </span>
               </div>
             </div>
             <div className="flex flex-col">
-              <label className="block h-4 text-[10px] font-black uppercase text-gray-400 mb-2">kWh (R$)</label>
+              <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2">kWh (R$)</label>
               <input type="number" step="0.01" value={precoKwh || ""} onChange={(e) => setPrecoKwh(Number(e.target.value))} className="w-full h-14 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-sm" />
             </div>
           </div>
@@ -66,18 +149,18 @@ export function CardProducao({
         {/* Coluna Direita: Pós-Processamento */}
         <div className="flex flex-col justify-between">
           <div className="flex flex-col mb-8">
-            <label className="block h-4 text-[10px] font-black uppercase text-gray-400 mb-2">Pós-Processamento</label>
+            <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2">Pós-Processamento</label>
             <div className="h-14 space-y-2 overflow-y-auto scrollbar-hide">
               {posProcesso.length === 0 ? (
                 <div className="w-full h-full border-2 border-dashed border-gray-100 dark:border-white/5 rounded-2xl flex items-center justify-center">
-                  <p className="text-[9px] font-bold text-gray-300 dark:text-zinc-700 uppercase tracking-widest italic">Vazio</p>
+                  <p className="text-[11px] font-bold text-gray-300 dark:text-zinc-700 uppercase tracking-widest italic">Vazio</p>
                 </div>
               ) : (
                 posProcesso.map(item => (
                   <div key={item.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-transparent">
-                    <span className="text-[10px] font-bold uppercase truncate max-w-[120px] text-gray-900 dark:text-white">{item.nome}</span>
+                    <span className="text-xs font-bold uppercase truncate max-w-[120px] text-gray-900 dark:text-white">{item.nome}</span>
                     <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-black text-gray-900 dark:text-white">R$ {item.valor}</span>
+                      <span className="text-xs font-black text-gray-900 dark:text-white">R$ {item.valor}</span>
                       <button onClick={() => setPosProcesso(posProcesso.filter(i => i.id !== item.id))} className="text-rose-500 hover:scale-110 transition-transform">
                         <Trash2 size={12} />
                       </button>

@@ -1,60 +1,50 @@
-import { Pedido, CriarPedidoInput, AtualizarPedidoInput } from "../tipos";
+import { Pedido } from "../tipos";
+import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
+import { criarPedidoSchema, atualizarPedidoSchema, CriarPedidoInput, AtualizarPedidoInput } from "../schemas";
 
 /**
  * Serviço de comunicação com a API de Pedidos do Cloudflare.
+ * Refatorado para usar o servicoBaseApi com autenticação segura via Token e validação Zod.
  */
 export const apiPedidos = {
     /**
      * Busca todos os pedidos do usuário no D1.
+     * O backend deve extrair o ID do usuário do Token de Autenticação.
      */
-    buscarTodos: async (usuarioId: string): Promise<Pedido[]> => {
-        const resposta = await fetch("/api/pedidos", {
-            headers: { "x-usuario-id": usuarioId }
-        });
-        if (!resposta.ok) throw new Error("Erro ao carregar pedidos do banco.");
-        return resposta.json();
+    buscarTodos: async (_usuarioId: string): Promise<Pedido[]> => {
+        // Nota: O usuarioId não é mais enviado via header customizado inseguro.
+        // O servicoBaseApi injeta o Bearer Token que contém o ID validado.
+        return servicoBaseApi.get<Pedido[]>("/api/pedidos");
     },
 
     /**
-     * Salva um novo pedido no D1.
+     * Salva um novo pedido no D1 com validação de esquema.
      */
-    criar: async (dados: CriarPedidoInput, usuarioId: string): Promise<string> => {
-        const resposta = await fetch("/api/pedidos", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "x-usuario-id": usuarioId 
-            },
-            body: JSON.stringify(dados)
-        });
-        if (!resposta.ok) throw new Error("Erro ao salvar pedido no banco.");
-        const resultado = await resposta.json();
+    criar: async (dados: CriarPedidoInput, _usuarioId: string): Promise<string> => {
+        // Validação de segurança no cliente
+        const dadosValidados = criarPedidoSchema.parse(dados);
+        
+        const resultado = await servicoBaseApi.post<{ id: string }>("/api/pedidos", dadosValidados);
         return resultado.id;
     },
 
     /**
-     * Atualiza um pedido existente.
+     * Atualiza um pedido existente com validação de esquema.
      */
-    atualizar: async (dados: AtualizarPedidoInput, usuarioId: string): Promise<void> => {
-        const resposta = await fetch("/api/pedidos", {
+    atualizar: async (dados: AtualizarPedidoInput, _usuarioId: string): Promise<void> => {
+        // Validação de segurança no cliente
+        const dadosValidados = atualizarPedidoSchema.parse(dados);
+        
+        await servicoBaseApi.requisicao("/api/pedidos", {
             method: "PATCH",
-            headers: { 
-                "Content-Type": "application/json",
-                "x-usuario-id": usuarioId 
-            },
-            body: JSON.stringify(dados)
+            body: JSON.stringify(dadosValidados)
         });
-        if (!resposta.ok) throw new Error("Erro ao atualizar pedido no banco.");
     },
 
     /**
-     * Exclui um pedido do banco.
+     * Exclui um pedido do banco de forma segura.
      */
-    excluir: async (id: string, usuarioId: string): Promise<void> => {
-        const resposta = await fetch(`/api/pedidos?id=${id}`, {
-            method: "DELETE",
-            headers: { "x-usuario-id": usuarioId }
-        });
-        if (!resposta.ok) throw new Error("Erro ao excluir pedido do banco.");
+    excluir: async (id: string, _usuarioId: string): Promise<void> => {
+        await servicoBaseApi.delete(`/api/pedidos?id=${id}`);
     }
 };

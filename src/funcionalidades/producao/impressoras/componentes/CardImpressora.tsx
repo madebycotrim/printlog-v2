@@ -1,13 +1,8 @@
-import { MoreVertical, Edit2, Archive, Wrench, Activity, CheckCircle2, PlayCircle } from "lucide-react";
+import { MoreVertical, Edit2, Archive, Wrench, Activity } from "lucide-react";
 import { Impressora } from "@/funcionalidades/producao/impressoras/tipos";
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  calcularPercentualVidaUtil,
-  obterStatusManutencao,
-  obterCorStatusManutencao,
-} from "../utilitarios/utilitariosManutencao";
-import { StatusImpressora } from "@/compartilhado/tipos/modelos";
+import { calcularPercentualVidaUtil, obterStatusManutencao, obterCorStatusManutencao } from "../utilitarios/utilitariosManutencao";
 
 interface PropriedadesCardImpressora {
   impressora: Impressora;
@@ -45,9 +40,6 @@ export function CardImpressora({
     };
   }, [menuAberto, fecharMenu]);
 
-  const statusImpressora = impressora.status as StatusImpressora;
-  const estaImprimindo = statusImpressora === StatusImpressora.IMPRIMINDO;
-
   // Lógica de Saúde do Sistema (Reversa da Vida Útil)
   const saudeSistema = 100 - calcularPercentualVidaUtil(
     impressora.horimetroTotalMinutos || 0,
@@ -60,40 +52,6 @@ export function CardImpressora({
   );
   const coresManutencao = obterCorStatusManutencao(statusManutencaoUI);
 
-  const configStatus = useMemo(() => {
-    switch (statusImpressora) {
-      case StatusImpressora.IMPRIMINDO:
-        return {
-          cor: "#10b981",
-          icone: PlayCircle,
-          label: "Imprimindo",
-          sub: "Job em progresso...",
-          bg: "bg-emerald-500",
-          texto: "text-emerald-500",
-        };
-      case StatusImpressora.MANUTENCAO:
-        return { 
-          cor: "#f59e0b", 
-          icone: Wrench, 
-          label: "Manutenção", 
-          sub: "Indisponível",
-          bg: "bg-amber-500",
-          texto: "text-amber-500",
-        };
-      case StatusImpressora.LIVRE:
-      default:
-        return { 
-          cor: "#3b82f6", 
-          icone: CheckCircle2, 
-          label: "Disponível", 
-          sub: "Pronta",
-          bg: "bg-sky-500",
-          texto: "text-sky-500",
-        };
-    }
-  }, [statusImpressora]);
-
-  const corDestaque = statusManutencaoUI === "critico" ? "#f43f5e" : configStatus.cor;
   const horasUsadas = Math.floor((impressora.horimetroTotalMinutos || 0) / 60);
 
   return (
@@ -150,16 +108,10 @@ export function CardImpressora({
       </div>
 
       {/* ═══════ CORPO: VISUAL ═══════ */}
-      <div className="flex-1 relative flex items-center justify-center p-6 min-h-[160px]">
-        {/* Glow de Status sutil */}
-        <div 
-          className="absolute inset-0 blur-[60px] opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
-          style={{ backgroundColor: statusManutencaoUI === "critico" ? "#f43f5e" : configStatus.cor }}
-        />
-
-        <div className="relative z-10 transition-transform duration-500 group-hover:scale-105">
+      <div className="flex-1 relative flex items-center justify-center min-h-[240px]">
+        <div className="relative z-10 transition-transform duration-500 group-hover:scale-110">
           {impressora.imagemUrl ? (
-            <img src={impressora.imagemUrl} alt={impressora.nome} className="max-h-[140px] w-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.2)]" />
+            <img src={impressora.imagemUrl} alt={impressora.nome} className="max-h-[220px] w-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]" />
           ) : (
             <div className="w-24 h-24 rounded-full border border-dashed border-zinc-200 dark:border-white/10 flex items-center justify-center bg-zinc-50/30 dark:bg-white/[0.01]">
                <Activity size={24} className="text-zinc-200 dark:text-zinc-800 opacity-50" />

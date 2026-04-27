@@ -1,15 +1,14 @@
 import { PecaDesgaste } from "../tipos";
+import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
+import { pecaDesgasteSchema } from "../schemas";
 
 /**
  * Serviço de comunicação com a API de Peças de Desgaste do Cloudflare D1.
+ * Refatorado para usar o servicoBaseApi com autenticação segura via Token e validação Zod.
  */
 export const apiPecas = {
-    buscarPorImpressora: async (usuarioId: string, idImpressora: string): Promise<PecaDesgaste[]> => {
-        const resposta = await fetch(`/api/pecas-desgaste?idImpressora=${idImpressora}`, {
-            headers: { "x-usuario-id": usuarioId }
-        });
-        if (!resposta.ok) throw new Error("Erro ao carregar peças do banco.");
-        const dados = await resposta.json();
+    buscarPorImpressora: async (_usuarioId: string, idImpressora: string): Promise<PecaDesgaste[]> => {
+        const dados = await servicoBaseApi.get<any[]>(`/api/pecas-desgaste?idImpressora=${idImpressora}`);
         
         return dados.map((p: any) => ({
             ...p,
@@ -20,25 +19,18 @@ export const apiPecas = {
         }));
     },
 
-    salvar: async (dados: Partial<PecaDesgaste>, usuarioId: string): Promise<void> => {
+    salvar: async (dados: Partial<PecaDesgaste>, _usuarioId: string): Promise<void> => {
+        // Validação de segurança no cliente
+        const dadosValidados = pecaDesgasteSchema.partial().parse(dados);
         const metodo = dados.id ? "PATCH" : "POST";
-        const resposta = await fetch("/api/pecas-desgaste", {
-            method: metodo,
-            headers: { 
-                "Content-Type": "application/json",
-                "x-usuario-id": usuarioId 
-            },
-            body: JSON.stringify(dados)
-        });
 
-        if (!resposta.ok) throw new Error("Erro ao salvar peça no banco.");
+        await servicoBaseApi.requisicao("/api/pecas-desgaste", {
+            method: metodo,
+            body: JSON.stringify(dadosValidados)
+        });
     },
 
-    remover: async (id: string, usuarioId: string): Promise<void> => {
-        const resposta = await fetch(`/api/pecas-desgaste?id=${id}`, {
-            method: "DELETE",
-            headers: { "x-usuario-id": usuarioId }
-        });
-        if (!resposta.ok) throw new Error("Erro ao remover peça do banco.");
+    remover: async (id: string, _usuarioId: string): Promise<void> => {
+        await servicoBaseApi.delete(`/api/pecas-desgaste?id=${id}`);
     }
 };

@@ -1,8 +1,17 @@
+import { motion } from "framer-motion";
+import { Plus, PackageSearch } from "lucide-react";
+import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
+import { Carregamento } from "@/compartilhado/componentes/Carregamento";
+import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
+import { usarGerenciadorMateriais } from "./hooks/usarGerenciadorMateriais";
+import { Material } from "./tipos";
 import { FormularioMaterial } from "./componentes/FormularioMaterial";
 import { ResumoEstoque } from "./componentes/ResumoEstoque";
 import { FiltrosMaterial } from "./componentes/FiltrosMaterial";
-import { CardMaterial } from "./componentes/CardMaterial";
 import { ListaMateriais } from "./componentes/ListaMateriais";
+import { ModalHistoricoUso } from "./componentes/ModalHistoricoUso";
+import { ModalArquivamentoMaterial } from "./componentes/ModalArquivamentoMaterial";
+import { ModalReposicaoEstoque } from "./componentes/ModalReposicaoEstoque";
 
 export function PaginaMateriais() {
   const { estado, acoes } = usarGerenciadorMateriais();
@@ -60,8 +69,8 @@ export function PaginaMateriais() {
               materiais={estado.materiaisFiltradosOrdenados}
               agrupadosPorTipo={estado.agrupadosPorTipoMaterial}
               aoEditar={acoes.abrirEditar}
-              aoHistorico={acoes.abrirHistorico}
-              aoExcluir={acoes.abrirExcluir}
+              aoHistorico={(m, aba) => acoes.abrirHistorico(m.id, aba)}
+              aoExcluir={(m) => acoes.abrirExcluir(m.id)}
             />
           </>
         )}
@@ -80,7 +89,6 @@ export function PaginaMateriais() {
         <ModalHistoricoUso
           aberto={estado.modalHistoricoAberto}
           material={estado.materialParaHistorico}
-          abaInicial={estado.abaHistoricoInicial}
           aoFechar={acoes.fecharHistorico}
         />
       )}

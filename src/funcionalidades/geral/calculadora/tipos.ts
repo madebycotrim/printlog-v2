@@ -1,5 +1,3 @@
-import { Material } from "@/funcionalidades/producao/materiais/tipos";
-
 export interface MaterialSelecionado {
   id: string;
   nome: string;
@@ -18,6 +16,7 @@ export interface ItemPosProcesso {
 export interface InsumoSelecionado {
   id: string;
   nome: string;
+  quantidade: number;
   custoCentavos: number;
 }
 

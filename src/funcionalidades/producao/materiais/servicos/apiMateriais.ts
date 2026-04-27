@@ -1,20 +1,17 @@
 import { Material } from "../tipos";
+import { servicoBaseApi } from "@/compartilhado/servicos/servicoBaseApi";
+import { materialSchema, registroUsoSchema } from "../schemas";
 
 /**
  * Serviço de integração com o Cloudflare D1 via Pages Functions.
- * Responsável por persistir todos os dados de Materiais e Histórico.
- * Realiza o de-para entre o banco (snake_case) e a aplicação (camelCase).
+ * Refatorado para usar o servicoBaseApi com autenticação segura via Token e validação Zod.
  */
 export const apiMateriais = {
   /**
    * Busca todos os materiais do usuário e mapeia para camelCase
    */
-  async listar(usuarioId: string): Promise<Material[]> {
-    const resposta = await fetch("/api/materiais", {
-      headers: { "x-usuario-id": usuarioId }
-    });
-    if (!resposta.ok) throw new Error("Falha ao carregar materiais do servidor.");
-    const dadosInternos = await resposta.json();
+  async listar(_usuarioId: string): Promise<Material[]> {
+    const dadosInternos = await servicoBaseApi.get<any[]>("/api/materiais");
 
     return dadosInternos.map((m: any) => ({
       id: m.id,
@@ -40,65 +37,53 @@ export const apiMateriais = {
   },
 
   /**
-   * Salva um novo material ou atualiza um existente
+   * Salva um novo material ou atualiza um existente com validação de segurança
    */
-  async salvar(material: Material, usuarioId: string): Promise<void> {
+  async salvar(material: Material, _usuarioId: string): Promise<void> {
+    // Validação de segurança no cliente
+    const dadosValidados = materialSchema.parse(material);
+
     // Mapeamento inverso para o banco
     const payload = {
-      ...material,
-      tipoMaterial: material.tipoMaterial,
-      precoCentavos: material.precoCentavos,
-      pesoGramas: material.pesoGramas,
-      estoque: material.estoque,
-      pesoRestanteGramas: material.pesoRestanteGramas
+      ...dadosValidados,
+      tipo_material: material.tipoMaterial,
+      preco_centavos: material.precoCentavos,
+      peso_gramas: material.pesoGramas,
+      estoque_unidades: material.estoque,
+      peso_restante_gramas: material.pesoRestanteGramas
     };
 
-    const resposta = await fetch("/api/materiais", {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "x-usuario-id": usuarioId 
-      },
-      body: JSON.stringify(payload)
-    });
-    if (!resposta.ok) throw new Error("Erro ao salvar material no banco de dados.");
+    await servicoBaseApi.post("/api/materiais", payload);
   },
 
   /**
-   * Atualiza peso ou estoque de um material
+   * Atualiza peso ou estoque de um material com validação de segurança
    */
-  async atualizar(material: Partial<Material> & { id: string }, usuarioId: string, registroUso?: any): Promise<void> {
-    const payload: any = { ...material };
+  async atualizar(material: Partial<Material> & { id: string }, _usuarioId: string, registroUso?: any): Promise<void> {
+    const materialValidado = materialSchema.partial().parse(material);
+    const payload: any = { ...materialValidado };
     
-    // Se houver registro de uso, mapeia para snake_case esperado pelo backend
+    // Se houver registro de uso, valida e mapeia
     if (registroUso) {
+      const registroValidado = registroUsoSchema.parse(registroUso);
       payload.registroUso = {
-        data: registroUso.data,
-        nomePeca: registroUso.nomePeca,
-        quantidadeGastaGramas: registroUso.quantidadeGastaGramas,
-        status: registroUso.status
+        data: registroValidado.data,
+        nomePeca: registroValidado.nomePeca,
+        quantidadeGastaGramas: registroValidado.quantidadeGastaGramas,
+        status: registroValidado.status
       };
     }
 
-    const resposta = await fetch("/api/materiais", {
+    await servicoBaseApi.requisicao("/api/materiais", {
       method: "PATCH",
-      headers: { 
-        "Content-Type": "application/json",
-        "x-usuario-id": usuarioId 
-      },
       body: JSON.stringify(payload)
     });
-    if (!resposta.ok) throw new Error("Erro ao atualizar dados no banco de dados.");
   },
 
   /**
-   * Remove um material (arquivamento)
+   * Remove um material (arquivamento) de forma segura
    */
-  async remover(id: string, usuarioId: string): Promise<void> {
-    const resposta = await fetch(`/api/materiais?id=${id}`, {
-      method: "DELETE",
-      headers: { "x-usuario-id": usuarioId }
-    });
-    if (!resposta.ok) throw new Error("Erro ao remover material do banco.");
+  async remover(id: string, _usuarioId: string): Promise<void> {
+    await servicoBaseApi.delete(`/api/materiais?id=${id}`);
   }
 };
