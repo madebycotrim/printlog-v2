@@ -41,7 +41,7 @@ const obterStatusVencimento = (dataStr?: string, ciclo?: string) => {
 };
 
 /**
- * Página de Administração - Gestão do Clube dos 51 (Fundadores).
+ * Página de Administração - Gestão do Clube dos 50 (Fundadores).
  * Acesso restrito via e-mail definido no .env da Cloudflare.
  */
 export function PaginaAdmin() {

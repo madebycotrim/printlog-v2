@@ -48,6 +48,11 @@ export const onRequest: PagesFunction<Env, any, { uid: string; email: string }> 
         return context.next();
     }
 
+    // Libera a rota pública de vagas restantes
+    if (url.pathname.includes("/api/vagas-restantes")) {
+        return context.next();
+    }
+
     // Tenta obter o token do header Authorization
     const authHeader = request.headers.get("Authorization");
     let uid = "";
