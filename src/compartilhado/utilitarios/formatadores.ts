@@ -55,10 +55,13 @@ export function extrairValorNumerico(valor: string): number {
  * @returns String formatada com %
  */
 export function formatarPorcentagem(valor: string): string {
-    const apenasDigitos = valor.replace(/\D/g, "");
-    if (!apenasDigitos) return "0,00%";
-
-    const valorNumerico = Number(apenasDigitos) / 100;
+    if (!valor) return "0,00%";
+    
+    let limpo = valor.replace("%", "").trim().replace(",", ".");
+    const valorNumerico = Number(limpo);
+    
+    if (isNaN(valorNumerico)) return "0,00%";
+ 
     return valorNumerico.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,

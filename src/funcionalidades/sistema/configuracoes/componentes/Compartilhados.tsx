@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { User } from "lucide-react";
 
 export interface PropsCampo {
@@ -9,6 +10,13 @@ export interface PropsCampo {
 }
 
 export function CampoDashboard({ label, valor, aoMudar, placeholder, icone: Icone }: PropsCampo) {
+    const [valorLocal, setValorLocal] = useState(valor);
+
+    // Sincroniza o valor local se o valor externo mudar
+    useEffect(() => {
+        setValorLocal(valor);
+    }, [valor]);
+
     return (
         <div className="w-full">
             <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-zinc-500 ml-1">
@@ -20,8 +28,9 @@ export function CampoDashboard({ label, valor, aoMudar, placeholder, icone: Icon
                 </span>
                 <input
                     type="text"
-                    value={valor}
-                    onChange={(e) => aoMudar(e.target.value)}
+                    value={valorLocal}
+                    onChange={(e) => setValorLocal(e.target.value)}
+                    onBlur={() => aoMudar(valorLocal)}
                     placeholder={placeholder}
                     className="h-11 w-full bg-transparent border-b-2 border-gray-200 dark:border-white/10 pl-8 pr-3 text-sm font-bold text-gray-800 dark:text-white outline-none focus:border-zinc-800 dark:focus:border-white transition-all placeholder:text-gray-300 dark:placeholder:text-zinc-800"
                 />

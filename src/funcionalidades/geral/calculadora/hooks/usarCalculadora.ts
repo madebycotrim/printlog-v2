@@ -11,6 +11,7 @@ import {
   ItemPosProcesso, 
   InsumoSelecionado, 
   PerfilMarketplace, 
+  PerfilFiscal,
   VersaoCalculo,
   CalculoResultado 
 } from "../tipos";
@@ -35,10 +36,76 @@ export function usarCalculadora() {
   const [insumosSelecionados, setInsumosSelecionados] = useState<InsumoSelecionado[]>([]);
   const [itensPosProcesso, setItensPosProcesso] = useState<ItemPosProcesso[]>([]);
   
-  const [perfilAtivo, setPerfilAtivo] = useState("Direto");
+  const [cobrarDesgaste, setCobrarDesgaste] = useState<boolean>(() => localStorage.getItem("printlog_cobrar_desgaste") !== "false");
+  const [cobrarMaoDeObra, setCobrarMaoDeObra] = useState<boolean>(() => localStorage.getItem("printlog_cobrar_mao_de_obra") !== "false");
+  const [cobrarEnergia, setCobrarEnergia] = useState<boolean>(() => localStorage.getItem("printlog_cobrar_energia") !== "false");
+  const [cobrarImpostos, setCobrarImpostos] = useState<boolean>(() => localStorage.getItem("printlog_cobrar_impostos") !== "false");
+  const [perfilAtivo, setPerfilAtivo] = useState(() => localStorage.getItem("printlog_perfil_ativo") || "Direto");
+
+  // --- ESTADOS FISCAIS ---
+  const [tipoOperacao, setTipoOperacao] = useState(() => localStorage.getItem("printlog_tipo_operacao") || "mei"); 
   const [impostos, setImpostos] = useState(0);
-  const [icms, setIcms] = useState(0);
+  const [icms, setIcms] = useState(0); 
   const [iss, setIss] = useState(0);
+
+  // Efeitos para persistir preconfigurações no LocalStorage
+  useEffect(() => { localStorage.setItem("printlog_cobrar_desgaste", String(cobrarDesgaste)); }, [cobrarDesgaste]);
+  useEffect(() => { localStorage.setItem("printlog_cobrar_mao_de_obra", String(cobrarMaoDeObra)); }, [cobrarMaoDeObra]);
+  useEffect(() => { localStorage.setItem("printlog_cobrar_energia", String(cobrarEnergia)); }, [cobrarEnergia]);
+  useEffect(() => { localStorage.setItem("printlog_cobrar_impostos", String(cobrarImpostos)); }, [cobrarImpostos]);
+  useEffect(() => { localStorage.setItem("printlog_perfil_ativo", perfilAtivo); }, [perfilAtivo]);
+  useEffect(() => { localStorage.setItem("printlog_tipo_operacao", tipoOperacao); }, [tipoOperacao]);
+
+  /**
+   * Perfis fiscais padrão simplificados para o público alvo.
+   */
+  const [perfisFiscais, setPerfisFiscais] = useState<PerfilFiscal[]>(() => {
+    const salvo = localStorage.getItem("printlog_perfis_fiscais");
+    let listaPadrao = [
+      { nome: "MEI", base: 0, icms: 0, iss: 0 },
+      { nome: "CPF", base: 10, icms: 0, iss: 0 },
+      { nome: "Produto", base: 0, icms: 4, iss: 0 },
+      { nome: "Servico", base: 0, icms: 0, iss: 5 },
+    ];
+
+    if (salvo) {
+      try {
+        let salvos = JSON.parse(salvo);
+        
+        // Garante que o perfil CPF exista na lista salva
+        if (!salvos.some((p: PerfilFiscal) => p.nome.toLowerCase() === "cpf")) {
+          salvos = [{ nome: "CPF", base: 10, icms: 0, iss: 0 }, ...salvos];
+        }
+
+        // Remove Industrialização se existir e migra os valores antigos
+        return salvos
+          .filter((p: PerfilFiscal) => p.nome.toLowerCase() !== "industrializacao")
+          .map((p: PerfilFiscal) => {
+            if (p.nome === "Produto" && p.icms === 18) return { ...p, icms: 4 };
+            return p;
+          });
+      } catch (erro) {
+        console.error("[usarCalculadora] Erro ao carregar perfis fiscais salvos:", erro);
+        return listaPadrao;
+      }
+    }
+    return listaPadrao;
+  });
+
+  // Sincroniza os impostos sempre que o tipo de operação mudar ou perfis forem atualizados
+  useEffect(() => {
+    const perfilAtual = perfisFiscais.find(p => p.nome.toLowerCase() === tipoOperacao.toLowerCase());
+    if (perfilAtual) {
+      setImpostos(perfilAtual.base);
+      setIcms(perfilAtual.icms);
+      setIss(perfilAtual.iss);
+    }
+  }, [tipoOperacao, perfisFiscais]);
+
+  // Salvar perfis fiscais no localStorage sempre que mudarem
+  useEffect(() => {
+    localStorage.setItem("printlog_perfis_fiscais", JSON.stringify(perfisFiscais));
+  }, [perfisFiscais]);
 
   const [impressoraSelecionadaId, setImpressoraSelecionadaId] = useState<string>(() => {
     return localStorage.getItem("printlog_ultima_impressora") || "";
@@ -48,12 +115,17 @@ export function usarCalculadora() {
     const salvo = localStorage.getItem("printlog_perfis_marketplace");
     if (salvo) return JSON.parse(salvo);
     return [
-      { nome: "Direto", taxa: 0, fixa: 0, ins: 0, imp: 6 },
-      { nome: "M. Livre", taxa: 18, fixa: 6, ins: 2, imp: 6 },
-      { nome: "Shopee", taxa: 20, fixa: 3, ins: 1.5, imp: 6 },
-      { nome: "Site", taxa: 5, fixa: 0, ins: 5, imp: 6 },
+      { nome: "Direto", taxa: 0, fixa: 0, frete: 0, ins: 0, imp: 6 },
+      { nome: "M. Livre", taxa: 18, fixa: 6, frete: 0, ins: 2, imp: 6 },
+      { nome: "Shopee", taxa: 20, fixa: 3, frete: 0, ins: 1.5, imp: 6 },
+      { nome: "Site", taxa: 5, fixa: 0, frete: 0, ins: 5, imp: 6 },
     ];
   });
+
+  // Salvar perfis de marketplace no localStorage sempre que mudarem
+  useEffect(() => {
+    localStorage.setItem("printlog_perfis_marketplace", JSON.stringify(perfisMarketplace));
+  }, [perfisMarketplace]);
 
   // --- FEATURE 2: HISTÓRICO/VERSIONAMENTO ---
   const [historico, setHistorico] = useState<VersaoCalculo[]>(() => {
@@ -77,9 +149,9 @@ export function usarCalculadora() {
     const custoInsumosDinamicosCentavos = insumosSelecionados.reduce((acc, i) => acc + (i.quantidade * i.custoCentavos), 0);
     
     const horasDecimais = tempo / 60;
-    const custoEnergiaCentavos = Math.round((potencia / 1000) * horasDecimais * precoKwh * 100);
-    const custoMaoDeObraCentavos = Math.round(horasDecimais * maoDeObra * 100);
-    const custoDepreciacaoCentavos = Math.round(horasDecimais * depreciacaoHora * 100);
+    const custoEnergiaCentavos = cobrarEnergia ? Math.round((potencia / 1000) * horasDecimais * precoKwh * 100) : 0;
+    const custoMaoDeObraCentavos = cobrarMaoDeObra ? Math.round(horasDecimais * maoDeObra * 100) : 0;
+    const custoDepreciacaoCentavos = cobrarDesgaste ? Math.round(horasDecimais * depreciacaoHora * 100) : 0;
     const custoPosProcessoCentavos = itensPosProcesso.reduce((t, i) => t + (i.valor * 100), 0);
     const custoInsumosFixosCentavos = Math.round(insumosFixos * 100);
     const custoFreteCentavos = Math.round(frete * 100);
@@ -97,7 +169,7 @@ export function usarCalculadora() {
     const perfil = perfisMarketplace.find(p => p.nome === perfilAtivo);
     const taxaMktPercentual = (perfil?.taxa || 0) / 100;
     const taxaFixaVendaCentavos = Math.round((perfil?.fixa || 0) * 100);
-    const impostoPercentual = (impostos + icms + iss) / 100;
+    const impostoPercentual = cobrarImpostos ? (impostos + icms + iss) / 100 : 0;
 
     const lucroDesejadoCentavos = Math.round(custoProducaoTotalCentavos * margemPercentual);
     const precoBaseVendaCentavos = custoProducaoTotalCentavos + lucroDesejadoCentavos + custoFreteCentavos + taxaFixaVendaCentavos;
@@ -108,7 +180,7 @@ export function usarCalculadora() {
       : Math.round(precoBaseVendaCentavos * 1.5);
 
     const taxaMktTotalCentavos = Math.round(precoSugeridoCentavos * taxaMktPercentual + taxaFixaVendaCentavos);
-    const impostoTotalCentavos = Math.round(precoSugeridoCentavos * impostoPercentual);
+    const impostoTotalCentavos = cobrarImpostos ? Math.round(precoSugeridoCentavos * impostoPercentual) : 0;
     
     const custoTotalVariavelCentavos = custoProducaoTotalCentavos - custoMaoDeObraCentavos;
     const lucroLiquidoCentavos = precoSugeridoCentavos - taxaMktTotalCentavos - impostoTotalCentavos - custoFreteCentavos - custoTotalVariavelCentavos - custoMaoDeObraCentavos;
@@ -129,7 +201,7 @@ export function usarCalculadora() {
       custoTotalOperacional: custoProducaoTotalCentavos,
       margemReal: margemRealSobreVenda
     };
-  }, [materiaisSelecionados, insumosSelecionados, tempo, potencia, precoKwh, margem, maoDeObra, depreciacaoHora, itensPosProcesso, insumosFixos, frete, perfilAtivo, perfisMarketplace, impostos, icms, iss]);
+  }, [materiaisSelecionados, insumosSelecionados, tempo, potencia, precoKwh, margem, maoDeObra, depreciacaoHora, cobrarDesgaste, cobrarMaoDeObra, cobrarEnergia, cobrarImpostos, itensPosProcesso, insumosFixos, frete, perfilAtivo, perfisMarketplace, impostos, icms, iss]);
 
   // --- FEATURE 3: ALERTA DE ESTOQUE ---
   const alertasEstoque = useMemo(() => {
@@ -301,6 +373,10 @@ export function usarCalculadora() {
     precoKwh, setPrecoKwh,
     maoDeObra, setMaoDeObra,
     depreciacaoHora, setDepreciacaoHora,
+    cobrarDesgaste, setCobrarDesgaste,
+    cobrarMaoDeObra, setCobrarMaoDeObra,
+    cobrarEnergia, setCobrarEnergia,
+    cobrarImpostos, setCobrarImpostos,
     margem, setMargem,
     frete, setFrete,
     insumosFixos, setInsumosFixos,
@@ -308,6 +384,8 @@ export function usarCalculadora() {
     itensPosProcesso, setItensPosProcesso,
     perfilAtivo, setPerfilAtivo,
     perfisMarketplace, setPerfisMarketplace,
+    perfisFiscais, setPerfisFiscais,
+    tipoOperacao, setTipoOperacao,
     impostos, setImpostos,
     icms, setIcms,
     iss, setIss,

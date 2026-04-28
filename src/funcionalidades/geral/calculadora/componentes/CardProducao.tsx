@@ -10,6 +10,8 @@ interface CardProducaoProps {
   precoKwh: number;
   setPrecoKwh: (v: number) => void;
   custoEnergia: number;
+  cobrarEnergia: boolean;
+  setCobrarEnergia: (v: boolean) => void;
   posProcesso: ItemPosProcesso[];
   setPosProcesso: (v: ItemPosProcesso[]) => void;
   impressoras?: any[];
@@ -18,7 +20,7 @@ interface CardProducaoProps {
 }
 
 export function CardProducao({
-  tempo, setTempo, potencia, setPotencia, precoKwh, setPrecoKwh, custoEnergia, posProcesso, setPosProcesso,
+  tempo, setTempo, potencia, setPotencia, precoKwh, setPrecoKwh, custoEnergia, cobrarEnergia, setCobrarEnergia, posProcesso, setPosProcesso,
   impressoras = [], idImpressoraSelecionada, aoSelecionarImpressora
 }: CardProducaoProps) {
   const [novoItemNome, setNovoItemNome] = useState("");
@@ -113,16 +115,25 @@ export function CardProducao({
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col group">
               <div className="flex items-center justify-between h-4 mb-2">
-                <label className="block text-xs font-black uppercase text-gray-400">Energia (R$)</label>
-                <div className={`px-2 py-0.5 rounded-md border text-[10px] font-black uppercase flex items-center gap-0.5 w-fit transition-colors ${
-                  impressoraAtiva 
-                    ? "bg-sky-500/10 border-sky-500/20 text-sky-500" 
-                    : "bg-orange-500/10 border-orange-500/20 text-orange-500"
-                }`}>
+                <div className="flex items-center gap-2">
+                  <label className="block text-xs font-black uppercase text-gray-400">Energia (R$)</label>
+                </div>
+                <div 
+                  onClick={() => setCobrarEnergia(!cobrarEnergia)}
+                  title={cobrarEnergia ? "Clique para desativar cobrança de energia" : "Clique para ativar cobrança de energia"}
+                  className={`px-2 py-0.5 rounded-md border text-[10px] font-black uppercase flex items-center gap-0.5 w-fit cursor-pointer transition-colors hover:scale-105 active:scale-95 ${
+                    !cobrarEnergia 
+                      ? "bg-gray-500/10 border-gray-500/20 text-gray-500 opacity-60" 
+                      : impressoraAtiva 
+                        ? "bg-sky-500/10 border-sky-500/20 text-sky-500" 
+                        : "bg-orange-500/10 border-orange-500/20 text-orange-500"
+                  }`}
+                >
                   <input 
                     type="number" 
                     value={potencia || ""} 
                     onChange={(e) => setPotencia(Number(e.target.value))} 
+                    onClick={(e) => e.stopPropagation()}
                     className="bg-transparent outline-none text-right placeholder:current-color leading-none" 
                     style={{ width: `${Math.max(1, (potencia || 0).toString().length)}ch` }}
                     placeholder="0" 
@@ -130,12 +141,17 @@ export function CardProducao({
                   <span className="leading-none">W</span>
                 </div>
               </div>
-              <div className={`w-full h-14 px-4 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center border transition-all ${
-                impressoraAtiva ? 'border-sky-500/20 group-hover:border-sky-500/40' : 'border-transparent group-hover:border-orange-500/30'
-              }`}>
-                <span className="text-gray-400 font-black text-xs mr-2">R$</span>
-                <span className={`font-black text-sm ${impressoraAtiva ? 'text-sky-500' : 'text-gray-900 dark:text-white'}`}>
-                  {custoEnergia.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              <div 
+                onClick={() => setCobrarEnergia(!cobrarEnergia)}
+                title={cobrarEnergia ? "Clique para desativar cobrança de energia" : "Clique para ativar cobrança de energia"}
+                className={`w-full h-14 px-4 rounded-xl flex items-center border cursor-pointer transition-all ${
+                  !cobrarEnergia ? 'bg-gray-50/50 dark:bg-zinc-800/50 border-transparent opacity-50 grayscale' :
+                  impressoraAtiva ? 'bg-gray-50 dark:bg-white/5 border-sky-500/20 group-hover:border-sky-500/40' : 'bg-gray-50 dark:bg-white/5 border-transparent group-hover:border-orange-500/30'
+                }`}
+              >
+                <span className="text-gray-400 font-black text-xs mr-2 select-none">R$</span>
+                <span className={`font-black text-sm ${!cobrarEnergia ? 'line-through text-gray-400' : impressoraAtiva ? 'text-sky-500' : 'text-gray-900 dark:text-white'}`}>
+                  {(cobrarEnergia ? custoEnergia : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
@@ -147,34 +163,31 @@ export function CardProducao({
         </div>
 
         {/* Coluna Direita: Pós-Processamento */}
-        <div className="flex flex-col justify-between">
-          <div className="flex flex-col mb-8">
-            <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2">Pós-Processamento</label>
-            <div className="h-14 space-y-2 overflow-y-auto scrollbar-hide">
-              {posProcesso.length === 0 ? (
-                <div className="w-full h-full border-2 border-dashed border-gray-100 dark:border-white/5 rounded-2xl flex items-center justify-center">
-                  <p className="text-[11px] font-bold text-gray-300 dark:text-zinc-700 uppercase tracking-widest italic">Vazio</p>
-                </div>
-              ) : (
-                posProcesso.map(item => (
-                  <div key={item.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-transparent">
-                    <span className="text-xs font-bold uppercase truncate max-w-[120px] text-gray-900 dark:text-white">{item.nome}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-black text-gray-900 dark:text-white">R$ {item.valor}</span>
-                      <button onClick={() => setPosProcesso(posProcesso.filter(i => i.id !== item.id))} className="text-rose-500 hover:scale-110 transition-transform">
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
+        <div className="flex flex-col h-full">
+          <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2 shrink-0">Pós-Processamento</label>
+          
+          <div className="flex-1 space-y-2 overflow-y-auto mb-3 pr-1" style={{ maxHeight: "100px" }}>
+            {posProcesso.length === 0 ? (
+              <div className="w-full h-full border-2 border-dashed border-gray-100 dark:border-white/5 rounded-2xl flex items-center justify-center min-h-[56px]">
+                <p className="text-[11px] font-bold text-gray-300 dark:text-zinc-700 uppercase tracking-widest italic">Vazio</p>
+              </div>
+            ) : (
+              posProcesso.map(item => (
+                <div key={item.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-transparent">
+                  <span className="text-xs font-bold uppercase truncate max-w-[120px] text-gray-900 dark:text-white">{item.nome}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-black text-gray-900 dark:text-white">R$ {item.valor}</span>
+                    <button onClick={() => setPosProcesso(posProcesso.filter(i => i.id !== item.id))} className="text-rose-500 hover:scale-110 transition-transform">
+                      <Trash2 size={12} />
+                    </button>
                   </div>
-                ))
-              )}
-            </div>
+                </div>
+              ))
+            )}
           </div>
 
-          <div className="flex flex-col">
-            <label className="block h-4 text-[10px] font-black uppercase text-transparent mb-2">.</label>
-            <div className="flex gap-2">
-              <input type="text" placeholder="Item..." value={novoItemNome} onChange={(e) => setNovoItemNome(e.target.value)} className="flex-1 h-14 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-bold text-xs uppercase" />
+          <div className="flex gap-2 shrink-0 mt-auto">
+            <input type="text" placeholder="Item..." value={novoItemNome} onChange={(e) => setNovoItemNome(e.target.value)} className="flex-1 h-14 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-bold text-xs uppercase" />
               <input type="number" placeholder="R$" value={novoItemValor || ""} onChange={(e) => setNovoItemValor(Number(e.target.value))} className="w-20 h-14 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-xs" />
               <button onClick={() => { if (novoItemNome && novoItemValor > 0) { setPosProcesso([...posProcesso, { id: crypto.randomUUID(), nome: novoItemNome, valor: novoItemValor }]); setNovoItemNome(""); setNovoItemValor(0); } }} className="w-14 h-14 rounded-xl bg-sky-500 text-white flex items-center justify-center hover:bg-sky-600 transition-colors">
                 <Plus size={16} />
@@ -183,6 +196,5 @@ export function CardProducao({
           </div>
         </div>
       </div>
-    </div>
   );
 }

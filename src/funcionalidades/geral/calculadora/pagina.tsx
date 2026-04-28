@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 import { 
   Settings, Check, X, Plus, 
-  ChevronDown, Box, Package, History, Crown
+  ChevronDown, Box, Package, History, Crown, Trash, Pencil, TrendingUp
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +21,7 @@ import { ModalListagemPremium } from "@/compartilhado/componentes/ModalListagemP
 import { FormularioMaterial } from "@/funcionalidades/producao/materiais/componentes/FormularioMaterial";
 import { FormularioInsumo } from "@/funcionalidades/producao/insumos/componentes/FormularioInsumo";
 import { Carretel, GarrafaResina } from "@/compartilhado/componentes/Icones3D";
-import { formatarMoedaFinancas, formatarPorcentagem, centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
+import { formatarMoedaFinancas, formatarPorcentagem, centavosParaReais, extrairValorNumerico } from "@/compartilhado/utilitarios/formatadores";
 
 // Hook e Componentes Refatorados
 import { usarCalculadora } from "./hooks/usarCalculadora";
@@ -29,13 +29,24 @@ import { CardMateriais } from "./componentes/CardMateriais";
 import { CardProducao } from "./componentes/CardProducao";
 import { CardOperacional } from "./componentes/CardOperacional";
 import { CardInsumos } from "./componentes/CardInsumos";
-import { CardLogisticaFiscal } from "./componentes/CardLogisticaFiscal";
+import { CardLogistica } from "./componentes/CardLogistica";
+import { CardFiscal } from "./componentes/CardFiscal";
 import { PainelResultados } from "./componentes/PainelResultados";
 import { ModalHistorico } from "./componentes/ModalHistorico";
+import { Zap, Clock, Wrench, Percent } from "lucide-react";
+import { CabecalhoCard, CampoDashboard } from "@/funcionalidades/sistema/configuracoes/componentes/Compartilhados";
 
 export function PaginaCalculadora() {
   const navigate = useNavigate();
   const { usuario } = usarAutenticacao();
+  const eProOuSuperior = useMemo(() => {
+    const plano = ((usuario as any)?.plano || '').toUpperCase();
+    const role = ((usuario as any)?.role || (usuario as any)?.cargo || '').toUpperCase();
+    return ['PRO', 'FUNDADOR', 'MAKER_FUNDADOR', 'ADMIN'].includes(plano) || 
+           ['PRO', 'FUNDADOR', 'MAKER_FUNDADOR', 'ADMIN'].includes(role) ||
+           plano.includes('FUNDADOR') || role.includes('FUNDADOR');
+  }, [usuario]);
+
   const config = usarArmazemConfiguracoes();
   const { criarPedido } = usarPedidos();
   const { estado } = usarGerenciadorImpressoras();
@@ -53,6 +64,12 @@ export function PaginaCalculadora() {
   const [modalArmazemAberto, setModalArmazemAberto] = useState(false);
   const [modalArmazemInsumosAberto, setModalArmazemInsumosAberto] = useState(false);
   const [modalCanaisAberto, setModalCanaisAberto] = useState(false);
+  const [modalConfigFiscalAberto, setModalConfigFiscalAberto] = useState(false);
+  const [anosVidaUtil, setAnosVidaUtil] = useState<5 | 3 | 2>(5);
+  const [indiceCanalSendoEditado, setIndiceCanalSendoEditado] = useState<number | null>(null);
+  const [nomeCanalTemporario, setNomeCanalTemporario] = useState('');
+  const [indiceFiscalSendoEditado, setIndiceFiscalSendoEditado] = useState<number | null>(null);
+  const [nomeFiscalTemporario, setNomeFiscalTemporario] = useState('');
   const [modalConfigAberto, setModalConfigAberto] = useState(false);
   const [modalHistoricoAberto, setModalHistoricoAberto] = useState(false);
   const [abaResultado, setAbaResultado] = useState<'orcamento' | 'metricas'>('orcamento');
@@ -134,12 +151,27 @@ export function PaginaCalculadora() {
     }
   };
 
-  // Sincronizar potência ao carregar ou mudar impressora
+  // Sincronizar potência e depreciação ao carregar ou mudar impressora
   useEffect(() => {
     if (impressoraSelecionada?.potenciaWatts) {
       hook.setPotencia(impressoraSelecionada.potenciaWatts);
     }
-  }, [impressoraSelecionada?.potenciaWatts, hook.setPotencia]);
+    
+    // Sincroniza a depreciação (desgaste)
+    if (impressoraSelecionada?.valorCompraCentavos) {
+      // Cálculo automático inteligente baseado nos anos de vida útil selecionados
+      const depreciacaoAnual = (impressoraSelecionada.valorCompraCentavos / 100) / anosVidaUtil;
+      const depreciacaoMensal = depreciacaoAnual / 12;
+      const taxaHoraReal = depreciacaoMensal / 240;
+      hook.setDepreciacaoHora(Number(taxaHoraReal.toFixed(2)));
+    } else if (impressoraSelecionada?.taxaHoraCentavos) {
+      hook.setDepreciacaoHora(impressoraSelecionada.taxaHoraCentavos / 100);
+    } else if (config?.horaMaquina) {
+      hook.setDepreciacaoHora(extrairValorNumerico(config.horaMaquina));
+    } else {
+      hook.setDepreciacaoHora(0);
+    }
+  }, [impressoraSelecionada, config?.horaMaquina, anosVidaUtil, hook.setPotencia, hook.setDepreciacaoHora]);
 
   const elementoAcao = useMemo(() => (
     <div className="flex items-center gap-1 bg-gray-50 dark:bg-white/5 p-1 rounded-2xl border border-gray-100 dark:border-white/5 shadow-inner">
@@ -241,8 +273,9 @@ export function PaginaCalculadora() {
         <CardProducao 
           tempo={hook.tempo} setTempo={hook.setTempo}
           potencia={hook.potencia} setPotencia={hook.setPotencia}
-          precoKwh={hook.precoKwh} setPrecoKwh={hook.setPrecoKwh}
+          precoKwh={hook.precoKwh} setPrecoKwh={(v) => { hook.setPrecoKwh(v); config.definirCustoEnergia(formatarMoedaFinancas(v, 2)); }}
           custoEnergia={hook.calculo.custoEnergia / 100}
+          cobrarEnergia={hook.cobrarEnergia} setCobrarEnergia={hook.setCobrarEnergia}
           posProcesso={hook.itensPosProcesso} setPosProcesso={hook.setItensPosProcesso}
           impressoras={impressoras}
           idImpressoraSelecionada={hook.impressoraSelecionadaId}
@@ -250,15 +283,21 @@ export function PaginaCalculadora() {
             hook.setImpressoraSelecionadaId(id);
             const imp = impressoras.find(i => i.id === id);
             if (imp?.potenciaWatts) hook.setPotencia(imp.potenciaWatts);
-            // Sincroniza também a depreciação se houver
-            if (imp?.taxaHoraCentavos) hook.setDepreciacaoHora(imp.taxaHoraCentavos / 100);
+            if (imp?.taxaHoraCentavos) {
+              const taxa = imp.taxaHoraCentavos / 100;
+              hook.setDepreciacaoHora(taxa);
+              config.definirHoraMaquina(formatarMoedaFinancas(taxa, 2));
+            }
           }}
         />
 
         <CardOperacional 
-          maoDeObra={hook.maoDeObra} setMaoDeObra={hook.setMaoDeObra}
-          margem={hook.margem} setMargem={hook.setMargem}
-          depreciacao={hook.depreciacaoHora} setDepreciacao={hook.setDepreciacaoHora}
+          maoDeObra={hook.maoDeObra} setMaoDeObra={(v) => { hook.setMaoDeObra(v); config.definirHoraOperador(formatarMoedaFinancas(v, 2)); }}
+          margem={hook.margem} setMargem={(v) => { hook.setMargem(v); config.definirMargemLucro(formatarPorcentagem(String(v))); }}
+          depreciacao={hook.depreciacaoHora}
+          cobrarDesgaste={hook.cobrarDesgaste} setCobrarDesgaste={hook.setCobrarDesgaste}
+          cobrarMaoDeObra={hook.cobrarMaoDeObra} setCobrarMaoDeObra={hook.setCobrarMaoDeObra}
+          anosVidaUtil={anosVidaUtil} setAnosVidaUtil={setAnosVidaUtil}
           tempo={hook.tempo}
         />
 
@@ -283,20 +322,26 @@ export function PaginaCalculadora() {
           abrirNovo={() => abrirCriarInsumo()}
         />
 
-        <CardLogisticaFiscal 
+        <CardLogistica 
           perfis={hook.perfisMarketplace} perfilAtivo={hook.perfilAtivo} setPerfilAtivo={hook.setPerfilAtivo}
           taxaEcommerce={hook.perfisMarketplace.find(p => p.nome === hook.perfilAtivo)?.taxa || 0} setTaxaEcommerce={() => {}}
           taxaFixa={hook.perfisMarketplace.find(p => p.nome === hook.perfilAtivo)?.fixa || 0} setTaxaFixa={() => {}}
           frete={hook.frete} setFrete={hook.setFrete}
-          tipoOperacao={hook.perfilAtivo === 'Direto' ? 'servico' : 'produto'} setTipoOperacao={() => {}}
+          abrirPerfis={() => setModalCanaisAberto(true)}
+        />
+
+        <CardFiscal 
+          perfisFiscais={hook.perfisFiscais}
+          tipoOperacao={hook.tipoOperacao} setTipoOperacao={hook.setTipoOperacao}
           impostos={hook.impostos} setImpostos={hook.setImpostos}
           icms={hook.icms} setIcms={hook.setIcms}
           iss={hook.iss} setIss={hook.setIss}
-          abrirPerfis={() => setModalCanaisAberto(true)}
+          cobrarImpostos={hook.cobrarImpostos} setCobrarImpostos={hook.setCobrarImpostos}
+          abrirConfigFiscal={() => setModalConfigFiscalAberto(true)}
         />
       </div>
 
-      <div className="xl:col-span-4 h-full xl:sticky xl:top-0 flex flex-col justify-center py-8">
+      <div className="xl:col-span-4 h-full xl:sticky xl:top-0 flex flex-col justify-center items-center py-8 overflow-y-auto scrollbar-hide">
         <PainelResultados 
           calculo={hook.calculo}
           dadosPizza={hook.dadosGraficoPizza}
@@ -441,9 +486,56 @@ export function PaginaCalculadora() {
           </div>
 
           <div className="space-y-6">
-            {/* Seção Operacional (Aberta para todos) */}
-            <div className="space-y-4">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">OPERACIONAL</span>
+            {/* Seção Operacional (Design Compartilhado) */}
+            <div className="rounded-2xl border border-gray-100 dark:border-white/[0.04] bg-white dark:bg-[#121214] p-5 md:p-6 flex flex-col gap-5 relative overflow-hidden">
+              <CabecalhoCard titulo="Operacional" descricao="Motores base de custeio" icone={Settings} corIcone="text-amber-500" />
+              <div className="grid grid-cols-2 gap-4">
+                <CampoDashboard
+                    label="Energia (R$/kWh)"
+                    valor={config.custoEnergia}
+                    aoMudar={(v) => {
+                      config.definirCustoEnergia(v);
+                      hook.setPrecoKwh(extrairValorNumerico(v));
+                    }}
+                    icone={Zap}
+                />
+                <CampoDashboard
+                    label="Margem (%)"
+                    valor={config.margemLucro}
+                    aoMudar={(v) => {
+                      config.definirMargemLucro(v);
+                      hook.setMargem(extrairValorNumerico(v));
+                    }}
+                    icone={Percent}
+                />
+                <CampoDashboard
+                    label="Operador (R$/h)"
+                    valor={config.horaOperador}
+                    aoMudar={(v) => {
+                      config.definirHoraOperador(v);
+                      hook.setMaoDeObra(extrairValorNumerico(v));
+                    }}
+                    icone={Wrench}
+                />
+                <CampoDashboard
+                    label="Máquina (R$/h)"
+                    valor={config.horaMaquina}
+                    aoMudar={(v) => {
+                      config.definirHoraMaquina(v);
+                      hook.setDepreciacaoHora(extrairValorNumerico(v));
+                    }}
+                    icone={Clock}
+                />
+              </div>
+
+              <div className="bg-amber-50/80 dark:bg-amber-500/[0.05] p-4 rounded-2xl border border-amber-200 dark:border-amber-500/20 flex gap-3 items-start">
+                  <Settings size={18} className="text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-xs leading-relaxed text-amber-800 dark:text-amber-300/90 text-justify">
+                      Estes índices são aplicados de forma global no estúdio, servindo como base matriz de cálculo financeiro e execução contratual (Art. 7º, V).
+                  </p>
+              </div>
+            </div>
+
               <button 
                 onClick={async () => { 
                     config.definirCustoEnergia(formatarMoedaFinancas(hook.precoKwh, 2));
@@ -451,10 +543,9 @@ export function PaginaCalculadora() {
                     config.definirHoraMaquina(formatarMoedaFinancas(hook.depreciacaoHora, 3));
                     config.definirMargemLucro(formatarPorcentagem(String(hook.margem * 100)));
                   if (usuario?.uid) await config.salvarNoD1(usuario.uid);
-                  setModalConfigAberto(false); 
                   toast.success("Sincronizado!"); 
                 }} 
-                className="w-full h-16 bg-zinc-100 dark:bg-white/5 text-zinc-900 dark:text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-zinc-200 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-3 border border-zinc-200 dark:border-white/10"
+                className="w-full h-12 bg-zinc-100 dark:bg-white/5 text-zinc-900 dark:text-white font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-zinc-200 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-3 border border-zinc-200 dark:border-white/10"
               >
                 Sincronizar Indices Atuais
               </button>
@@ -465,7 +556,7 @@ export function PaginaCalculadora() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">IDENTIDADE DO ESTÚDIO</span>
-                  {usuario?.plano !== 'PRO' && (
+                  {!eProOuSuperior && (
                     <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-500 text-[8px] font-black uppercase tracking-widest border border-sky-500/20">
                       PRO
                     </span>
@@ -473,7 +564,7 @@ export function PaginaCalculadora() {
                 </div>
               </div>
 
-              <div className={`space-y-3 transition-all ${usuario?.plano !== 'PRO' ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+              <div className={`space-y-3 transition-all ${!eProOuSuperior ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 ml-1">Nome do Estúdio</label>
                   <input 
@@ -496,7 +587,7 @@ export function PaginaCalculadora() {
                 </div>
               </div>
 
-              {usuario?.plano !== 'PRO' && (
+              {!eProOuSuperior && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center pt-8">
                   <div className="bg-white dark:bg-zinc-900 border border-sky-500/20 px-4 py-2 rounded-xl shadow-xl shadow-sky-500/10 flex items-center gap-3">
                     <Crown size={14} className="text-sky-500" />
@@ -519,59 +610,483 @@ export function PaginaCalculadora() {
           >
             Salvar Alterações
           </button>
-        </div>
       </Dialogo>
 
       <FormularioMaterial aberto={estadoMateriais.modalAberto} aoSalvar={acoesMateriais.salvarMaterial} aoCancelar={acoesMateriais.fecharEditar} materialEditando={estadoMateriais.materialSendoEditado} />
       
+      {/* Modal Configurações Fiscais */}
+      <ModalListagemPremium 
+        aberto={modalConfigFiscalAberto} 
+        aoFechar={() => setModalConfigFiscalAberto(false)} 
+        titulo="Configurações Fiscais" 
+        iconeTitulo={TrendingUp} 
+        corDestaque="rose" 
+        termoBusca="" 
+        aoMudarBusca={() => {}} 
+        temResultados={true} 
+        totalResultados={hook.perfisFiscais?.length || 0}
+        larguraMax="max-w-3xl"
+        altura="h-[70vh]"
+      >
+        <div className="flex flex-col h-full justify-between">
+          <div className="overflow-y-auto max-h-[42vh] pr-2 space-y-3">
+            <div className="grid grid-cols-1 gap-3">
+            {hook.perfisFiscais?.map((p, idx) => {
+              const selecionado = hook.tipoOperacao === p.nome.toLowerCase();
+              return (
+                <div 
+                  key={p.nome}
+                  className={`p-3 rounded-xl border flex items-center justify-between gap-4 transition-all ${
+                    selecionado ? "border-rose-500 bg-rose-500/5" : "border-gray-100 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-800/10"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer" 
+                    onClick={() => { 
+                      hook.setTipoOperacao(p.nome.toLowerCase());
+                      hook.setImpostos(p.base);
+                      hook.setIcms(p.icms);
+                      hook.setIss(p.iss);
+                    }}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selecionado ? "bg-rose-500 text-white" : "bg-gray-100 dark:bg-zinc-800 text-zinc-400"}`}>
+                      <TrendingUp size={14} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {indiceFiscalSendoEditado === idx ? (
+                        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                          <input 
+                            type="text" 
+                            value={nomeFiscalTemporario}
+                            onChange={(e) => setNomeFiscalTemporario(e.target.value)}
+                            className="flex-1 min-w-0 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-rose-500 font-bold text-xs outline-none"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                if (!nomeFiscalTemporario.trim()) return;
+                                const novos = [...hook.perfisFiscais];
+                                const nomeAntigo = novos[idx].nome;
+                                novos[idx].nome = nomeFiscalTemporario.trim();
+                                hook.setPerfisFiscais(novos);
+                                if (hook.tipoOperacao === nomeAntigo.toLowerCase()) {
+                                  hook.setTipoOperacao(nomeFiscalTemporario.trim().toLowerCase());
+                                }
+                                setIndiceFiscalSendoEditado(null);
+                              } else if (e.key === 'Escape') {
+                                setIndiceFiscalSendoEditado(null);
+                              }
+                            }}
+                          />
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!nomeFiscalTemporario.trim()) return;
+                              const novos = [...hook.perfisFiscais];
+                              const nomeAntigo = novos[idx].nome;
+                              novos[idx].nome = nomeFiscalTemporario.trim();
+                              hook.setPerfisFiscais(novos);
+                              if (hook.tipoOperacao === nomeAntigo.toLowerCase()) {
+                                hook.setTipoOperacao(nomeFiscalTemporario.trim().toLowerCase());
+                              }
+                              setIndiceFiscalSendoEditado(null);
+                            }}
+                            className="w-7 h-7 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 flex items-center justify-center transition-colors shrink-0"
+                            title="Salvar"
+                          >
+                            <Check size={14} />
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIndiceFiscalSendoEditado(null);
+                            }}
+                            className="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center transition-colors shrink-0"
+                            title="Cancelar"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 group/nome">
+                          <h4 className="text-sm font-black uppercase tracking-wider text-zinc-900 dark:text-white truncate">
+                            {p.nome}
+                          </h4>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIndiceFiscalSendoEditado(idx);
+                              setNomeFiscalTemporario(p.nome);
+                            }}
+                            className="opacity-0 group-hover/nome:opacity-100 hover:scale-110 active:scale-95 transition-all text-zinc-400 hover:text-rose-500 p-1 flex items-center justify-center rounded-md"
+                            title="Alterar Nome"
+                          >
+                            <Pencil size={12} />
+                          </button>
+                        </div>
+                      )}
+                      {selecionado && <span className="text-[10px] font-black uppercase text-rose-500">Ativo</span>}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter mb-1">Base (%)</span>
+                      <input 
+                        type="number" 
+                        value={p.base} 
+                        onChange={(e) => {
+                          const novos = [...hook.perfisFiscais];
+                          novos[idx].base = Number(e.target.value);
+                          hook.setPerfisFiscais(novos);
+                          if (selecionado) hook.setImpostos(Number(e.target.value));
+                        }}
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-rose-500" 
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter mb-1">ICMS (%)</span>
+                      <input 
+                        type="number" 
+                        value={p.icms} 
+                        onChange={(e) => {
+                          const novos = [...hook.perfisFiscais];
+                          novos[idx].icms = Number(e.target.value);
+                          hook.setPerfisFiscais(novos);
+                          if (selecionado) hook.setIcms(Number(e.target.value));
+                        }}
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-rose-500" 
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter mb-1">ISS (%)</span>
+                      <input 
+                        type="number" 
+                        value={p.iss} 
+                        onChange={(e) => {
+                          const novos = [...hook.perfisFiscais];
+                          novos[idx].iss = Number(e.target.value);
+                          hook.setPerfisFiscais(novos);
+                          if (selecionado) hook.setIss(Number(e.target.value));
+                        }}
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-rose-500" 
+                      />
+                    </div>
+                    {p.nome !== "Produto" && p.nome !== "Servico" && p.nome !== "Industrializacao" && p.nome !== "MEI" ? (
+                      <button 
+                        onClick={() => {
+                          const novos = hook.perfisFiscais.filter((_, i) => i !== idx);
+                          hook.setPerfisFiscais(novos);
+                          if (selecionado) {
+                            hook.setTipoOperacao("produto");
+                            hook.setImpostos(0);
+                            hook.setIcms(18);
+                            hook.setIss(0);
+                          }
+                        }}
+                        className="w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center transition-colors self-end"
+                      >
+                        <Trash size={14} />
+                      </button>
+                    ) : (
+                      <div className="w-8 h-8 self-end" />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            </div>
+          </div>
+
+          <div className="p-4 bg-gray-50/30 dark:bg-zinc-800/5 rounded-xl border border-dashed border-gray-200 dark:border-white/5 mt-4 shrink-0">
+            <span className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-3">Adicionar Novo Regime</span>
+            <div className="flex flex-wrap gap-2">
+              <input 
+                type="text" 
+                placeholder="Ex: Simples Nacional" 
+                id="novoFiscalNome"
+                className="flex-1 min-w-[120px] h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none focus:border-rose-500" 
+              />
+              <input 
+                type="number" 
+                placeholder="Base %" 
+                id="novoFiscalBase"
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-rose-500" 
+              />
+              <input 
+                type="number" 
+                placeholder="ICMS %" 
+                id="novoFiscalIcms"
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-rose-500" 
+              />
+              <input 
+                type="number" 
+                placeholder="ISS %" 
+                id="novoFiscalIss"
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-rose-500" 
+              />
+              <button 
+                onClick={() => {
+                  const nomeEl = document.getElementById("novoFiscalNome") as HTMLInputElement;
+                  const baseEl = document.getElementById("novoFiscalBase") as HTMLInputElement;
+                  const icmsEl = document.getElementById("novoFiscalIcms") as HTMLInputElement;
+                  const issEl = document.getElementById("novoFiscalIss") as HTMLInputElement;
+                  
+                  if (!nomeEl || !nomeEl.value) {
+                    toast.error("Informe o nome do regime!");
+                    return;
+                  }
+
+                  const novo = {
+                    nome: nomeEl.value,
+                    base: Number(baseEl.value) || 0,
+                    icms: Number(icmsEl.value) || 0,
+                    iss: Number(issEl.value) || 0
+                  };
+
+                  hook.setPerfisFiscais([...hook.perfisFiscais, novo]);
+                  nomeEl.value = "";
+                  baseEl.value = "";
+                  icmsEl.value = "";
+                  issEl.value = "";
+                  toast.success("Regime fiscal adicionado!");
+                }}
+                className="px-4 h-9 bg-zinc-900 dark:bg-white text-white dark:text-black font-black uppercase text-[10px] tracking-wider rounded-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                <Plus size={14} />
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      </ModalListagemPremium>
+
       {/* Modal Canais de Venda */}
       <ModalListagemPremium 
         aberto={modalCanaisAberto} 
         aoFechar={() => setModalCanaisAberto(false)} 
-        titulo="Canais de Venda" 
-        iconeTitulo={ChevronDown} 
-        corDestaque="amber" 
+        titulo="Canais de Venda"        corDestaque="sky" 
         termoBusca="" 
         aoMudarBusca={() => {}} 
         temResultados={true} 
         totalResultados={hook.perfisMarketplace.length}
+        larguraMax="max-w-2xl"
+        altura="h-[70vh]"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {hook.perfisMarketplace.map(p => {
-            const selecionado = hook.perfilAtivo === p.nome;
-            return (
+        <div className="flex flex-col h-full justify-between">
+          <div className="overflow-y-auto max-h-[42vh] pr-2 space-y-3">
+            <div className="grid grid-cols-1 gap-3">
+            {hook.perfisMarketplace.map((p, idx) => {
+              const selecionado = hook.perfilAtivo === p.nome;
+              return (
+                <div 
+                  key={p.nome}
+                  className={`p-3 rounded-xl border flex items-center justify-between gap-4 transition-all ${
+                    selecionado ? "border-sky-500 bg-sky-500/5" : "border-gray-100 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-800/10"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer" onClick={() => hook.setPerfilAtivo(p.nome)}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selecionado ? "bg-sky-500 text-white" : "bg-gray-100 dark:bg-zinc-800 text-zinc-400"}`}>
+                      <Settings size={14} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {indiceCanalSendoEditado === idx ? (
+                        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                          <input 
+                            type="text" 
+                            value={nomeCanalTemporario}
+                            onChange={(e) => setNomeCanalTemporario(e.target.value)}
+                            className="flex-1 min-w-0 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-sky-500 font-bold text-xs outline-none"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                if (!nomeCanalTemporario.trim()) return;
+                                const novos = [...hook.perfisMarketplace];
+                                const nomeAntigo = novos[idx].nome;
+                                novos[idx].nome = nomeCanalTemporario.trim();
+                                hook.setPerfisMarketplace(novos);
+                                if (hook.perfilAtivo === nomeAntigo) {
+                                  hook.setPerfilAtivo(nomeCanalTemporario.trim());
+                                }
+                                setIndiceCanalSendoEditado(null);
+                              } else if (e.key === 'Escape') {
+                                setIndiceCanalSendoEditado(null);
+                              }
+                            }}
+                          />
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!nomeCanalTemporario.trim()) return;
+                              const novos = [...hook.perfisMarketplace];
+                              const nomeAntigo = novos[idx].nome;
+                              novos[idx].nome = nomeCanalTemporario.trim();
+                              hook.setPerfisMarketplace(novos);
+                              if (hook.perfilAtivo === nomeAntigo) {
+                                hook.setPerfilAtivo(nomeCanalTemporario.trim());
+                              }
+                              setIndiceCanalSendoEditado(null);
+                            }}
+                            className="w-7 h-7 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 flex items-center justify-center transition-colors shrink-0"
+                            title="Salvar"
+                          >
+                            <Check size={14} />
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIndiceCanalSendoEditado(null);
+                            }}
+                            className="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center transition-colors shrink-0"
+                            title="Cancelar"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 group/nome">
+                          <h4 className="text-sm font-black uppercase tracking-wider text-zinc-900 dark:text-white truncate">
+                            {p.nome}
+                          </h4>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIndiceCanalSendoEditado(idx);
+                              setNomeCanalTemporario(p.nome);
+                            }}
+                            className="opacity-0 group-hover/nome:opacity-100 hover:scale-110 active:scale-95 transition-all text-zinc-400 hover:text-sky-500 p-1 flex items-center justify-center rounded-md"
+                            title="Alterar Nome"
+                          >
+                            <Pencil size={12} />
+                          </button>
+                        </div>
+                      )}
+                      {selecionado && <span className="text-[10px] font-black uppercase text-sky-500">Ativo</span>}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter mb-1">Taxa (%)</span>
+                      <input 
+                        type="number" 
+                        value={p.taxa} 
+                        onChange={(e) => {
+                          const novos = [...hook.perfisMarketplace];
+                          novos[idx].taxa = Number(e.target.value);
+                          hook.setPerfisMarketplace(novos);
+                        }}
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-sky-500" 
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter mb-1">Fixa (R$)</span>
+                      <input 
+                        type="number" 
+                        value={p.fixa} 
+                        onChange={(e) => {
+                          const novos = [...hook.perfisMarketplace];
+                          novos[idx].fixa = Number(e.target.value);
+                          hook.setPerfisMarketplace(novos);
+                        }}
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-sky-500" 
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter mb-1">Frete (R$)</span>
+                      <input 
+                        type="number" 
+                        value={p.frete || 0} 
+                        onChange={(e) => {
+                          const novos = [...hook.perfisMarketplace];
+                          novos[idx].frete = Number(e.target.value);
+                          hook.setPerfisMarketplace(novos);
+                          if (selecionado) hook.setFrete(Number(e.target.value));
+                        }}
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-sky-500" 
+                      />
+                    </div>
+                    {p.nome !== "Direto" ? (
+                      <button 
+                        onClick={() => {
+                          const novos = hook.perfisMarketplace.filter((_, i) => i !== idx);
+                          hook.setPerfisMarketplace(novos);
+                          if (selecionado) hook.setPerfilAtivo("Direto");
+                        }}
+                        className="w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center transition-colors self-end"
+                      >
+                        <Trash size={14} />
+                      </button>
+                    ) : (
+                      <div className="w-8 h-8 self-end" /> /* Espaçador para manter alinhamento */
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          </div>
+
+          <div className="p-4 bg-gray-50/30 dark:bg-zinc-800/5 rounded-xl border border-dashed border-gray-200 dark:border-white/5 mt-4 shrink-0">
+            <span className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-3">Adicionar Novo Canal</span>
+            <div className="flex flex-wrap gap-2">
+              <input 
+                type="text" 
+                placeholder="Ex: Mercado Livre" 
+                id="novoCanalNome"
+                className="flex-1 min-w-[120px] h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none focus:border-sky-500" 
+              />
+              <input 
+                type="number" 
+                placeholder="Taxa %" 
+                id="novoCanalTaxa"
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-sky-500" 
+              />
+              <input 
+                type="number" 
+                placeholder="Fixa R$" 
+                id="novoCanalFixa"
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-sky-500" 
+              />
+              <input 
+                type="number" 
+                placeholder="Frete R$" 
+                id="novoCanalFrete"
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-sky-500" 
+              />
               <button 
-                key={p.nome} 
                 onClick={() => {
-                  hook.setPerfilAtivo(p.nome);
-                  setModalCanaisAberto(false);
-                }} 
-                className={`p-5 rounded-2xl border-2 transition-all text-left flex items-center gap-4 relative overflow-hidden group ${
-                  selecionado ? "border-amber-500 bg-amber-500/5 shadow-md" : "border-gray-50 dark:border-white/5 hover:border-amber-500/30 bg-white dark:bg-zinc-900/50"
-                }`}
+                  const nomeEl = document.getElementById("novoCanalNome") as HTMLInputElement;
+                  const taxaEl = document.getElementById("novoCanalTaxa") as HTMLInputElement;
+                  const fixaEl = document.getElementById("novoCanalFixa") as HTMLInputElement;
+                  const freteEl = document.getElementById("novoCanalFrete") as HTMLInputElement;
+                  
+                  if (!nomeEl || !nomeEl.value) {
+                    toast.error("Informe o nome do canal!");
+                    return;
+                  }
+
+                  const novo = {
+                    nome: nomeEl.value,
+                    taxa: Number(taxaEl.value) || 0,
+                    fixa: Number(fixaEl.value) || 0,
+                    frete: Number(freteEl.value) || 0,
+                    ins: 0,
+                    imp: 6
+                  };
+
+                  hook.setPerfisMarketplace([...hook.perfisMarketplace, novo]);
+                  nomeEl.value = "";
+                  taxaEl.value = "";
+                  fixaEl.value = "";
+                  freteEl.value = "";
+                  toast.success("Canal adicionado!");
+                }}
+                className="px-4 h-9 bg-zinc-900 dark:bg-white text-white dark:text-black font-black uppercase text-[10px] tracking-wider rounded-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
               >
-                <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${selecionado ? "bg-amber-500 text-white" : "bg-gray-100 dark:bg-white/5 text-zinc-400 group-hover:text-amber-500"}`}>
-                  <Settings size={20} />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-[11px] font-black uppercase tracking-wider text-zinc-900 dark:text-white truncate">
-                    {p.nome}
-                  </h4>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">Taxa: {p.taxa}%</span>
-                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">Fixa: {centavosParaReais(p.fixa * 100)}</span>
-                  </div>
-                </div>
-
-                {selecionado && (
-                  <div className="shrink-0 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-white shadow-lg">
-                    <Check size={14} />
-                  </div>
-                )}
+                <Plus size={14} />
+                Salvar
               </button>
-            );
-          })}
+            </div>
+          </div>
         </div>
       </ModalListagemPremium>
 

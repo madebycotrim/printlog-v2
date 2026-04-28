@@ -56,7 +56,7 @@ export function Avatar({
 
   return (
     <div
-      className={`${tamanho} ${arredondamento} flex items-center justify-center text-base font-black shrink-0 relative overflow-hidden border border-black/5 dark:border-white/5 ${efeitoElite()} ${className}`}
+      className={`${tamanho} ${arredondamento} flex items-center justify-center text-xl font-bold shrink-0 relative overflow-hidden border border-black/5 dark:border-white/5 ${efeitoElite()} ${className}`}
       style={{
         backgroundColor: mostrarIniciais ? corFundo : "transparent",
         color: "white",

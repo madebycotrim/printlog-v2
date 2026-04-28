@@ -19,7 +19,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: process.env.VITE_PROXY_TARGET,
+        target: process.env.VITE_PROXY_TARGET || "https://www.printlog.com.br",
         changeOrigin: true,
         secure: false,
       },

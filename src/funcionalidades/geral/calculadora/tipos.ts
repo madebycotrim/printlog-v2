@@ -24,8 +24,16 @@ export interface PerfilMarketplace {
   nome: string;
   taxa: number;
   fixa: number;
+  frete?: number;
   ins: number;
   imp: number;
+}
+
+export interface PerfilFiscal {
+  nome: string;
+  base: number;
+  icms: number;
+  iss: number;
 }
 
 export interface VersaoCalculo {

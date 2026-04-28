@@ -45,9 +45,11 @@ export function PainelResultados({
   };
 
   const obterSugestaoIA = async () => {
-    // Bloqueio de Plano PRO
-    if (usuario?.plano !== 'PRO') {
-      toast.error("Recurso exclusivo do Plano PRO 👑", {
+    // Bloqueio de Plano PRO / FUNDADOR
+    const temPermissaoIA = usuario?.plano === 'PRO' || usuario?.plano === 'FUNDADOR';
+    
+    if (!temPermissaoIA) {
+      toast.error("Recurso exclusivo do Plano PRO ou Fundador 👑", {
         icon: '🔒',
         duration: 4000
       });
@@ -75,6 +77,8 @@ export function PainelResultados({
     }
   };
 
+  const temPermissaoIA = usuario?.plano === 'PRO' || usuario?.plano === 'FUNDADOR';
+
   return (
     <div className="p-8 rounded-[2.5rem] bg-zinc-900 border border-white/5 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] flex flex-col items-center text-center overflow-hidden relative h-fit w-full mx-auto animate-in fade-in duration-1000">
       <div className="absolute top-0 inset-x-0 h-48 bg-gradient-to-b from-sky-500/20 to-transparent blur-3xl" />
@@ -84,13 +88,13 @@ export function PainelResultados({
           <button 
             onClick={obterSugestaoIA}
             disabled={carregandoIA || calculo.precoSugerido <= 0}
-            title={usuario?.plano === 'PRO' ? "Sugerir com IA" : "Exclusivo PRO"}
+            title={temPermissaoIA ? "Sugerir com IA" : "Exclusivo PRO / Fundador"}
             className={`p-1.5 rounded-lg transition-all relative ${
               carregandoIA ? "text-violet-400 animate-pulse" : "text-zinc-600 hover:text-violet-400 hover:bg-violet-500/10"
             }`}
           >
             <Sparkles size={14} />
-            {usuario?.plano !== 'PRO' && (
+            {!temPermissaoIA && (
                 <div className="absolute -top-1 -right-1">
                     <Crown size={8} className="text-sky-400 fill-sky-400" />
                 </div>

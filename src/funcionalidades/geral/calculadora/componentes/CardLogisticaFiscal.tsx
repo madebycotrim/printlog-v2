@@ -1,8 +1,9 @@
 import { Warehouse, TrendingUp, Settings } from "lucide-react";
-import { PerfilMarketplace } from "../tipos";
+import { PerfilMarketplace, PerfilFiscal } from "../tipos";
 
 interface CardLogisticaFiscalProps {
   perfis: PerfilMarketplace[];
+  perfisFiscais?: PerfilFiscal[];
   perfilAtivo: string;
   setPerfilAtivo: (v: string) => void;
   taxaEcommerce: number;
@@ -19,35 +20,66 @@ interface CardLogisticaFiscalProps {
   setIcms: (v: number) => void;
   iss: number;
   setIss: (v: number) => void;
+  cobrarImpostos: boolean;
+  setCobrarImpostos: (v: boolean) => void;
   abrirPerfis: () => void;
+  abrirConfigFiscal?: () => void;
 }
 
 export function CardLogisticaFiscal({
-  perfis, perfilAtivo, setPerfilAtivo, taxaEcommerce, setTaxaEcommerce, taxaFixa, setTaxaFixa, frete, setFrete,
-  tipoOperacao, setTipoOperacao, impostos, setImpostos, icms, setIcms, iss, setIss, abrirPerfis
+  perfis, perfisFiscais = [], perfilAtivo, setPerfilAtivo, taxaEcommerce, setTaxaEcommerce, taxaFixa, setTaxaFixa, frete, setFrete,
+  tipoOperacao, setTipoOperacao, impostos, setImpostos, icms, setIcms, iss, setIss, cobrarImpostos, setCobrarImpostos, abrirPerfis, abrirConfigFiscal
 }: CardLogisticaFiscalProps) {
+
+  const obterDicaFiscal = (id: string) => {
+    switch (id) {
+      case 'mei':
+        return "O MEI paga um valor fixo mensal (DAS), por isso não há imposto por peça vendida.";
+      case 'cpf':
+        return "Reserva de 10% recomendada para evitar o prejuízo de uma futura cobrança de IRPF.";
+      case 'produto':
+        return "Imposto unificado padrão para Venda de Produtos Prontos (Simples Nacional - Comércio).";
+      case 'servico':
+        return "Imposto para Serviços sob Encomenda e Peças Personalizadas (Simples Nacional).";
+      default:
+        return "Configuração personalizada de regime fiscal.";
+    }
+  };
   return (
     <div className="space-y-6">
       {/* Logística */}
       <div className="p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
         <div className="flex items-center gap-3 pb-4 border-b border-gray-50 dark:border-white/5">
           <Warehouse size={18} className="text-indigo-500" />
-          <h3 className="text-xs font-black uppercase tracking-widest">Logística e Canais</h3>
+          <h3 className="text-xs font-black uppercase tracking-widest">Canais de Venda e Logística</h3>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {perfis.map((p) => (
             <button
               key={p.nome}
-              onClick={() => { setPerfilAtivo(p.nome); setTaxaEcommerce(p.taxa); setTaxaFixa(p.fixa); if (p.imp !== undefined) setImpostos(p.imp); }}
-              className={`px-4 py-2 rounded-xl border transition-all text-xs font-black uppercase tracking-widest flex flex-col items-start leading-tight
+              onClick={() => {
+                if (perfilAtivo === p.nome) {
+                  setPerfilAtivo("");
+                  setTaxaEcommerce(0);
+                  setTaxaFixa(0);
+                  setFrete(0);
+                } else {
+                  setPerfilAtivo(p.nome);
+                  setTaxaEcommerce(p.taxa);
+                  setTaxaFixa(p.fixa);
+                  if (p.frete !== undefined) setFrete(p.frete);
+                  if (p.imp !== undefined) setImpostos(p.imp);
+                }
+              }}
+              className={`px-4 h-11 rounded-xl border transition-all text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center text-center leading-tight shrink-0
                 ${perfilAtivo === p.nome ? "bg-sky-500/10 border-sky-500 text-sky-500 shadow-sm" : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 hover:border-sky-500/30"}
               `}
             >
               <span>{p.nome}</span>
-              <span className={`text-[10px] opacity-60 ${perfilAtivo === p.nome ? "text-sky-500" : "text-gray-400"}`}>({p.taxa}% + R$ {p.fixa})</span>
+              <span className={`text-[8px] font-bold opacity-80 ${perfilAtivo === p.nome ? "text-sky-500/80" : "text-gray-400"}`}>({p.taxa}% + R$ {p.fixa} + R$ {p.frete || 0})</span>
             </button>
           ))}
-          <button onClick={abrirPerfis} className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 hover:text-amber-500 transition-all"><Settings size={14} /></button>
+          <button onClick={abrirPerfis} className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 text-zinc-400 hover:text-sky-500 hover:bg-sky-500/10 transition-all shrink-0"><Settings size={16} /></button>
         </div>
         <div className="grid grid-cols-3 gap-6 pt-4 border-t border-gray-50 dark:border-white/5">
           <div>
@@ -66,36 +98,95 @@ export function CardLogisticaFiscal({
       </div>
 
       {/* Fiscal */}
-      <div className="p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-gray-50 dark:border-white/5">
-          <TrendingUp size={18} className="text-rose-500" />
-          <h3 className="text-xs font-black uppercase tracking-widest">Estrutura Fiscal</h3>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {['produto', 'servico', 'industrializacao', 'mei'].map((id) => (
-            <button
-              key={id}
-              onClick={() => {
-                setTipoOperacao(id as any);
-                if (id === 'mei') { setIcms(0); setIss(0); setImpostos(0); }
-                else if (id === 'servico') { setIcms(0); setIss(5); }
-                else { setIss(0); setIcms(18); }
-              }}
-              className={`px-4 py-2 rounded-xl border transition-all text-xs font-black uppercase tracking-widest
-                ${tipoOperacao === id ? "bg-rose-500/10 border-rose-500 text-rose-500" : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 hover:border-rose-500/30"}
-              `}
-            >
-              {id.toUpperCase()}
-            </button>
-          ))}
-        </div>
-        {tipoOperacao !== 'mei' && (
-          <div className="grid grid-cols-4 gap-4 pt-4 border-t border-gray-50 dark:border-white/5">
-            <div><label className="text-xs font-black text-gray-400 uppercase">Base (%)</label><input type="number" value={impostos} onChange={(e) => setImpostos(Number(e.target.value))} className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-sm" /></div>
-            {tipoOperacao !== 'servico' && <div><label className="text-xs font-black text-gray-400 uppercase">ICMS (%)</label><input type="number" value={icms} onChange={(e) => setIcms(Number(e.target.value))} className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-sm" /></div>}
-            {tipoOperacao === 'servico' && <div><label className="text-xs font-black text-gray-400 uppercase">ISS (%)</label><input type="number" value={iss} onChange={(e) => setIss(Number(e.target.value))} className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-sm" /></div>}
+      <div className={`p-8 rounded-3xl border shadow-sm space-y-6 transition-all duration-300 ${cobrarImpostos ? "bg-white dark:bg-zinc-900 border-gray-100 dark:border-white/5" : "bg-gray-50/50 dark:bg-zinc-900/50 border-gray-100 dark:border-white/5 opacity-70 grayscale"}`}>
+        <div className="flex items-center justify-between pb-4 border-b border-gray-50 dark:border-white/5">
+          <div className="flex items-center gap-3">
+            <TrendingUp size={18} className="text-rose-500" />
+            <h3 className="text-xs font-black uppercase tracking-widest">Estrutura Fiscal</h3>
           </div>
-        )}
+          <button
+            type="button"
+            onClick={() => setCobrarImpostos(!cobrarImpostos)}
+            className={`relative w-10 h-6 rounded-full transition-colors flex items-center px-1 ${
+              cobrarImpostos ? 'bg-rose-500' : 'bg-gray-200 dark:bg-zinc-700'
+            }`}
+          >
+            <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${
+              cobrarImpostos ? 'translate-x-4' : 'translate-x-0'
+            }`} />
+          </button>
+        </div>
+        <div className={`space-y-6 transition-opacity ${!cobrarImpostos ? "opacity-50 pointer-events-none" : ""}`}>
+          <div className="flex flex-wrap items-center gap-2">
+            {(perfisFiscais.length > 0 ? perfisFiscais : [
+              { nome: "MEI", base: 0, icms: 0, iss: 0 },
+              { nome: "CPF", base: 10, icms: 0, iss: 0 },
+              { nome: "Produto", base: 0, icms: 4, iss: 0 },
+              { nome: "Servico", base: 0, icms: 0, iss: 5 },
+            ]).map((p) => {
+              const id = p.nome.toLowerCase();
+              return (
+                <button
+                  key={id}
+                  onClick={() => {
+                    if (tipoOperacao === id) {
+                      setTipoOperacao("");
+                      setImpostos(0);
+                      setIcms(0);
+                      setIss(0);
+                    } else {
+                      setTipoOperacao(id);
+                      setImpostos(p.base);
+                      setIcms(p.icms);
+                      setIss(p.iss);
+                    }
+                  }}
+                  className={`px-4 h-11 flex flex-col items-center justify-center text-center rounded-xl border transition-all text-[10px] font-black uppercase tracking-wider shrink-0 leading-tight
+                    ${tipoOperacao === id ? "bg-rose-500/10 border-rose-500 text-rose-500 shadow-sm" : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 hover:border-rose-500/30"}
+                  `}
+                >
+                  <span>{p.nome.toUpperCase()}</span>
+                  <span className={`text-[8px] font-bold opacity-80 ${tipoOperacao === id ? "text-rose-500/80" : "text-gray-400"} ${!cobrarImpostos ? "line-through text-zinc-500" : ""}`}>
+                    ({id === 'mei' || !cobrarImpostos ? 0 : id === 'servico' ? (p.base + p.iss) : (p.base + p.icms)}%)
+                  </span>
+                </button>
+              );
+            })}
+            {abrirConfigFiscal && (
+              <button 
+                onClick={abrirConfigFiscal} 
+                className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all shrink-0"
+              >
+                <Settings size={16} />
+              </button>
+            )}
+          </div>
+
+          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wide mt-2 ml-1">
+             {obterDicaFiscal(tipoOperacao)}
+          </p>
+
+          {tipoOperacao !== 'mei' && (
+            <div className="grid grid-cols-3 gap-6 pt-4 border-t border-gray-50 dark:border-white/5">
+              <div>
+                <label className="block text-xs font-black uppercase text-gray-400 mb-1.5">Base (%)</label>
+                <input type="number" disabled={!cobrarImpostos} value={!cobrarImpostos ? 0 : impostos} onChange={(e) => setImpostos(Number(e.target.value))} className={`w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-sm ${!cobrarImpostos ? "line-through text-zinc-400 dark:text-zinc-600" : ""}`} />
+              </div>
+              {tipoOperacao !== 'servico' && (
+                <div>
+                  <label className="block text-xs font-black uppercase text-gray-400 mb-1.5">ICMS (%)</label>
+                  <input type="number" disabled={!cobrarImpostos} value={!cobrarImpostos ? 0 : icms} onChange={(e) => setIcms(Number(e.target.value))} className={`w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-sm ${!cobrarImpostos ? "line-through text-zinc-400 dark:text-zinc-600" : ""}`} />
+                </div>
+              )}
+              {tipoOperacao === 'servico' && (
+                <div>
+                  <label className="block text-xs font-black uppercase text-gray-400 mb-1.5">ISS (%)</label>
+                  <input type="number" disabled={!cobrarImpostos} value={!cobrarImpostos ? 0 : iss} onChange={(e) => setIss(Number(e.target.value))} className={`w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-white/5 outline-none font-black text-sm ${!cobrarImpostos ? "line-through text-zinc-400 dark:text-zinc-600" : ""}`} />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

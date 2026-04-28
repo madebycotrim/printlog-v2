@@ -26,6 +26,10 @@ interface PropriedadesModalListagemPremium {
   infoRodape?: string;
   loading?: boolean;
   elementoExtra?: ReactNode;
+  
+  // Customização de tamanho
+  larguraMax?: string;
+  altura?: string;
 }
 
 /**
@@ -49,6 +53,8 @@ export function ModalListagemPremium({
   infoRodape,
   loading = false,
   elementoExtra,
+  larguraMax = "max-w-7xl",
+  altura = "h-[80vh]"
 }: PropriedadesModalListagemPremium) {
   const mapasCores = {
     indigo: "rose-500", // Fallback para rose em destaque se necessário
@@ -63,8 +69,8 @@ export function ModalListagemPremium({
   const corHex = mapasCores[corDestaque] || "sky-500";
 
   return (
-    <Dialogo aberto={aberto} aoFechar={aoFechar} titulo={titulo} larguraMax="max-w-7xl" telaCheia={false} semScroll={true}>
-      <div className="flex flex-col bg-white dark:bg-[var(--bg-card)] h-[80vh]">
+    <Dialogo aberto={aberto} aoFechar={aoFechar} titulo={titulo} larguraMax={larguraMax} telaCheia={false} semScroll={true}>
+      <div className={`flex flex-col bg-white dark:bg-[var(--bg-card)] ${altura}`}>
         {/* 🔍 Barra de Busca Superior */}
          <div
           className={`px-6 py-4 border-b border-gray-100 dark:border-white/5 bg-${corDestaque}-50/30 dark:bg-${corDestaque}-500/[0.02] backdrop-blur-sm sticky top-0 z-20`}
