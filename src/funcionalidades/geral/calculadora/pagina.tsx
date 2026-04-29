@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 import { 
   Settings, Check, X, Plus, 
-  ChevronDown, Box, Package, History, Crown, Trash, Pencil, TrendingUp, AlertTriangle, Download
+  ChevronDown, Box, Package, History, Crown, Trash, Pencil, TrendingUp, AlertTriangle, Download, RotateCcw
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +16,7 @@ import { usarGerenciadorImpressoras } from "@/funcionalidades/producao/impressor
 import { usarGerenciadorMateriais } from "@/funcionalidades/producao/materiais/hooks/usarGerenciadorMateriais";
 import { usarGerenciadorInsumos } from "@/funcionalidades/producao/insumos/hooks/usarGerenciadorInsumos";
 import { usarPedidos } from "@/funcionalidades/producao/projetos/hooks/usarPedidos";
+import { usarGerenciadorClientes } from "@/funcionalidades/comercial/clientes/hooks/usarGerenciadorClientes";
 import { Dialogo } from "@/compartilhado/componentes/Dialogo";
 import { ModalListagemPremium } from "@/compartilhado/componentes/ModalListagemPremium";
 import { FormularioMaterial } from "@/funcionalidades/producao/materiais/componentes/FormularioMaterial";
@@ -48,6 +49,7 @@ export function PaginaCalculadora() {
 
   const config = usarArmazemConfiguracoes();
   const { criarPedido } = usarPedidos();
+  const { estado: estadoClientes, acoes: acoesClientes } = usarGerenciadorClientes();
   const { estado } = usarGerenciadorImpressoras();
   const { impressoras = [] } = estado;
   const { materiais } = usarArmazemMateriais();
@@ -64,7 +66,14 @@ export function PaginaCalculadora() {
   const [modalArmazemInsumosAberto, setModalArmazemInsumosAberto] = useState(false);
   const [modalCanaisAberto, setModalCanaisAberto] = useState(false);
   const [modalConfigFiscalAberto, setModalConfigFiscalAberto] = useState(false);
-  const [anosVidaUtil, setAnosVidaUtil] = useState<5 | 3 | 2>(5);
+  const [anosVidaUtil, setAnosVidaUtil] = useState<5 | 3 | 2>(() => {
+    const salvo = localStorage.getItem("printlog_anos_vida_util");
+    return salvo ? Number(salvo) as 5 | 3 | 2 : 5;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("printlog_anos_vida_util", String(anosVidaUtil));
+  }, [anosVidaUtil]);
   const [indiceCanalSendoEditado, setIndiceCanalSendoEditado] = useState<number | null>(null);
   const [nomeCanalTemporario, setNomeCanalTemporario] = useState('');
   const [indiceFiscalSendoEditado, setIndiceFiscalSendoEditado] = useState<number | null>(null);
@@ -136,13 +145,27 @@ export function PaginaCalculadora() {
 
   const salvarComoProjeto = async () => {
     try {
+      let idClienteValido = "";
+      
+      // Busca cliente UUID válido no banco para evitar erro de chave estrangeira
+      if (estadoClientes.clientes && estadoClientes.clientes.length > 0) {
+        idClienteValido = estadoClientes.clientes[0].id;
+      } else {
+        // Cria um cliente padrão de fallback
+        const novoCliente = await acoesClientes.salvarCliente({ 
+          nome: "Consumidor Final",
+          email: "consumidor@printlog.com.br"
+        });
+        idClienteValido = novoCliente.id;
+      }
+
       const novoPedido = await criarPedido({
-        idCliente: "ORCAMENTO_DIRETO",
+        idCliente: idClienteValido,
         descricao: hook.materiaisSelecionados.length > 0 ? `Impressão: ${hook.materiaisSelecionados.map(m => m.nome).join(", ")}` : "Orçamento via Calculadora",
         valorCentavos: hook.calculo.precoSugerido,
-        material: hook.materiaisSelecionados.map(m => m.nome).join(", "),
+        material: hook.materiaisSelecionados.length > 0 ? hook.materiaisSelecionados.map(m => m.nome).join(", ") : "Material Padrão",
         pesoGramas: hook.materiaisSelecionados.reduce((acc, m) => acc + m.quantidade, 0),
-        tempoMinutos: hook.tempo,
+        tempoMinutos: Math.round(hook.tempo * 60), // Convertendo horas para minutos
         idImpressora: hook.impressoraSelecionadaId || undefined,
         prazoEntrega: hook.estimativaPrazo.data,
         observacoes: `Gerado via calculadora em ${new Date().toLocaleDateString('pt-BR')}.`
@@ -154,6 +177,7 @@ export function PaginaCalculadora() {
       }
     } catch (erro) {
       console.error(erro);
+      toast.error("Não foi possível salvar o projeto. Tente novamente.");
     }
   };
 
@@ -226,10 +250,11 @@ export function PaginaCalculadora() {
           </div>
         )}
       </div>
-      <button onClick={() => setModalHistoricoAberto(true)} className="flex items-center justify-center w-11 h-11 rounded-xl hover:bg-white dark:hover:bg-white/10 text-zinc-400 hover:text-sky-500 transition-all"><History size={18} /></button>
-      <button onClick={() => setModalConfigAberto(true)} className="flex items-center justify-center w-11 h-11 rounded-xl hover:bg-white dark:hover:bg-white/10 text-zinc-400 hover:text-amber-500 transition-all"><Settings size={18} /></button>
+      <button onClick={() => hook.limpar()} className="flex items-center justify-center w-11 h-11 rounded-xl hover:bg-white dark:hover:bg-white/10 text-zinc-400 hover:text-rose-500 transition-all" title="Limpar formulário"><RotateCcw size={18} /></button>
+      <button onClick={() => setModalHistoricoAberto(true)} className="flex items-center justify-center w-11 h-11 rounded-xl hover:bg-white dark:hover:bg-white/10 text-zinc-400 hover:text-sky-500 transition-all" title="Histórico"><History size={18} /></button>
+      <button onClick={() => setModalConfigAberto(true)} className="flex items-center justify-center w-11 h-11 rounded-xl hover:bg-white dark:hover:bg-white/10 text-zinc-400 hover:text-amber-500 transition-all" title="Configurações"><Settings size={18} /></button>
     </div>
-  ), [abertoSeletor, hook.impressoraSelecionadaId, impressoraSelecionada?.nome, impressoras]);
+  ), [abertoSeletor, hook.impressoraSelecionadaId, impressoraSelecionada?.nome, impressoras, hook.limpar]);
 
   const carregandoDados = estadoMateriais.carregando || (estado && estado.carregando && impressoras.length === 0);
 
@@ -361,7 +386,7 @@ export function PaginaCalculadora() {
           alternar={(insumo) => {
             const existe = hook.insumosSelecionados.find(i => i.id === insumo.id);
             if (existe) hook.setInsumosSelecionados(prev => prev.filter(i => i.id !== insumo.id));
-            else hook.setInsumosSelecionados(prev => [...prev, { id: insumo.id, nome: insumo.nome, quantidade: 1, custoCentavos: insumo.custoMedioUnidade }]);
+            else hook.setInsumosSelecionados(prev => [...prev, { id: insumo.id, nome: insumo.nome, quantidade: 1, custoCentavos: Math.round(insumo.custoMedioUnidade * 100) }]);
           }}
           atualizarQtd={(id, qtd) => {
             hook.setInsumosSelecionados(prev => prev.map(i => i.id === id ? { ...i, quantidade: qtd } : i));
@@ -397,7 +422,7 @@ export function PaginaCalculadora() {
         />
 
         <CardOperacional 
-          maoDeObra={hook.maoDeObra}
+          maoDeObra={hook.maoDeObra} setMaoDeObra={(v) => { hook.setMaoDeObra(v); config.definirHoraOperador(formatarMoedaFinancas(v, 2)); }}
           margem={hook.margem} setMargem={(v) => { hook.setMargem(v); config.definirMargemLucro(formatarPorcentagem(String(v))); }}
           depreciacao={hook.depreciacaoHora}
           cobrarDesgaste={hook.cobrarDesgaste} setCobrarDesgaste={hook.setCobrarDesgaste}
@@ -409,8 +434,8 @@ export function PaginaCalculadora() {
 
         <CardLogistica 
           perfis={hook.perfisMarketplace} perfilAtivo={hook.perfilAtivo} setPerfilAtivo={hook.setPerfilAtivo}
-          taxaEcommerce={hook.perfisMarketplace.find(p => p.nome === hook.perfilAtivo)?.taxa || 0} setTaxaEcommerce={() => {}}
-          taxaFixa={hook.perfisMarketplace.find(p => p.nome === hook.perfilAtivo)?.fixa || 0} setTaxaFixa={() => {}}
+          taxaEcommerce={hook.taxaEcommerce} setTaxaEcommerce={hook.setTaxaEcommerce}
+          taxaFixa={hook.taxaFixa} setTaxaFixa={hook.setTaxaFixa}
           frete={hook.frete} setFrete={hook.setFrete}
           abrirPerfis={() => setModalCanaisAberto(true)}
         />
@@ -432,8 +457,21 @@ export function PaginaCalculadora() {
           dadosPizza={hook.dadosGraficoPizza}
           aba={abaResultado} setAba={setAbaResultado}
           salvarProjeto={salvarComoProjeto}
-          gerarPdf={() => setModalPdfAberto(true)}
+          gerarPdf={() => {
+            if (!eProOuSuperior) {
+              hook.gerarPdf("", "");
+            } else if (nomeEstudio.trim() !== "") {
+              hook.gerarPdf(nomeEstudio, sloganEstudio);
+            } else {
+              setModalPdfAberto(true);
+            }
+          }}
           carregandoPdf={false}
+          materiais={hook.materiaisSelecionados}
+          insumos={hook.insumosSelecionados}
+          posProcesso={hook.itensPosProcesso}
+          quantidade={hook.quantidade}
+          insumosFixos={hook.insumosFixos}
         />
       </div>
 

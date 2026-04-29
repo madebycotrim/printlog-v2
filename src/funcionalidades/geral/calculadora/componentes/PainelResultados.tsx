@@ -2,7 +2,7 @@ import { Box, Zap, Timer, Activity, Package, DollarSign, PieChart, ShieldCheck, 
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
-import { CalculoResultado } from "../tipos";
+import { CalculoResultado, MaterialSelecionado, InsumoSelecionado, ItemPosProcesso } from "../tipos";
 import { servicoIA, SugestaoPrecoIA } from "../servicos/servicoIA";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
@@ -18,10 +18,16 @@ interface PainelResultadosProps {
   salvarProjeto: () => void;
   gerarPdf: () => void;
   carregandoPdf: boolean;
+  materiais?: MaterialSelecionado[];
+  insumos?: InsumoSelecionado[];
+  posProcesso?: ItemPosProcesso[];
+  quantidade?: number;
+  insumosFixos?: number;
 }
 
 export function PainelResultados({
-  calculo, dadosPizza, aba, setAba, salvarProjeto, gerarPdf, carregandoPdf
+  calculo, dadosPizza, aba, setAba, salvarProjeto, gerarPdf, carregandoPdf,
+  materiais = [], insumos = [], posProcesso = [], quantidade = 1, insumosFixos = 0
 }: PainelResultadosProps) {
   const { usuario } = usarAutenticacao();
   const { betaOrcamentosMagicos, templateOrcamento } = usarBeta();
@@ -57,15 +63,17 @@ export function PainelResultados({
 
     try {
       setCarregandoIA(true);
+      const pesoTotalGramas = materiais.reduce((acc, m) => acc + (m.quantidade || 0), 0) * quantidade;
+
       const resultado = await servicoIA.obterSugestaoPreco({
-        nomePeca: "Impressão 3D", // Poderia vir de um campo de nome
-        pesoGramas: 0, // Poderia vir do hook
-        tempoMinutos: 0, // Poderia vir do hook
-        custoMaterial: calculo.custoMaterial,
-        custoEnergia: calculo.custoEnergia,
-        custoTrabalho: calculo.custoMaoDeObra,
-        custoDepreciacao: calculo.custoDepreciacao,
-        lucroDesejadoPercentual: 100 // Margem desejada padrão
+        nomePeca: "Impressão 3D", 
+        pesoGramas: pesoTotalGramas, 
+        tempoMinutos: 0, 
+        custoMaterial: calculo.custoMaterial / 100,
+        custoEnergia: calculo.custoEnergia / 100,
+        custoTrabalho: calculo.custoMaoDeObra / 100,
+        custoDepreciacao: calculo.custoDepreciacao / 100,
+        lucroDesejadoPercentual: 100 
       });
       setSugestaoIA(resultado);
       toast.success("Sugestão gerada pela IA!");
@@ -79,7 +87,7 @@ export function PainelResultados({
   const temPermissaoIA = usuario?.plano === 'PRO' || usuario?.plano === 'FUNDADOR';
 
   return (
-    <div className="p-8 rounded-2xl bg-zinc-900 border border-white/5 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] flex flex-col items-center text-center overflow-hidden relative h-fit w-full mx-auto animate-in fade-in duration-1000">
+    <div className="pt-4 pb-6 px-6 rounded-2xl bg-zinc-900 border border-white/5 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] flex flex-col items-center text-center overflow-hidden relative h-fit w-full mx-auto animate-in fade-in duration-1000">
       <div className="absolute top-0 inset-x-0 h-48 bg-gradient-to-b from-sky-500/20 to-transparent blur-3xl" />
       <div className="relative z-10 w-full">
         <div className="flex items-center justify-center gap-2 mb-1">
@@ -101,45 +109,60 @@ export function PainelResultados({
           </button>
         </div>
 
-        <div className="mt-4 mb-6">
-          <h2 className="text-5xl font-black text-white tracking-tighter leading-none mb-2">{centavosParaReais(calculo.precoSugerido)}</h2>
+        <div className="mt-2 mb-4">
+          <h2 className="text-4xl font-black text-white tracking-tighter leading-none mb-2">{centavosParaReais(calculo.precoSugerido)}</h2>
           
           {/* Resultados da IA compactos - Só aparecem se houver sugestão */}
           <AnimatePresence>
-            {sugestaoIA && (
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mt-4 p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10 text-left relative group/ia"
-              >
-                <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2 text-violet-400/60">
-                        <BrainCircuit size={12} />
-                        <span className="text-[9px] font-black uppercase tracking-widest">IA Insight</span>
-                    </div>
-                    <button onClick={() => setSugestaoIA(null)} className="text-[8px] font-black text-zinc-700 hover:text-zinc-500 uppercase">Ocultar</button>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-2">
-                    {[
-                        { label: 'Piso', valor: sugestaoIA.piso.valor, cor: 'rose' },
-                        { label: 'Ideal', valor: sugestaoIA.recomendado.valor, cor: 'sky' },
-                        { label: 'Premium', valor: sugestaoIA.premium.valor, cor: 'emerald' }
-                    ].map(f => (
-                        <div key={f.label} className="flex flex-col">
-                            <span className="text-[7px] font-black uppercase tracking-widest text-zinc-600 mb-0.5">{f.label}</span>
-                            <span className="text-[10px] font-black text-zinc-300">{centavosParaReais(f.valor * 100)}</span>
-                        </div>
-                    ))}
-                </div>
-              </motion.div>
-            )}
+            {sugestaoIA && (() => {
+              const precoBase = calculo.precoSugerido / 100;
+
+              let piso = sugestaoIA.piso.valor;
+              let recomendado = sugestaoIA.recomendado.valor;
+              let premium = sugestaoIA.premium.valor;
+
+              // Protocolo de Segurança: Se a IA delirar (valores acima de 3x o preço calculado do app)
+              if (piso > precoBase * 3 || piso <= 0) {
+                piso = precoBase * 1.35;
+                recomendado = precoBase * 1.70;
+                premium = precoBase * 2.20;
+              }
+
+              return (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="my-4 p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10 text-left relative group/ia"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-violet-400/60">
+                          <BrainCircuit size={12} />
+                          <span className="text-[9px] font-black uppercase tracking-widest">IA Insight</span>
+                      </div>
+                      <button onClick={() => setSugestaoIA(null)} className="text-[8px] font-black text-zinc-700 hover:text-zinc-500 uppercase">Ocultar</button>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-2">
+                      {[
+                          { label: 'Piso', valor: piso, cor: 'rose' },
+                          { label: 'Ideal', valor: recomendado, cor: 'sky' },
+                          { label: 'Premium', valor: premium, cor: 'emerald' }
+                      ].map(f => (
+                          <div key={f.label} className="flex flex-col">
+                              <span className="text-[7px] font-black uppercase tracking-widest text-zinc-600 mb-0.5">{f.label}</span>
+                              <span className="text-[10px] font-black text-zinc-300">{centavosParaReais(Math.round(f.valor * 100))}</span>
+                          </div>
+                      ))}
+                  </div>
+                </motion.div>
+              );
+            })()}
           </AnimatePresence>
           <div className="flex flex-col gap-2 items-center">
             <div className="flex gap-2 justify-center">
               <div className={`
-                px-4 py-1.5 rounded-full border backdrop-blur-md transition-all duration-500 flex items-center gap-2 shadow-lg
+                px-2.5 py-1 rounded-full border backdrop-blur-md transition-all duration-500 flex items-center gap-1.5 shadow-lg
                 ${calculo.margemReal >= 50 
                   ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-emerald-500/10' 
                   : calculo.margemReal >= 20
@@ -147,10 +170,10 @@ export function PainelResultados({
                     : 'bg-rose-500/10 border-rose-500/20 text-rose-400 shadow-rose-500/10'
                 }
               `}>
-                <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                <div className={`w-1 h-1 rounded-full animate-pulse ${
                   calculo.margemReal >= 50 ? 'bg-emerald-400' : calculo.margemReal >= 20 ? 'bg-sky-400' : 'bg-rose-400'
                 }`} />
-                <span className="text-xs font-black uppercase tracking-[0.15em] leading-none">
+                <span className="text-[9px] font-black uppercase tracking-wider leading-none">
                   Margem Real: {calculo.margemReal.toFixed(1)}%
                 </span>
               </div>
@@ -159,63 +182,104 @@ export function PainelResultados({
           </div>
         </div>
         
-        <div className="flex bg-white/5 p-1 rounded-2xl mb-8 w-full shadow-inner">
+        <div className="flex bg-white/5 p-1 rounded-2xl mb-4 w-full shadow-inner">
           <button onClick={() => setAba('orcamento')} className={`flex-1 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${aba === 'orcamento' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}>Orçamento</button>
           <button onClick={() => setAba('metricas')} className={`flex-1 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 ${aba === 'metricas' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}>Métricas 360 <PieChart size={12} /></button>
         </div>
         
-        {aba === 'orcamento' && (
-          <div className="space-y-4 w-full text-left relative animate-in fade-in slide-in-from-right-4 duration-500 min-h-[160px] flex flex-col justify-center">
-            {(() => {
-              const itens = [
-                { label: 'Materiais', valor: calculo.custoMaterial, icone: Box, cor: 'text-sky-400' },
-                { label: 'Energia Elétrica', valor: calculo.custoEnergia, icone: Zap, cor: 'text-amber-400' },
-                { label: 'Mão de Obra', valor: calculo.custoMaoDeObra, icone: Timer, cor: 'text-emerald-400' },
-                { label: 'Depreciação', valor: calculo.custoDepreciacao, icone: Activity, cor: 'text-rose-400' },
-                { label: 'Insumos & Extras', valor: calculo.custoInsumos + calculo.custoPosProcesso, icone: Package, cor: 'text-violet-400' },
-                { label: 'Perdas & Falhas', valor: calculo.custoFalha || 0, icone: AlertTriangle, cor: 'text-amber-500 animate-pulse' },
-                { label: 'Taxas & Impostos', valor: calculo.taxaMarketplace + calculo.impostoVenda, icone: DollarSign, cor: 'text-orange-400' },
-              ].filter(i => i.valor > 0);
+        {aba === 'orcamento' && (() => {
+          const itens = [
+            { label: 'Materiais', valor: calculo.custoMaterial, icone: Box, cor: 'text-sky-400' },
+            { label: 'Perdas & Falhas', valor: calculo.custoFalha || 0, icone: AlertTriangle, cor: 'text-rose-500' },
+            { label: 'Insumos & Extras', valor: calculo.custoInsumos + calculo.custoPosProcesso, icone: Package, cor: 'text-violet-400' },
+            { label: 'Energia Elétrica', valor: calculo.custoEnergia, icone: Zap, cor: 'text-amber-400' },
+            { label: 'Mão de Obra', valor: calculo.custoMaoDeObra, icone: Timer, cor: 'text-emerald-400' },
+            { label: 'Depreciação', valor: calculo.custoDepreciacao, icone: Activity, cor: 'text-rose-400' },
+            { label: 'Taxas & Impostos', valor: calculo.taxaMarketplace + calculo.impostoVenda, icone: DollarSign, cor: 'text-orange-400' },
+          ].filter(i => i.valor > 0);
 
-              if (itens.length === 0) {
-                return (
-                  <div className="flex flex-col items-center justify-center gap-2 text-zinc-600 dark:text-zinc-500 py-4">
-                    <Sparkles size={24} className="opacity-40 text-sky-400 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-center">Aguardando dados...</span>
-                    <span className="text-[9px] font-bold text-zinc-600 text-center uppercase tracking-wider">Insira pesos e tempos nos cards ao lado</span>
-                  </div>
-                );
-              }
+          const estaVazio = itens.length === 0;
 
-              return (
+          return (
+            <div className={`space-y-4 w-full text-left relative animate-in fade-in slide-in-from-right-4 duration-500 min-h-[160px] flex flex-col ${estaVazio ? 'justify-center' : 'justify-start'}`}>
+              {estaVazio ? (
+                <div className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-500 w-full">
+                  <Sparkles size={24} className="opacity-40 text-sky-400 animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-center">Aguardando dados...</span>
+                  <span className="text-[9px] font-bold text-zinc-600 text-center uppercase tracking-wider">Insira pesos e tempos nos cards ao lado</span>
+                </div>
+              ) : (
                 <AnimatePresence>
-                  {itens.map((item) => (
-                    <motion.div 
-                      key={item.label}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="flex justify-between items-center group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-500 group-hover:bg-white/10 transition-colors shadow-inner">
-                          <item.icone size={14} className={item.cor} />
+                  {itens.map((item) => {
+                    // Calcular subitens
+                    let subitens: { nome: string; valor: number }[] = [];
+                    
+                    if (item.label === 'Materiais' && materiais.length > 0) {
+                      subitens = materiais.map(m => ({
+                        nome: `${m.nome} (${m.quantidade}g)`,
+                        valor: Math.round((m.quantidade / 1000) * m.precoKgCentavos * quantidade)
+                      }));
+                    } else if (item.label === 'Insumos & Extras') {
+                      const subInsumos = insumos.map(i => ({
+                        nome: `${i.nome} (${i.quantidade}un)`,
+                        valor: i.quantidade * i.custoCentavos * quantidade
+                      }));
+                      const subPos = posProcesso.map(p => ({
+                        nome: p.nome,
+                        valor: Math.round(p.valor * 100) * quantidade
+                      }));
+                      subitens = [...subInsumos, ...subPos];
+
+                      if (insumosFixos && insumosFixos > 0) {
+                        subitens.push({
+                          nome: 'Insumos Fixos',
+                          valor: Math.round(insumosFixos * 100)
+                        });
+                      }
+                    }
+
+                    return (
+                      <motion.div 
+                        key={item.label}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        className="flex flex-col group border-b border-white/[0.02] pb-2 last:border-0"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-500 group-hover:bg-white/10 transition-colors shadow-inner">
+                              <item.icone size={14} className={item.cor} />
+                            </div>
+                            <span className="text-xs font-black uppercase text-zinc-400 tracking-wider">{item.label}</span>
+                          </div>
+                          <span className="text-xs font-black text-white">{centavosParaReais(item.valor)}</span>
                         </div>
-                        <span className="text-xs font-black uppercase text-zinc-500 tracking-wider">{item.label}</span>
-                      </div>
-                      <span className="text-xs font-black text-white">{centavosParaReais(item.valor)}</span>
-                    </motion.div>
-                  ))}
+
+                        {/* Detalhamento dos subitens */}
+                        {subitens.length > 0 && (
+                          <div className="pl-11 pr-1 mt-1 space-y-1">
+                            {subitens.map((sub, idx) => (
+                              <div key={idx} className="flex justify-between items-center text-[10px] text-zinc-500 font-bold uppercase">
+                                <span className="truncate max-w-[160px] opacity-80">• {sub.nome}</span>
+                                <span className="opacity-80 tabular-nums">{centavosParaReais(sub.valor)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
                 </AnimatePresence>
-              );
-            })()}
-          </div>
-        )}
+              )}
+            </div>
+          );
+        })()}
         
         {aba === 'metricas' && (
           <div className="space-y-6 w-full text-left animate-in fade-in slide-in-from-left-4 duration-500 min-h-[160px] flex flex-col justify-center">
             {dadosPizza.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-2 text-zinc-600 dark:text-zinc-500 py-4">
+              <div className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-500">
                 <PieChart size={24} className="opacity-40 text-indigo-400 animate-pulse" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-center">Gráfico Vazio</span>
                 <span className="text-[9px] font-bold text-zinc-600 text-center uppercase tracking-wider">Nenhum custo registrado para análise</span>
@@ -223,15 +287,15 @@ export function PainelResultados({
             ) : (
               <>
                 {/* FEATURE 5: Gráfico de Pizza */}
-                <div className="h-48 w-full">
+                <div className="h-36 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <RePieChart>
                       <Pie
                         data={dadosPizza}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
+                        innerRadius={40}
+                        outerRadius={55}
                         paddingAngle={5}
                         dataKey="value"
                       >
@@ -263,9 +327,9 @@ export function PainelResultados({
           </div>
         )}
 
-        <div className="h-px bg-zinc-800/50 my-8 w-full" />
+        <div className="h-px bg-zinc-800/50 my-4 w-full" />
 
-        <div className="flex items-center justify-between p-6 bg-emerald-500/5 rounded-[2rem] border border-emerald-500/10 w-full">
+        <div className="flex items-center justify-between p-4 bg-emerald-950/20 dark:bg-emerald-500/5 rounded-2xl border border-emerald-500/15 w-full shadow-[0_8px_30px_-10px_rgba(16,185,129,0.15)]">
           <div className="flex flex-col">
             <div className="flex items-center gap-2 text-emerald-500 mb-1.5">
               <div className="p-1.5 rounded-lg bg-emerald-500/10">
@@ -292,30 +356,23 @@ export function PainelResultados({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 w-full">
+        <div className="grid grid-cols-2 gap-3 mt-4 w-full">
           <button 
             onClick={salvarProjeto}
-            className="h-14 font-black uppercase tracking-[0.1em] text-xs rounded-2xl flex flex-col items-center justify-center gap-1 bg-sky-500 text-white hover:bg-sky-600 transition-all active:scale-95 shadow-[0_10px_20px_-5px_rgba(14,165,233,0.3)] disabled:opacity-20 disabled:shadow-none"
+            className="h-11 font-black uppercase tracking-widest text-[10px] rounded-xl flex items-center justify-center gap-2 bg-sky-500 text-white hover:bg-sky-400 hover:shadow-sky-500/30 transition-all active:scale-[0.98] shadow-[0_8px_20px_-6px_rgba(14,165,233,0.4)] disabled:opacity-30 disabled:pointer-events-none"
             disabled={calculo.precoSugerido <= 0}
           >
-            <div className="flex items-center gap-2">
-              <FolderKanban size={14} />
-              <span>Salvar Projeto</span>
-            </div>
-            <span className="text-[10px] opacity-60">Enviar para o Kanban</span>
+            <FolderKanban size={14} />
+            Salvar Projeto
           </button>
 
-          {/* FEATURE 1: Gerar PDF */}
           <button 
             onClick={gerarPdf} 
-            className="h-14 font-black uppercase tracking-[0.1em] text-xs rounded-2xl flex flex-col items-center justify-center gap-1 bg-white dark:bg-zinc-800 text-black dark:text-white border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all active:scale-95 shadow-sm disabled:opacity-20" 
+            className="h-11 font-black uppercase tracking-widest text-[10px] rounded-xl flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700/80 hover:text-white text-zinc-300 border border-white/5 transition-all active:scale-[0.98] disabled:opacity-30 disabled:pointer-events-none" 
             disabled={calculo.precoSugerido <= 0 || carregandoPdf}
           >
-            <div className="flex items-center gap-2">
-              {carregandoPdf ? <Activity className="animate-spin" size={14} /> : <Download size={14} strokeWidth={3} />}
-              <span>{carregandoPdf ? "Processando..." : "Gerar Orçamento"}</span>
-            </div>
-            <span className="text-[10px] opacity-50 lowercase italic">PDF Profissional</span>
+            {carregandoPdf ? <Activity className="animate-spin" size={14} /> : <Download size={14} />}
+            {carregandoPdf ? "PDF..." : "Gerar PDF"}
           </button>
         </div>
 

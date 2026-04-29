@@ -146,8 +146,12 @@ export function CardMateriais({
                   `}
                 >
                   <div className="flex items-center gap-4 min-w-[180px]">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: item.cor }}>
-                      <Box size={18} className="text-white/80" />
+                    <div className="shrink-0">
+                      {item.tipo === "FDM" ? (
+                        <Carretel cor={item.cor} tamanho={40} className="-ml-1" />
+                      ) : (
+                        <GarrafaResina cor={item.cor} tamanho={40} className="-ml-1" />
+                      )}
                     </div>
                     <div className="flex flex-col">
                       <span className="text-xs font-black uppercase tracking-tight">{item.nome}</span>

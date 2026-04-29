@@ -75,6 +75,8 @@ export function usarCalculadora() {
   const [cobrarEnergia, setCobrarEnergia] = useState<boolean>(() => localStorage.getItem("printlog_cobrar_energia") !== "false");
   const [cobrarImpostos, setCobrarImpostos] = useState<boolean>(() => localStorage.getItem("printlog_cobrar_impostos") !== "false");
   const [perfilAtivo, setPerfilAtivo] = useState(() => localStorage.getItem("printlog_perfil_ativo") || "Direto");
+  const [taxaEcommerce, setTaxaEcommerce] = useState<number>(0);
+  const [taxaFixa, setTaxaFixa] = useState<number>(0);
 
   // --- ESTADOS FISCAIS ---
   const [tipoOperacao, setTipoOperacao] = useState(() => localStorage.getItem("printlog_tipo_operacao") || "mei"); 
@@ -178,6 +180,17 @@ export function usarCalculadora() {
     localStorage.setItem("printlog_perfis_marketplace", JSON.stringify(perfisMarketplace));
   }, [perfisMarketplace]);
 
+  useEffect(() => {
+    const perfil = perfisMarketplace.find(p => p.nome === perfilAtivo);
+    if (perfil) {
+      setTaxaEcommerce(perfil.taxa);
+      setTaxaFixa(perfil.fixa);
+    } else {
+      setTaxaEcommerce(0);
+      setTaxaFixa(0);
+    }
+  }, [perfilAtivo, perfisMarketplace]);
+
   // --- FEATURE 2: HISTÓRICO/VERSIONAMENTO ---
   const [historico, setHistorico] = useState<VersaoCalculo[]>(() => {
     const salvo = localStorage.getItem("printlog_historico_calculadora");
@@ -230,9 +243,8 @@ export function usarCalculadora() {
       custoFalhaRealCentavos;
 
     const margemPercentual = margem / 100;
-    const perfil = perfisMarketplace.find(p => p.nome === perfilAtivo);
-    const taxaMktPercentual = (perfil?.taxa || 0) / 100;
-    const taxaFixaVendaCentavos = Math.round((perfil?.fixa || 0) * 100);
+    const taxaMktPercentual = taxaEcommerce / 100;
+    const taxaFixaVendaCentavos = Math.round(taxaFixa * 100);
     const impostoPercentual = cobrarImpostos ? (impostos + icms + iss) / 100 : 0;
 
     const lucroDesejadoCentavos = Math.round(custoProducaoTotalCentavos * margemPercentual);
@@ -266,7 +278,7 @@ export function usarCalculadora() {
       margemReal: margemRealSobreVenda,
       custoFalha: custoFalhaRealCentavos
     };
-  }, [materiaisSelecionados, insumosSelecionados, tempo, potencia, precoKwh, margem, maoDeObra, depreciacaoHora, cobrarDesgaste, cobrarMaoDeObra, cobrarEnergia, cobrarImpostos, itensPosProcesso, insumosFixos, frete, perfilAtivo, perfisMarketplace, impostos, icms, iss, quantidade, tempoSetup, taxaFalha, materialPerdido, tempoPerdido]);
+  }, [materiaisSelecionados, insumosSelecionados, tempo, potencia, precoKwh, margem, maoDeObra, depreciacaoHora, cobrarDesgaste, cobrarMaoDeObra, cobrarEnergia, cobrarImpostos, itensPosProcesso, insumosFixos, frete, perfilAtivo, perfisMarketplace, impostos, icms, iss, quantidade, tempoSetup, taxaFalha, materialPerdido, tempoPerdido, taxaEcommerce, taxaFixa]);
 
   // --- FEATURE 3: ALERTA DE ESTOQUE ---
   const alertasEstoque = useMemo(() => {
@@ -422,55 +434,246 @@ export function usarCalculadora() {
     validade.setDate(dataRef.getDate() + 7);
 
     const layout = `
-      <html>
+      <!DOCTYPE html>
+      <html lang="pt-BR">
         <head>
-          <title>Orçamento PrintLog - ${dataRef.toLocaleDateString('pt-BR')}</title>
+          <meta charset="UTF-8">
+          <title>Orçamento Formal - ${dataRef.toLocaleDateString('pt-BR')}</title>
           <style>
-            body { font-family: 'Inter', sans-serif; padding: 40px; color: #1f2937; }
-            .header { border-bottom: 4px solid #0ea5e9; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-            .logo { font-size: 24px; font-weight: 900; color: #0ea5e9; letter-spacing: -1px; }
-            .grid { display: grid; grid-cols: 2; gap: 40px; margin-top: 40px; }
-            .valor { font-size: 48px; font-weight: 900; color: #10b981; margin: 20px 0; }
-            .label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #6b7280; letter-spacing: 1px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { text-align: left; padding: 12px; border-bottom: 2px solid #f3f4f6; font-size: 11px; text-transform: uppercase; color: #9ca3af; }
-            td { padding: 12px; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
-            .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #f3f4f6; font-size: 10px; color: #9ca3af; text-align: center; }
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+            @page {
+              size: A4;
+              margin: 30mm 20mm 30mm 30mm;
+            }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: 'Inter', sans-serif; 
+              color: #111827; 
+              background-color: #ffffff;
+              line-height: 1.6;
+              padding: 20px;
+            }
+
+            .container {
+              max-width: 800px;
+              margin: 0 auto;
+            }
+
+            .header { 
+              display: flex; 
+              justify-content: space-between; 
+              align-items: flex-start; 
+              border-bottom: 2px solid #111827; 
+              padding-bottom: 24px;
+              margin-bottom: 40px;
+            }
+            
+            .logo { 
+              font-size: 24px; 
+              font-weight: 900; 
+              color: #111827; 
+              text-transform: uppercase;
+              letter-spacing: -1px;
+            }
+            
+            .slogan {
+              font-size: 12px;
+              color: #4b5563;
+              font-weight: 500;
+              margin-top: 4px;
+            }
+
+            .meta-dados { 
+              text-align: right; 
+              font-size: 12px;
+              color: #374151;
+            }
+            .meta-dados strong { color: #111827; }
+
+            .secao-titulo { 
+              font-size: 12px; 
+              font-weight: 900; 
+              text-transform: uppercase; 
+              color: #111827; 
+              letter-spacing: 1px; 
+              margin-top: 30px;
+              margin-bottom: 15px;
+              border-bottom: 1px solid #111827;
+              padding-bottom: 5px;
+            }
+
+            /* TABELAS NORMAS ABNT */
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-bottom: 30px; 
+              border-top: 2px solid #111827;
+              border-bottom: 2px solid #111827;
+            }
+            th { 
+              text-align: left; 
+              padding: 10px 8px; 
+              border-bottom: 1px solid #111827; 
+              font-size: 11px; 
+              text-transform: uppercase; 
+              color: #111827; 
+              font-weight: 700;
+            }
+            td { 
+              padding: 10px 8px; 
+              font-size: 12px; 
+              color: #1f2937;
+            }
+
+            .preco-card {
+              border: 2px solid #111827;
+              padding: 20px;
+              margin-bottom: 40px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              background-color: #f9fafb;
+              print-color-adjust: exact;
+              -webkit-print-color-adjust: exact;
+            }
+            
+            .preco-label {
+              font-size: 12px;
+              font-weight: 800;
+              color: #111827;
+            }
+
+            .preco-valor { 
+              font-size: 32px; 
+              font-weight: 900; 
+              color: #111827; 
+            }
+
+            .detalhes {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 20px;
+              margin-bottom: 30px;
+            }
+            
+            .detalhe-item {
+              padding: 12px 0;
+            }
+            .detalhe-item strong {
+              display: block;
+              font-size: 11px;
+              color: #4b5563;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              margin-bottom: 4px;
+            }
+            .detalhe-item span {
+              font-size: 14px;
+              font-weight: 700;
+              color: #111827;
+            }
+
+            .footer { 
+              margin-top: 50px;
+              padding-top: 20px; 
+              border-top: 1px solid #e5e7eb; 
+              font-size: 10px; 
+              color: #6b7280; 
+              text-align: center; 
+              line-height: 1.6;
+            }
           </style>
         </head>
         <body>
-          <div class="header">
-            <div class="logo">${(nomeEstudioCustom || "PRINTLOG.PRO").toUpperCase()}</div>
-            <div style="text-align: right">
-              <div class="label">Emitido em</div>
-              <div style="font-weight: bold">${dataRef.toLocaleDateString('pt-BR')}</div>
+          <div class="container">
+            <div class="header">
+              <div>
+                <div class="logo">${(nomeEstudioCustom || "Seu Estúdio").toUpperCase()}</div>
+                ${sloganCustom ? `<div class="slogan">${sloganCustom}</div>` : ''}
+              </div>
+              <div class="meta-dados">
+                <div><strong>ORÇAMENTO DE SERVIÇO</strong></div>
+                <div>Proposta: #${Math.floor(1000 + Math.random() * 9000)}</div>
+                <div>Emissão: ${dataRef.toLocaleDateString('pt-BR')}</div>
+                <div>Validade: ${validade.toLocaleDateString('pt-BR')}</div>
+              </div>
+            </div>
+
+          <div class="container">
+            <div class="header" style="align-items: center; border-bottom: 2px solid #111827; padding-bottom: 30px; margin-bottom: 30px;">
+              <div>
+                <div class="logo">${(nomeEstudioCustom || "Seu Estúdio").toUpperCase()}</div>
+                ${sloganCustom ? `<div class="slogan">${sloganCustom}</div>` : ''}
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 11px; font-weight: 800; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">Valor Total do Orçamento</div>
+                <div style="font-size: 40px; font-weight: 900; color: #111827; line-height: 1.1;">R$ ${(calculo.precoSugerido / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 40px; font-size: 12px; color: #374151; border-bottom: 1px solid #e5e7eb; padding-bottom: 20px;">
+              <div>
+                <strong style="color: #111827; text-transform: uppercase; font-size: 11px; display: block; margin-bottom: 4px;">Identificação do Cliente:</strong>
+                <span style="font-size: 15px; font-weight: 700; color: #111827;">Consumidor Final</span>
+              </div>
+              <div style="text-align: right;">
+                <div><strong>Orçamento:</strong> #${Math.floor(1000 + Math.random() * 9000)}</div>
+                <div><strong>Emissão:</strong> ${dataRef.toLocaleDateString('pt-BR')}</div>
+                <div><strong>Validade:</strong> ${validade.toLocaleDateString('pt-BR')}</div>
+              </div>
+            </div>
+            
+            <div class="secao-titulo" style="border: none; padding: 0; font-size: 14px; font-weight: 900; letter-spacing: 0px; margin-bottom: 10px;">Detalhamento do Pedido</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Descrição Detalhada do Item</th>
+                  <th>Qtd</th>
+                  <th>Valor Unitário</th>
+                  <th style="text-align: right">Valor Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <strong style="font-size: 13px;">Serviço de Manufatura Aditiva sob Encomenda</strong>
+                    <div style="font-size: 11px; color: #4b5563; margin-top: 4px; line-height: 1.4;">
+                      <strong>Composição técnica da peça:</strong><br>
+                      • Material: ${materiaisSelecionados.length > 0 ? materiaisSelecionados.map(m => `${m.nome} (${m.quantidade}${m.tipo === 'FDM' ? 'g' : 'ml'})`).join(', ') : 'Material Padrão'}<br>
+                      • Tempo total de impressão: ${tempo} hora(s)
+                    </div>
+                  </td>
+                  <td>${quantidade}</td>
+                  <td>R$ ${((calculo.precoSugerido / 100) / quantidade).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td style="text-align: right; font-weight: 700;">R$ ${(calculo.precoSugerido / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 20px; margin-bottom: 40px;">
+              <div style="width: 300px; border-top: 2px solid #111827; padding-top: 15px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
+                  <span style="color: #4b5563;">Subtotal:</span>
+                  <span style="font-weight: 700; color: #111827;">R$ ${(calculo.precoSugerido / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 900; color: #111827; border-top: 1px solid #e5e7eb; padding-top: 8px;">
+                  <span>TOTAL FINAL:</span>
+                  <span>R$ ${(calculo.precoSugerido / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="footer">
+              Este documento foi gerado eletronicamente e não requer assinatura física. <br>
+              Os preços e prazos descritos acima podem sofrer variações caso haja alteração de escopo.
             </div>
           </div>
-          
-          <div style="margin-top: 40px">
-            <div class="label">Valor Final do Orçamento</div>
-            <div class="valor">R$ ${(calculo.precoSugerido / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-          </div>
 
-          <div class="label">Resumo de Materiais</div>
-          <table>
-            <thead>
-              <tr><th>Material</th><th>Tipo</th><th>Quantidade</th></tr>
-            </thead>
-            <tbody>
-              ${materiaisSelecionados.map(m => `<tr><td>${m.nome}</td><td>${m.tipo}</td><td>${m.quantidade}${m.tipo === 'FDM' ? 'g' : 'ml'}</td></tr>`).join('')}
-            </tbody>
-          </table>
-
-          <div style="margin-top: 30px">
-            <div class="label">Prazo Estimado</div>
-            <div style="font-weight: bold; font-size: 16px">${estimativaPrazo.data.toLocaleDateString('pt-BR')}</div>
-          </div>
-
-          <div class="footer">
-            Orçamento válido até ${validade.toLocaleDateString('pt-BR')} • ${sloganCustom || "Gerado via PrintLog v2 Professional"}
-          </div>
-          <script>window.print();</script>
+          <script>
+            window.onload = () => {
+              window.print();
+            }
+          </script>
         </body>
       </html>
     `;
@@ -478,6 +681,22 @@ export function usarCalculadora() {
     win?.document.write(layout);
     win?.document.close();
   }, [calculo, materiaisSelecionados, estimativaPrazo]);
+
+  const limpar = useCallback(() => {
+    // Limpa apenas dados da peça/projeto
+    setMateriaisSelecionados([]);
+    setTempo(0);
+    setQuantidade(1);
+    setMaterialPerdido(0);
+    setTempoPerdido(0);
+    setFrete(0);
+    setInsumosFixos(0);
+    setInsumosSelecionados([]);
+    setItensPosProcesso([]);
+    
+    // Mantém as configurações operacionais da máquina e estúdio para não perder produtividade
+    toast.success("Orçamento resetado! Mantivemos seus dados operacionais.");
+  }, []);
 
   return {
     // Estados
@@ -502,6 +721,8 @@ export function usarCalculadora() {
     insumosSelecionados, setInsumosSelecionados,
     itensPosProcesso, setItensPosProcesso,
     perfilAtivo, setPerfilAtivo,
+    taxaEcommerce, setTaxaEcommerce,
+    taxaFixa, setTaxaFixa,
     perfisMarketplace, setPerfisMarketplace,
     perfisFiscais, setPerfisFiscais,
     tipoOperacao, setTipoOperacao,
@@ -522,6 +743,7 @@ export function usarCalculadora() {
     salvarSnapshot,
     carregarSnapshot,
     removerSnapshot,
-    gerarPdf
+    gerarPdf,
+    limpar
   };
 }

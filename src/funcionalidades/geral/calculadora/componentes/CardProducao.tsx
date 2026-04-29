@@ -101,7 +101,7 @@ export function CardProducao({
       <div className="flex flex-col md:flex-row gap-8 md:gap-0">
         {/* Coluna Esquerda: Tempo e Energia */}
         <div className="flex-1 space-y-8 md:pr-6">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2">Quantidade</label>
               <div className="relative flex items-center h-14 rounded-xl bg-zinc-100/50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-white/5 focus-within:border-amber-500/40 transition-all shadow-inner overflow-hidden">
@@ -129,25 +129,32 @@ export function CardProducao({
                 </button>
               </div>
             </div>
+
             <div>
-              <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2">Horas</label>
-              <input 
-                type="number" 
-                placeholder="0" 
-                value={Math.floor(tempo / 60) || ""} 
-                onChange={(e) => setTempo(Number(e.target.value) * 60 + (tempo % 60))} 
-                className="w-full h-14 px-4 rounded-xl bg-zinc-100/50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-white/5 focus-within:border-amber-500/40 outline-none font-black text-sm text-zinc-900 dark:text-white transition-all shadow-inner" 
-              />
-            </div>
-            <div>
-              <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2">Minutos</label>
-              <input 
-                type="number" 
-                placeholder="0" 
-                value={tempo % 60 || ""} 
-                onChange={(e) => setTempo(Math.floor(tempo / 60) * 60 + Number(e.target.value))} 
-                className="w-full h-14 px-4 rounded-xl bg-zinc-100/50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-white/5 focus-within:border-amber-500/40 outline-none font-black text-sm text-zinc-900 dark:text-white transition-all shadow-inner" 
-              />
+              <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2">Tempo de Impressão</label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="relative flex items-center rounded-xl bg-zinc-100/50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-white/5 focus-within:border-amber-500/40 transition-all shadow-inner">
+                  <input 
+                    type="number" 
+                    placeholder="0" 
+                    value={Math.floor(tempo / 60) || ""} 
+                    onChange={(e) => setTempo(Number(e.target.value) * 60 + (tempo % 60))} 
+                    className="w-full h-14 pl-4 pr-10 bg-transparent outline-none font-black text-sm text-left text-zinc-900 dark:text-white" 
+                  />
+                  <span className="absolute right-3 font-black text-[10px] text-zinc-400 uppercase tracking-wider select-none">h</span>
+                </div>
+
+                <div className="relative flex items-center rounded-xl bg-zinc-100/50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-white/5 focus-within:border-amber-500/40 transition-all shadow-inner">
+                  <input 
+                    type="number" 
+                    placeholder="0" 
+                    value={tempo % 60 || ""} 
+                    onChange={(e) => setTempo(Math.floor(tempo / 60) * 60 + Number(e.target.value))} 
+                    className="w-full h-14 pl-4 pr-12 bg-transparent outline-none font-black text-sm text-left text-zinc-900 dark:text-white" 
+                  />
+                  <span className="absolute right-3 font-black text-[10px] text-zinc-400 uppercase tracking-wider select-none">min</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -211,7 +218,7 @@ export function CardProducao({
         <div className="flex-1 flex flex-col h-full md:pl-6">
           <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2 shrink-0">Pós-Processamento</label>
 
-          <div className="flex-1 space-y-2 overflow-y-auto mb-3 pr-1">
+          <div className="h-[140px] overflow-y-auto space-y-2 mb-3 pr-2">
             {posProcesso.length === 0 ? (
               <div className="w-full border border-dashed border-gray-100 dark:border-white/5 rounded-2xl flex flex-col items-center justify-center h-full min-h-[120px] p-4 text-center bg-transparent">
                 <Plus size={20} className="text-gray-400 dark:text-zinc-600 mb-2" />

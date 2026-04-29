@@ -1,6 +1,6 @@
-import { Box, Package, RefreshCcw, Search, Plus, Check, Trash2 } from "lucide-react";
+import { Box, Package, RefreshCcw, Search, Plus, Minus, Check, Trash2 } from "lucide-react";
 import { InsumoSelecionado } from "../tipos";
-import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
+import { centavosParaReais, formatarMoedaFinancas } from "@/compartilhado/utilitarios/formatadores";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface CardInsumosProps {
@@ -52,25 +52,35 @@ export function CardInsumos({
               <button 
                 key={i.id} 
                 onClick={() => alternar(i)} 
-                className={`flex-shrink-0 min-w-[140px] p-4 rounded-2xl border-2 transition-all text-left relative group flex flex-col justify-between
-                  ${sel ? "bg-violet-500/10 border-violet-500 shadow-lg shadow-violet-500/5" : "bg-gray-50 dark:bg-white/[0.02] border-transparent hover:border-violet-500/30"}
+                className={`flex-shrink-0 min-w-[180px] p-3 rounded-2xl border-2 transition-all text-left relative group flex items-center gap-3
+                  ${sel 
+                    ? "bg-violet-500/10 border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.15)]" 
+                    : "bg-gray-50/50 dark:bg-white/5 border-gray-100 dark:border-white/5 hover:border-violet-500/30"}
                 `}
               >
-                <div className={`p-2 rounded-lg mb-3 inline-block ${sel ? "bg-violet-500 text-white" : "bg-white dark:bg-white/5 text-zinc-400 group-hover:text-violet-500"}`}>
-                  <Box size={16} />
+                <div className="shrink-0">
+                  <div className={`p-2.5 rounded-xl transition-all duration-300 ${sel ? "bg-violet-500 text-white shadow-lg shadow-violet-500/30" : "bg-white dark:bg-white/5 text-zinc-400 group-hover:text-violet-500"}`}>
+                    <Box size={18} />
+                  </div>
                 </div>
+
                 <div className="flex-1 overflow-hidden">
                   <h4 className="text-xs font-black uppercase truncate leading-tight">{i.nome}</h4>
                   <div className="flex flex-col mt-0.5">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">
-                      {i.categoria || 'Geral'}
+                    <p className="text-[9px] font-bold text-gray-400 uppercase whitespace-nowrap">
+                      {i.categoria || 'Geral'} • {formatarMoedaFinancas(i.custoMedioUnidade)}
                     </p>
-                    <span className={`text-[9px] font-black uppercase mt-0.5 ${i.quantidadeAtual <= i.quantidadeMinima ? 'text-rose-500' : 'text-violet-500'}`}>
+                    <span className={`text-[8px] font-black uppercase mt-0.5 ${i.quantidadeAtual <= i.quantidadeMinima ? 'text-rose-500' : 'text-violet-500'}`}>
                       {i.quantidadeAtual} {i.unidadeMedida} em estoque
                     </span>
                   </div>
                 </div>
-                {sel && <div className="absolute top-2 right-2 w-4 h-4 bg-violet-500 rounded-full flex items-center justify-center shadow-lg animate-in zoom-in"><Check size={10} className="text-white" /></div>}
+
+                {sel && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-violet-500 flex items-center justify-center text-white animate-in zoom-in duration-300 shadow-lg">
+                    <Check className="w-2.5 h-2.5" />
+                  </div>
+                )}
               </button>
             );
           })}
@@ -97,7 +107,7 @@ export function CardInsumos({
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div>
         <AnimatePresence mode="popLayout">
           {selecionados.length === 0 ? (
             <motion.div 
@@ -108,64 +118,95 @@ export function CardInsumos({
               <p className="text-xs font-black uppercase tracking-widest text-violet-500/80 dark:text-violet-400/80">Selecione os insumos acima para calcular</p>
             </motion.div>
           ) : (
-            selecionados.map((item) => {
-            const alerta = alertas.find(a => a.insumoId === item.id);
-            const original = insumos.find(i => i.id === item.id);
-            return (
-              <motion.div
-                key={item.id}
-                layout
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className={`p-5 rounded-2xl border flex flex-wrap md:flex-nowrap items-center gap-6 group transition-all
-                  ${alerta ? "bg-rose-500/5 border-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.05)]" : "bg-gray-50/50 dark:bg-white/[0.03] border-gray-100 dark:border-white/5"}
-                `}
-              >
-                <div className="flex items-center gap-4 min-w-[180px]">
-                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-500">
-                    <Package size={20} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-black uppercase tracking-tight">{item.nome}</span>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase">Insumo</span>
+            <div className={`grid gap-4 ${
+              selecionados.length === 1 
+                ? "grid-cols-1" 
+                : selecionados.length === 2 
+                  ? "grid-cols-1 md:grid-cols-2" 
+                  : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+            }`}>
+              {selecionados.map((item) => {
+                const alerta = alertas.find(a => a.insumoId === item.id);
+                const original = insumos.find(i => i.id === item.id);
+                return (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className={`p-4 rounded-2xl border flex flex-col justify-between gap-4 group transition-all
+                      ${alerta ? "bg-rose-500/5 border-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.05)]" : "bg-gray-50/50 dark:bg-white/[0.03] border-gray-100 dark:border-white/5"}
+                    `}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-500 shrink-0">
+                          <Package size={16} />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs font-black uppercase tracking-tight truncate text-zinc-900 dark:text-zinc-100">{item.nome}</span>
+                          <span className="text-[9px] font-bold text-gray-400 uppercase">Insumo</span>
+                        </div>
+                      </div>
+                      
+                      <button 
+                        onClick={() => remover(item.id)} 
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-auto">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black uppercase text-gray-400 tracking-widest">
+                          Qtd ({original?.unidadeMedida || 'un'})
+                        </label>
+                        <div className="flex items-center h-9 rounded-lg bg-white dark:bg-black/40 overflow-hidden border border-gray-100 dark:border-white/5 focus-within:border-violet-500/30 transition-all">
+                          <button 
+                            type="button"
+                            onClick={() => atualizarQtd(item.id, Math.max(0, (item.quantidade || 0) - 1))}
+                            className="h-full px-2 text-gray-400 hover:text-violet-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-r border-gray-100 dark:border-white/5"
+                          >
+                            <Minus size={10} strokeWidth={3} />
+                          </button>
+                          <input 
+                            type="number" 
+                            placeholder="0"
+                            value={item.quantidade || ""} 
+                            onChange={(e) => atualizarQtd(item.id, Number(e.target.value))} 
+                            className={`w-full h-full bg-transparent outline-none font-black text-xs text-center tabular-nums ${alerta ? "text-rose-500" : "text-gray-900 dark:text-white"}`} 
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => atualizarQtd(item.id, (item.quantidade || 0) + 1)}
+                            className="h-full px-2 text-gray-400 hover:text-violet-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-l border-gray-100 dark:border-white/5"
+                          >
+                            <Plus size={10} strokeWidth={3} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black uppercase text-gray-400 tracking-widest">Custo Un.</label>
+                        <div className="w-full h-9 px-3 rounded-lg bg-white/40 dark:bg-black/20 flex items-center border border-gray-100 dark:border-white/5">
+                          <span className="font-black text-xs text-gray-500 dark:text-zinc-400">
+                            {centavosParaReais(item.custoCentavos)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
                     {alerta && (
-                      <span className="text-[9px] font-black text-rose-500 uppercase mt-1 flex items-center gap-1">
+                      <span className="text-[8px] font-black text-rose-500 uppercase flex items-center gap-1 mt-1 animate-pulse">
                         <RefreshCcw size={10} /> ESTOQUE CRÍTICO
                       </span>
                     )}
-                  </div>
-                </div>
-
-                <div className="flex-1 grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
-                      Quantidade ({original?.unidadeMedida || 'un'})
-                    </label>
-                    <input 
-                      type="number" 
-                      placeholder="0"
-                      value={item.quantidade || ""} 
-                      onChange={(e) => atualizarQtd(item.id, Number(e.target.value))} 
-                      className={`w-full h-10 px-3 rounded-lg bg-white dark:bg-black/40 outline-none font-black text-xs border-transparent focus:border-violet-500/30 transition-all ${alerta ? "text-rose-500" : ""}`} 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Custo Un.</label>
-                    <div className="w-full h-10 px-3 rounded-lg bg-white/50 dark:bg-black/20 flex items-center">
-                      <span className="font-black text-xs text-gray-400">
-                        {centavosParaReais(item.custoCentavos)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <button onClick={() => remover(item.id)} className="p-2 rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100">
-                  <Trash2 size={16} />
-                </button>
-              </motion.div>
-            );
-          })
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
         </AnimatePresence>
       </div>

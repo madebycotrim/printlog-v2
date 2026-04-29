@@ -34,7 +34,7 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
         
         // 1. GERAÇÃO DA CHAVE DE CACHE (Baseada nos valores numéricos)
         // Se os custos e o lucro forem iguais, a sugestão provavelmente será a mesma.
-        const cacheKey = `v1_${dados.custoMaterial}_${dados.custoEnergia}_${dados.custoTrabalho}_${dados.custoDepreciacao}_${dados.lucroDesejadoPercentual}`;
+        const cacheKey = `v2_${dados.custoMaterial}_${dados.custoEnergia}_${dados.custoTrabalho}_${dados.custoDepreciacao}_${dados.lucroDesejadoPercentual}`;
 
         // 2. TENTA BUSCAR NO CACHE DO D1 (Economia de Neurons)
         try {
@@ -56,19 +56,31 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
         // 3. SE NÃO ESTIVER NO CACHE, CHAMA A IA
         const promptSistema = `Você é um especialista em precificação para impressão 3D no Brasil.
 Responda APENAS com um objeto JSON válido.
-Os custos fornecidos estão em CENTAVOS.
+Os custos fornecidos estão em REAIS (R$).
 
-Estrutura:
+Regras de Precificação:
+1. Calcule o Custo Total = Material + Energia + Trabalho + Máquina.
+2. O valor de Piso deve ser no mínimo o Custo Total + 60%.
+3. O valor Recomendado deve ser no mínimo o Custo Total + 100%.
+4. O valor Premium deve ser no mínimo o Custo Total + 180%.
+5. Não dê valores absurdos e astronômicos. Se o custo total for pequeno (ex: R$ 3,00), os preços devem ser proporcionais (ex: R$ 5, R$ 8, R$ 12).
+6. Retorne os campos "valor" em REAIS (float, ex: 15.50).
+
+Estrutura EXATA do JSON:
 {
-  "piso": { "valor": 0, "justificativa": "" },
-  "recomendado": { "valor": 0, "justificativa": "" },
-  "premium": { "valor": 0, "justificativa": "" },
+  "piso": { "valor": 0.0, "justificativa": "" },
+  "recomendado": { "valor": 0.0, "justificativa": "" },
+  "premium": { "valor": 0.0, "justificativa": "" },
   "dica": ""
 }`;
 
-        const promptUsuario = `DADOS: 
-Material:${dados.custoMaterial}, Energia:${dados.custoEnergia}, Trabalho:${dados.custoTrabalho}, Maquina:${dados.custoDepreciacao}, Lucro:${dados.lucroDesejadoPercentual}%
-Nome: ${dados.nomePeca || 'Peça'}`;
+        const promptUsuario = `DADOS DA PEÇA:
+- Custo de Material: R$ ${dados.custoMaterial.toFixed(2)}
+- Custo de Energia: R$ ${dados.custoEnergia.toFixed(2)}
+- Custo de Mão de Obra: R$ ${dados.custoTrabalho.toFixed(2)}
+- Custo de Depreciação: R$ ${dados.custoDepreciacao.toFixed(2)}
+- Margem de Lucro Alvo: ${dados.lucroDesejadoPercentual}%
+- Nome do Arquivo/Peça: ${dados.nomePeca || 'Peça 3D'}`;
 
         const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
             messages: [

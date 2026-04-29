@@ -3,6 +3,7 @@ import { DollarSign, Activity } from "lucide-react";
 
 interface CardOperacionalProps {
   maoDeObra: number;
+  setMaoDeObra?: (v: number) => void;
   margem: number;
   setMargem: (v: number) => void;
   depreciacao: number;
@@ -18,7 +19,7 @@ interface CardOperacionalProps {
 }
 
 export function CardOperacional({
-  maoDeObra, margem, setMargem, depreciacao, cobrarDesgaste, setCobrarDesgaste, cobrarMaoDeObra, setCobrarMaoDeObra, 
+  maoDeObra, setMaoDeObra, margem, setMargem, depreciacao, cobrarDesgaste, setCobrarDesgaste, cobrarMaoDeObra, setCobrarMaoDeObra, 
   anosVidaUtil = 5, setAnosVidaUtil, tempo, tempoSetup, setTempoSetup
 }: CardOperacionalProps) {
   const [margemInterna, setMargemInterna] = useState(margem);
@@ -71,18 +72,47 @@ export function CardOperacional({
             </button>
           </div>
           <div className={`transition-opacity ${!cobrarMaoDeObra ? "opacity-50 pointer-events-none" : ""}`}>
-            <label className="block text-xs font-black uppercase text-gray-400 mb-2">Setup / Operador (Minutos)</label>
-            <div className="relative">
-              <input 
-                type="number" 
-                placeholder="0"
-                value={cobrarMaoDeObra ? (tempoSetup || "") : 0} 
-                onChange={(e) => setTempoSetup(Number(e.target.value))} 
-                className={`w-full h-12 px-4 rounded-xl outline-none font-black text-sm text-right ${!cobrarMaoDeObra ? 'bg-gray-50/50 dark:bg-white/5 line-through text-gray-400' : 'bg-gray-50 dark:bg-white/5'}`}
-              />
-              {cobrarMaoDeObra && (
-                <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent animate-pulse" />
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-black uppercase text-gray-400 mb-2">Custo da Hora</label>
+                <div className={`relative flex items-center rounded-xl transition-all shadow-inner ${!cobrarMaoDeObra ? 'bg-gray-50/50 dark:bg-white/5 line-through' : 'bg-gray-100/50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-white/5 focus-within:border-emerald-500/40'}`}>
+                  <span className="absolute left-4 font-black text-xs text-zinc-400 select-none">R$</span>
+                  <input 
+                    type="number" 
+                    placeholder="0"
+                    value={cobrarMaoDeObra ? (maoDeObra || "") : 0} 
+                    onChange={(e) => setMaoDeObra?.(Number(e.target.value))} 
+                    className="w-full h-12 pl-12 pr-4 bg-transparent outline-none font-black text-sm text-left text-zinc-900 dark:text-white"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-black uppercase text-gray-400 mb-2">Setup (Operador)</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className={`relative flex items-center rounded-xl transition-all shadow-inner ${!cobrarMaoDeObra ? 'bg-gray-50/50 dark:bg-white/5 line-through' : 'bg-gray-100/50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-white/5 focus-within:border-emerald-500/40'}`}>
+                    <input 
+                      type="number" 
+                      placeholder="0"
+                      value={cobrarMaoDeObra ? (Math.floor(tempoSetup / 60) || "") : 0} 
+                      onChange={(e) => setTempoSetup(Number(e.target.value) * 60 + (tempoSetup % 60))} 
+                      className="w-full h-12 pl-4 pr-10 bg-transparent outline-none font-black text-sm text-left text-zinc-900 dark:text-white"
+                    />
+                    <span className="absolute right-3 font-black text-[10px] text-zinc-400 uppercase tracking-wider select-none">h</span>
+                  </div>
+
+                  <div className={`relative flex items-center rounded-xl transition-all shadow-inner ${!cobrarMaoDeObra ? 'bg-gray-50/50 dark:bg-white/5 line-through' : 'bg-gray-100/50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-white/5 focus-within:border-emerald-500/40'}`}>
+                    <input 
+                      type="number" 
+                      placeholder="0"
+                      value={cobrarMaoDeObra ? (tempoSetup % 60 || "") : 0} 
+                      onChange={(e) => setTempoSetup(Math.floor(tempoSetup / 60) * 60 + Number(e.target.value))} 
+                      className="w-full h-12 pl-4 pr-12 bg-transparent outline-none font-black text-sm text-left text-zinc-900 dark:text-white"
+                    />
+                    <span className="absolute right-3 font-black text-[10px] text-zinc-400 uppercase tracking-wider select-none">min</span>
+                  </div>
+                </div>
+              </div>
             </div>
             {cobrarMaoDeObra && (
               <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 mt-2 text-right uppercase tracking-wider">
@@ -143,9 +173,9 @@ export function CardOperacional({
                 </button>
               </div>
               <div className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-zinc-800/50 flex items-center justify-between border border-gray-100 dark:border-white/5 select-none relative group">
-                <span className="text-gray-400 font-black text-xs">R$/h</span>
+                <span className="text-gray-400 font-black text-xs">Desgaste</span>
                 <span className="font-black text-sm text-gray-900 dark:text-white">
-                  {(cobrarDesgaste ? depreciacao || 0 : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  R$ {(cobrarDesgaste ? depreciacao || 0 : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / h
                 </span>
                 {cobrarDesgaste && (
                   <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-rose-500/30 to-transparent animate-pulse" />
