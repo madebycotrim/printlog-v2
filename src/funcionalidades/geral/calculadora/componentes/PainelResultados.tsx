@@ -18,11 +18,10 @@ interface PainelResultadosProps {
   salvarProjeto: () => void;
   gerarPdf: () => void;
   carregandoPdf: boolean;
-  temImpressora: boolean;
 }
 
 export function PainelResultados({
-  calculo, dadosPizza, aba, setAba, salvarProjeto, gerarPdf, carregandoPdf, temImpressora
+  calculo, dadosPizza, aba, setAba, salvarProjeto, gerarPdf, carregandoPdf
 }: PainelResultadosProps) {
   const { usuario } = usarAutenticacao();
   const { betaOrcamentosMagicos, templateOrcamento } = usarBeta();
@@ -166,9 +165,9 @@ export function PainelResultados({
         </div>
         
         {aba === 'orcamento' && (
-          <div className="space-y-4 w-full text-left relative animate-in fade-in slide-in-from-right-4 duration-500">
-            <AnimatePresence>
-              {[
+          <div className="space-y-4 w-full text-left relative animate-in fade-in slide-in-from-right-4 duration-500 min-h-[160px] flex flex-col justify-center">
+            {(() => {
+              const itens = [
                 { label: 'Materiais', valor: calculo.custoMaterial, icone: Box, cor: 'text-sky-400' },
                 { label: 'Energia Elétrica', valor: calculo.custoEnergia, icone: Zap, cor: 'text-amber-400' },
                 { label: 'Mão de Obra', valor: calculo.custoMaoDeObra, icone: Timer, cor: 'text-emerald-400' },
@@ -176,65 +175,91 @@ export function PainelResultados({
                 { label: 'Insumos & Extras', valor: calculo.custoInsumos + calculo.custoPosProcesso, icone: Package, cor: 'text-violet-400' },
                 { label: 'Perdas & Falhas', valor: calculo.custoFalha || 0, icone: AlertTriangle, cor: 'text-amber-500 animate-pulse' },
                 { label: 'Taxas & Impostos', valor: calculo.taxaMarketplace + calculo.impostoVenda, icone: DollarSign, cor: 'text-orange-400' },
-              ].filter(i => i.valor > 0).map((item) => (
-                <motion.div 
-                  key={item.label}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  className="flex justify-between items-center group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-500 group-hover:bg-white/10 transition-colors shadow-inner">
-                      <item.icone size={14} className={item.cor} />
-                    </div>
-                    <span className="text-xs font-black uppercase text-zinc-500 tracking-wider">{item.label}</span>
+              ].filter(i => i.valor > 0);
+
+              if (itens.length === 0) {
+                return (
+                  <div className="flex flex-col items-center justify-center gap-2 text-zinc-600 dark:text-zinc-500 py-4">
+                    <Sparkles size={24} className="opacity-40 text-sky-400 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-center">Aguardando dados...</span>
+                    <span className="text-[9px] font-bold text-zinc-600 text-center uppercase tracking-wider">Insira pesos e tempos nos cards ao lado</span>
                   </div>
-                  <span className="text-xs font-black text-white">{centavosParaReais(item.valor)}</span>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                );
+              }
+
+              return (
+                <AnimatePresence>
+                  {itens.map((item) => (
+                    <motion.div 
+                      key={item.label}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className="flex justify-between items-center group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-500 group-hover:bg-white/10 transition-colors shadow-inner">
+                          <item.icone size={14} className={item.cor} />
+                        </div>
+                        <span className="text-xs font-black uppercase text-zinc-500 tracking-wider">{item.label}</span>
+                      </div>
+                      <span className="text-xs font-black text-white">{centavosParaReais(item.valor)}</span>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              );
+            })()}
           </div>
         )}
         
         {aba === 'metricas' && (
-          <div className="space-y-6 w-full text-left animate-in fade-in slide-in-from-left-4 duration-500">
-            {/* FEATURE 5: Gráfico de Pizza */}
-            <div className="h-48 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <RePieChart>
-                  <Pie
-                    data={dadosPizza}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {dadosPizza.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#18181b', border: 'none', borderRadius: '12px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }}
-                    itemStyle={{ color: '#fff' }}
-                  />
-                </RePieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="grid grid-cols-2 gap-y-3 gap-x-4 px-1">
-              {dadosPizza.map((d) => (
-                <div key={d.name} className="flex items-center justify-between group">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.fill }}></div>
-                    <span className="text-[10px] font-black uppercase text-zinc-400">{d.name}</span>
-                  </div>
-                  <span className="text-[11px] font-black text-zinc-300">{(d.value / calculo.precoSugerido * 100).toFixed(0)}%</span>
+          <div className="space-y-6 w-full text-left animate-in fade-in slide-in-from-left-4 duration-500 min-h-[160px] flex flex-col justify-center">
+            {dadosPizza.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-2 text-zinc-600 dark:text-zinc-500 py-4">
+                <PieChart size={24} className="opacity-40 text-indigo-400 animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-center">Gráfico Vazio</span>
+                <span className="text-[9px] font-bold text-zinc-600 text-center uppercase tracking-wider">Nenhum custo registrado para análise</span>
+              </div>
+            ) : (
+              <>
+                {/* FEATURE 5: Gráfico de Pizza */}
+                <div className="h-48 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RePieChart>
+                      <Pie
+                        data={dadosPizza}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {dadosPizza.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} stroke="none" />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#18181b', border: 'none', borderRadius: '12px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }}
+                        itemStyle={{ color: '#fff' }}
+                      />
+                    </RePieChart>
+                  </ResponsiveContainer>
                 </div>
-              ))}
-            </div>
+
+                <div className="grid grid-cols-2 gap-y-3 gap-x-4 px-1">
+                  {dadosPizza.map((d) => (
+                    <div key={d.name} className="flex items-center justify-between group">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.fill }}></div>
+                        <span className="text-[10px] font-black uppercase text-zinc-400">{d.name}</span>
+                      </div>
+                      <span className="text-[11px] font-black text-zinc-300">{(d.value / calculo.precoSugerido * 100).toFixed(0)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -284,7 +309,7 @@ export function PainelResultados({
           <button 
             onClick={gerarPdf} 
             className="h-14 font-black uppercase tracking-[0.1em] text-xs rounded-2xl flex flex-col items-center justify-center gap-1 bg-white dark:bg-zinc-800 text-black dark:text-white border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all active:scale-95 shadow-sm disabled:opacity-20" 
-            disabled={!temImpressora || carregandoPdf}
+            disabled={calculo.precoSugerido <= 0 || carregandoPdf}
           >
             <div className="flex items-center gap-2">
               {carregandoPdf ? <Activity className="animate-spin" size={14} /> : <Download size={14} strokeWidth={3} />}

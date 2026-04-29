@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 import { 
   Settings, Check, X, Plus, 
-  ChevronDown, Box, Package, History, Crown, Trash, Pencil, TrendingUp, AlertTriangle
+  ChevronDown, Box, Package, History, Crown, Trash, Pencil, TrendingUp, AlertTriangle, Download
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -71,6 +71,12 @@ export function PaginaCalculadora() {
   const [nomeFiscalTemporario, setNomeFiscalTemporario] = useState('');
   const [modalConfigAberto, setModalConfigAberto] = useState(false);
   const [modalHistoricoAberto, setModalHistoricoAberto] = useState(false);
+  const [modalPdfAberto, setModalPdfAberto] = useState(false);
+  const [nomeEstudio, setNomeEstudio] = useState(() => localStorage.getItem("printlog_pdf_nome_estudio") || "");
+  const [sloganEstudio, setSloganEstudio] = useState(() => localStorage.getItem("printlog_pdf_slogan") || "");
+
+  useEffect(() => { localStorage.setItem("printlog_pdf_nome_estudio", nomeEstudio); }, [nomeEstudio]);
+  useEffect(() => { localStorage.setItem("printlog_pdf_slogan", sloganEstudio); }, [sloganEstudio]);
   const [mostrarPerdas, setMostrarPerdas] = useState(false);
   const [abaResultado, setAbaResultado] = useState<'orcamento' | 'metricas'>('orcamento');
   const [buscaMaterial, setBuscaMaterial] = useState("");
@@ -271,67 +277,81 @@ export function PaginaCalculadora() {
         />
 
         {/* Pergunta e Mini Card de Perdas Reais (Design Premium Rose) */}
-        <div className="p-4 rounded-xl bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent border border-rose-500/20 flex items-center justify-between my-6 shadow-[0_4px_20px_-10px_rgba(244,63,94,0.15)] transition-all">
-           <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-400 border border-rose-500/20 shadow-inner">
-                 <AlertTriangle size={16} className={`${hook.materialPerdido > 0 || hook.tempoPerdido > 0 ? "animate-pulse" : ""}`} />
-              </div>
-              <div className="flex flex-col">
-                 <span className="text-[11px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">Ocorreu alguma perda ou falha nessa impressão?</span>
-                 <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">O prejuízo será calculado e embutido no custo operacional</span>
-              </div>
-           </div>
-           <button 
-              type="button"
-              onClick={() => setMostrarPerdas(!mostrarPerdas)} 
-              className={`px-3 py-1.5 rounded-lg font-black uppercase text-[9px] tracking-widest transition-all border ${
-                 mostrarPerdas 
-                    ? "bg-rose-500 text-white border-rose-600 shadow-sm shadow-rose-500/30 hover:bg-rose-600" 
-                    : "bg-white dark:bg-white/5 text-zinc-400 hover:text-rose-400 hover:border-rose-500/40 border-zinc-200 dark:border-white/10"
-              }`}
-           >
-              {mostrarPerdas ? "Ocultar" : "Reportar"}
-           </button>
-        </div>
+        <div className="flex flex-col my-6">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent border border-rose-500/20 flex items-center justify-between shadow-[0_4px_20px_-10px_rgba(244,63,94,0.15)] transition-all z-10 relative">
+             <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-400 border border-rose-500/20 shadow-inner">
+                   <AlertTriangle size={16} className={`${hook.materialPerdido > 0 || hook.tempoPerdido > 0 ? "animate-pulse" : ""}`} />
+                </div>
+                <div className="flex flex-col">
+                   <span className="text-[11px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">Ocorreu alguma perda ou falha nessa impressão?</span>
+                   <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">O prejuízo será calculado e embutido no custo operacional</span>
+                </div>
+             </div>
+             <button 
+                type="button"
+                onClick={() => setMostrarPerdas(!mostrarPerdas)} 
+                className={`px-3 py-1.5 rounded-lg font-black uppercase text-[9px] tracking-widest transition-all border ${
+                   mostrarPerdas 
+                      ? "bg-rose-500 text-white border-rose-600 shadow-sm shadow-rose-500/30 hover:bg-rose-600" 
+                      : "bg-white dark:bg-white/5 text-zinc-400 hover:text-rose-400 hover:border-rose-500/40 border-zinc-200 dark:border-white/10"
+                }`}
+             >
+                {mostrarPerdas ? "Ocultar" : "Reportar"}
+             </button>
+          </div>
 
-        {mostrarPerdas && (
-           <div className="p-6 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-rose-500/10 shadow-sm space-y-4 mb-6">
-              <div className="flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-white/5">
-                 <AlertTriangle size={16} className="text-rose-400" />
-                 <h3 className="text-[10px] font-black uppercase tracking-wider text-rose-500">Registro de Desperdício</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] font-black uppercase text-zinc-400 tracking-wider ml-1">Filamento Perdido</label>
-                    <div className="relative flex items-center bg-white dark:bg-black/20 rounded-xl border border-zinc-200 dark:border-white/10 focus-within:border-rose-500/40 shadow-inner">
-                       <input 
-                          type="number" 
-                          min="0"
-                          placeholder="0"
-                          value={hook.materialPerdido || ""} 
-                          onChange={(e) => hook.setMaterialPerdido(Number(e.target.value))} 
-                          className="w-full h-11 bg-transparent px-4 font-black text-xs text-zinc-900 dark:text-white outline-none"
-                       />
-                       <span className="absolute right-4 text-[10px] font-black text-zinc-400">gramas</span>
-                    </div>
-                 </div>
-                 <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] font-black uppercase text-zinc-400 tracking-wider ml-1">Tempo Perdido</label>
-                    <div className="relative flex items-center bg-white dark:bg-black/20 rounded-xl border border-zinc-200 dark:border-white/10 focus-within:border-rose-500/40 shadow-inner">
-                       <input 
-                          type="number" 
-                          min="0"
-                          placeholder="0"
-                          value={hook.tempoPerdido / 60 || ""} 
-                          onChange={(e) => hook.setTempoPerdido(Number(e.target.value) * 60)} 
-                          className="w-full h-11 bg-transparent px-4 font-black text-xs text-zinc-900 dark:text-white outline-none"
-                       />
-                       <span className="absolute right-4 text-[10px] font-black text-zinc-400">horas</span>
-                    </div>
-                 </div>
-              </div>
-           </div>
-        )}
+          <AnimatePresence>
+             {mostrarPerdas && (
+                <motion.div 
+                   initial={{ opacity: 0, y: -10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   exit={{ opacity: 0, y: -10 }}
+                   transition={{ duration: 0.2, ease: "easeOut" }}
+                   className="p-6 pt-8 rounded-b-xl bg-[linear-gradient(to_bottom,transparent_12px,#fafafa_12px)] dark:bg-[linear-gradient(to_bottom,transparent_12px,#18181b_12px)] border-x border-b border-rose-500/20 shadow-sm space-y-4 -mt-3 z-0 relative overflow-hidden"
+                >
+                   {/* Quininhas para preencher o gap dos cantos arredondados */}
+                   <div className="absolute top-0 left-0 w-[12px] h-[12px] bg-[radial-gradient(circle_at_100%_0%,transparent_12px,#fafafa_12px)] dark:bg-[radial-gradient(circle_at_100%_0%,transparent_12px,#18181b_12px)] z-[-1]" />
+                   <div className="absolute top-0 right-0 w-[12px] h-[12px] bg-[radial-gradient(circle_at_0%_0%,transparent_12px,#fafafa_12px)] dark:bg-[radial-gradient(circle_at_0%_0%,transparent_12px,#18181b_12px)] z-[-1]" />
+                   <div className="flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-white/5">
+                      <AlertTriangle size={16} className="text-rose-400" />
+                      <h3 className="text-[10px] font-black uppercase tracking-wider text-rose-500">Registro de Desperdício</h3>
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                         <label className="text-[9px] font-black uppercase text-zinc-400 tracking-wider ml-1">Filamento Perdido</label>
+                         <div className="relative flex items-center bg-white dark:bg-black/20 rounded-xl border border-zinc-200 dark:border-white/10 focus-within:border-rose-500/40 shadow-inner">
+                            <input 
+                               type="number" 
+                               min="0"
+                               placeholder="0"
+                               value={hook.materialPerdido || ""} 
+                               onChange={(e) => hook.setMaterialPerdido(Number(e.target.value))} 
+                               className="w-full h-11 bg-transparent px-4 font-black text-xs text-zinc-900 dark:text-white outline-none"
+                            />
+                            <span className="absolute right-4 text-[10px] font-black text-zinc-400">gramas</span>
+                         </div>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                         <label className="text-[9px] font-black uppercase text-zinc-400 tracking-wider ml-1">Tempo Perdido</label>
+                         <div className="relative flex items-center bg-white dark:bg-black/20 rounded-xl border border-zinc-200 dark:border-white/10 focus-within:border-rose-500/40 shadow-inner">
+                            <input 
+                               type="number" 
+                               min="0"
+                               placeholder="0"
+                               value={hook.tempoPerdido / 60 || ""} 
+                               onChange={(e) => hook.setTempoPerdido(Number(e.target.value) * 60)} 
+                               className="w-full h-11 bg-transparent px-4 font-black text-xs text-zinc-900 dark:text-white outline-none"
+                            />
+                            <span className="absolute right-4 text-[10px] font-black text-zinc-400">horas</span>
+                         </div>
+                      </div>
+                   </div>
+  
+             </motion.div>
+             )}
+          </AnimatePresence>
+        </div>
 
         <CardInsumos 
           insumos={insumosEstoque.filter(i => i.nome.toLowerCase().includes(buscaInsumo.toLowerCase()))}
@@ -412,9 +432,8 @@ export function PaginaCalculadora() {
           dadosPizza={hook.dadosGraficoPizza}
           aba={abaResultado} setAba={setAbaResultado}
           salvarProjeto={salvarComoProjeto}
-          gerarPdf={hook.gerarPdf}
+          gerarPdf={() => setModalPdfAberto(true)}
           carregandoPdf={false}
-          temImpressora={!!hook.impressoraSelecionadaId}
         />
       </div>
 
@@ -544,101 +563,103 @@ export function PaginaCalculadora() {
       <ModalHistorico aberto={modalHistoricoAberto} aoFechar={() => setModalHistoricoAberto(false)} historico={hook.historico} aoSalvar={hook.salvarSnapshot} aoCarregar={(v) => { hook.carregarSnapshot(v); setModalHistoricoAberto(false); }} aoRemover={hook.removerSnapshot} />
 
       <Dialogo aberto={modalConfigAberto} aoFechar={() => setModalConfigAberto(false)} larguraMax="max-w-4xl" esconderCabecalho={true}>
-        <div className="flex flex-col md:flex-row bg-white dark:bg-[#0c0c0e] rounded-2xl overflow-hidden shadow-2xl relative w-full border border-gray-200 dark:border-white/10">
+        <div className="flex flex-col md:flex-row bg-[#121214] rounded-2xl overflow-hidden shadow-2xl relative w-full border border-zinc-800">
           
-          {/* PAINEL ESQUERDO: IDENTIDADE */}
-          <div className="w-full md:w-2/5 p-8 md:p-12 bg-gradient-to-br from-[#0b0c10] via-[#111319] to-[#0a0c0f] relative flex flex-col border-b md:border-b-0 md:border-r border-white/5 overflow-hidden">
-            {/* Efeitos de Luz */}
-            <div className="absolute -top-32 -left-32 w-96 h-96 bg-sky-500/10 blur-[100px] rounded-full pointer-events-none" />
-            <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-violet-500/10 blur-[100px] rounded-full pointer-events-none" />
-
-            {/* Formulário de Identidade */}
-            <div className="relative z-10 mt-4 flex-1 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-6">
-                  <Crown size={14} className="text-sky-400 animate-bounce duration-[3000ms]" />
-                  <h3 className="text-xs font-black uppercase tracking-[0.1em] text-zinc-400">Personalizar Orçamento PDF</h3>
+          {/* PAINEL ESQUERDO: IDENTIDADE (PDF) */}
+          <div className="w-full md:w-2/5 p-8 bg-[#18181b] relative flex flex-col border-b md:border-b-0 md:border-r border-zinc-800">
+            <div className="relative z-10 flex-1 flex flex-col justify-between h-full">
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <Crown size={16} className="text-zinc-400" />
+                  <h3 className="text-xs font-black uppercase tracking-widest text-zinc-300">Personalizar Orçamento</h3>
                 </div>
                 
-                <div className={`space-y-5 transition-all ${!eProOuSuperior ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
-                  <div className="space-y-1.5 group">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-sky-400 ml-1 group-focus-within:text-sky-300 transition-colors">Nome do Estúdio</label>
-                    <div className="relative">
-                      <input 
-                        type="text" 
-                        placeholder="Ex: PrintPro Lab"
-                        value={config.nomeEstudio}
-                        onChange={(e) => config.definirIdentidadeEstudio(e.target.value, config.sloganEstudio)}
-                        className="w-full h-12 bg-zinc-950/40 border border-white/5 rounded-xl px-4 text-xs font-bold text-white focus:border-sky-500/50 focus:bg-zinc-950/80 outline-none transition-all placeholder:text-zinc-700 backdrop-blur-md"
-                      />
-                    </div>
+                <div className={`space-y-4 transition-all ${!eProOuSuperior ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+                  <div className="flex flex-col gap-1.5 group">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-1">Nome do Estúdio</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: PrintPro Lab"
+                      value={config.nomeEstudio}
+                      onChange={(e) => config.definirIdentidadeEstudio(e.target.value, config.sloganEstudio)}
+                      className="w-full h-11 bg-zinc-900 border border-zinc-800 rounded-lg px-3 text-xs font-bold text-white focus:border-zinc-700 focus:outline-none transition-all placeholder:text-zinc-600 shadow-sm"
+                    />
                   </div>
 
-                  <div className="space-y-1.5 group">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-sky-400 ml-1 group-focus-within:text-sky-300 transition-colors">Slogan / Frase de Rodapé</label>
-                    <div className="relative">
-                      <input 
-                        type="text" 
-                        placeholder="Ex: Impressão 3D de alta precisão"
-                        value={config.sloganEstudio}
-                        onChange={(e) => config.definirIdentidadeEstudio(config.nomeEstudio, e.target.value)}
-                        className="w-full h-12 bg-zinc-950/40 border border-white/5 rounded-xl px-4 text-xs font-bold text-white focus:border-sky-500/50 focus:bg-zinc-950/80 outline-none transition-all placeholder:text-zinc-700 backdrop-blur-md"
-                      />
-                    </div>
+                  <div className="flex flex-col gap-1.5 group">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-1">Slogan / Frase de Rodapé</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: Impressão 3D de alta precisão"
+                      value={config.sloganEstudio}
+                      onChange={(e) => config.definirIdentidadeEstudio(config.nomeEstudio, e.target.value)}
+                      className="w-full h-11 bg-zinc-900 border border-zinc-800 rounded-lg px-3 text-xs font-bold text-white focus:border-zinc-700 focus:outline-none transition-all placeholder:text-zinc-600 shadow-sm"
+                    />
                   </div>
                 </div>
               </div>
 
               {/* Preview Dinâmico do Rodapé PRO */}
               {eProOuSuperior && (
-                <div className="p-4 rounded-xl bg-sky-500/5 border border-sky-500/10 space-y-2 mt-6">
-                  <span className="text-[8px] font-black uppercase tracking-widest text-sky-400">Pré-visualização do documento</span>
-                  <div className="border-t border-dashed border-sky-500/20 pt-2 flex flex-col gap-1">
-                    <p className="text-[10px] font-black text-white truncate">{config.nomeEstudio || "Seu Estúdio"}</p>
-                    <p className="text-[8px] font-bold text-zinc-500 truncate italic">{config.sloganEstudio || "Seu slogan aqui"}</p>
-                  </div>
+                <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col gap-1 mt-6">
+                  <span className="text-[9px] font-black uppercase text-zinc-500 border-b border-zinc-800 pb-1.5 mb-1 tracking-wider">
+                    Pré-Visualização
+                  </span>
+                  <span className="text-xs font-bold text-zinc-200 truncate">
+                    {config.nomeEstudio || "Seu Estúdio"}
+                  </span>
+                  <span className="text-[10px] font-bold text-zinc-500 italic truncate">
+                    {config.sloganEstudio || "Seu slogan aqui"}
+                  </span>
                 </div>
               )}
 
               {!eProOuSuperior && (
-                <div className="absolute inset-x-0 bottom-12 z-10 flex items-center justify-center pt-8 backdrop-blur-[2px]">
-                  <div className="bg-zinc-900/90 border border-sky-500/30 px-5 py-4 rounded-2xl shadow-2xl shadow-sky-500/20 flex flex-col items-center gap-2 max-w-[200px]">
-                    <Crown size={20} className="text-sky-500" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.1em] text-white">Exclusivo PRO</span>
-                    <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest text-center leading-relaxed">Personalize seus orçamentos<br/>com a sua marca</span>
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-sm rounded-xl text-center gap-2">
+                  <Crown size={24} className="text-zinc-500" />
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-black uppercase tracking-wider text-zinc-300">Exclusivo PRO</span>
+                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-relaxed">
+                      Personalize seus orçamentos
+                    </span>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="relative z-10 mt-6 flex justify-between items-center text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em]">
-              <span>PrintLog OS v2.0</span>
-              <span className="text-zinc-700">© 2026</span>
+            <div className="relative z-10 mt-6 flex justify-between items-center text-[8px] font-bold text-zinc-600 uppercase tracking-widest pt-4 border-t border-zinc-800/40">
+              <span>PrintLog OS</span>
+              <span>2026</span>
             </div>
           </div>
 
           {/* PAINEL DIREITO: MOTORES OPERACIONAIS */}
-          <div className="w-full md:w-3/5 p-8 md:p-12 bg-zinc-50 dark:bg-[#121214] relative flex flex-col">
-            <button onClick={() => setModalConfigAberto(false)} className="absolute top-8 right-8 p-2 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5"><X size={16} /></button>
+          <div className="w-full md:w-3/5 p-8 bg-[#121214] relative flex flex-col justify-between">
+            <button 
+              onClick={() => setModalConfigAberto(false)} 
+              className="absolute top-6 right-6 w-8 h-8 rounded-lg text-zinc-500 hover:text-zinc-200 transition-all bg-zinc-900 border border-zinc-800 flex items-center justify-center"
+            >
+              <X size={14} />
+            </button>
             
-            <div className="flex items-center gap-4 mb-10">
-               <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.15)]">
-                  <Settings size={24} />
+            <div className="flex items-center gap-3 mb-8">
+               <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
+                  <Settings size={18} />
                </div>
                <div>
-                  <h3 className="text-xl font-black uppercase tracking-tight text-zinc-900 dark:text-white leading-none">Operacional</h3>
-                  <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mt-2">Motores base de custeio</p>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-zinc-200 leading-none">Operacional</h3>
+                  <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Motores base de custeio</p>
                </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 items-center">
                {/* Energia */}
-               <div className="p-4 rounded-xl bg-zinc-100/50 dark:bg-white/[0.02] border border-zinc-200/60 dark:border-white/[0.04] flex flex-col relative group transition-colors hover:border-zinc-300 dark:hover:border-white/10">
-                  <div className="flex items-center gap-2 mb-3">
-                     <Zap size={14} className="text-zinc-400 group-hover:text-amber-500 transition-colors" />
+               <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                     <Zap size={14} className="text-zinc-500" />
                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">Energia</span>
-                        <span className="text-[7px] font-bold text-zinc-400/80">Custo por kWh</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Energia</span>
+                        <span className="text-[7px] font-bold text-zinc-500">Custo por kWh</span>
                      </div>
                   </div>
                   <input 
@@ -649,17 +670,17 @@ export function PaginaCalculadora() {
                         config.definirCustoEnergia(e.target.value);
                         hook.setPrecoKwh(extrairValorNumerico(e.target.value));
                      }} 
-                     className="w-full h-10 bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 font-bold text-xs text-zinc-900 dark:text-white focus:border-sky-500/50 outline-none transition-all text-center" 
+                     className="w-full h-10 bg-zinc-950 border border-zinc-800 focus:border-zinc-700 outline-none rounded-lg px-3 font-bold text-xs text-white text-center" 
                   />
                </div>
 
                {/* Margem */}
-               <div className="p-4 rounded-xl bg-zinc-100/50 dark:bg-white/[0.02] border border-zinc-200/60 dark:border-white/[0.04] flex flex-col relative group transition-colors hover:border-zinc-300 dark:hover:border-white/10">
-                  <div className="flex items-center gap-2 mb-3">
-                     <Percent size={14} className="text-zinc-400 group-hover:text-emerald-500 transition-colors" />
+               <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                     <Percent size={14} className="text-zinc-500" />
                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">Margem Lucro</span>
-                        <span className="text-[7px] font-bold text-zinc-400/80">Padrão do estúdio</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Margem Lucro</span>
+                        <span className="text-[7px] font-bold text-zinc-500">Padrão do estúdio</span>
                      </div>
                   </div>
                   <input 
@@ -670,17 +691,17 @@ export function PaginaCalculadora() {
                         config.definirMargemLucro(e.target.value);
                         hook.setMargem(extrairValorNumerico(e.target.value));
                      }} 
-                     className="w-full h-10 bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 font-bold text-xs text-zinc-900 dark:text-white focus:border-sky-500/50 outline-none transition-all text-center" 
+                     className="w-full h-10 bg-zinc-950 border border-zinc-800 focus:border-zinc-700 outline-none rounded-lg px-3 font-bold text-xs text-white text-center" 
                   />
                </div>
 
                {/* Operador */}
-               <div className="p-4 rounded-xl bg-zinc-100/50 dark:bg-white/[0.02] border border-zinc-200/60 dark:border-white/[0.04] flex flex-col relative group transition-colors hover:border-zinc-300 dark:hover:border-white/10">
-                  <div className="flex items-center gap-2 mb-3">
-                     <Wrench size={14} className="text-zinc-400 group-hover:text-amber-500 transition-colors" />
+               <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                     <Wrench size={14} className="text-zinc-500" />
                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">Operador</span>
-                        <span className="text-[7px] font-bold text-zinc-400/80">Mão de obra / h</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Operador</span>
+                        <span className="text-[7px] font-bold text-zinc-500">Mão de obra / h</span>
                      </div>
                   </div>
                   <input 
@@ -691,17 +712,17 @@ export function PaginaCalculadora() {
                         config.definirHoraOperador(e.target.value);
                         hook.setMaoDeObra(extrairValorNumerico(e.target.value));
                      }} 
-                     className="w-full h-10 bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 font-bold text-xs text-zinc-900 dark:text-white focus:border-sky-500/50 outline-none transition-all text-center" 
+                     className="w-full h-10 bg-zinc-950 border border-zinc-800 focus:border-zinc-700 outline-none rounded-lg px-3 font-bold text-xs text-white text-center" 
                   />
                </div>
 
                {/* Máquina */}
-               <div className="p-4 rounded-xl bg-zinc-100/50 dark:bg-white/[0.02] border border-zinc-200/60 dark:border-white/[0.04] flex flex-col relative group transition-colors hover:border-zinc-300 dark:hover:border-white/10">
-                  <div className="flex items-center gap-2 mb-3">
-                     <Clock size={14} className="text-zinc-400 group-hover:text-amber-500 transition-colors" />
+               <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                     <Clock size={14} className="text-zinc-500" />
                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">Máquina</span>
-                        <span className="text-[7px] font-bold text-zinc-400/80">Uso do equipamento / h</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Máquina</span>
+                        <span className="text-[7px] font-bold text-zinc-500">Uso do equipamento / h</span>
                      </div>
                   </div>
                   <input 
@@ -712,12 +733,12 @@ export function PaginaCalculadora() {
                         config.definirHoraMaquina(e.target.value);
                         hook.setDepreciacaoHora(extrairValorNumerico(e.target.value));
                      }} 
-                     className="w-full h-10 bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 font-bold text-xs text-zinc-900 dark:text-white focus:border-sky-500/50 outline-none transition-all text-center" 
+                     className="w-full h-10 bg-zinc-950 border border-zinc-800 focus:border-zinc-700 outline-none rounded-lg px-3 font-bold text-xs text-white text-center" 
                   />
                </div>
             </div>
 
-            <div className="mt-8">
+            <div className="mt-6">
                <button 
                   onClick={async () => { 
                      config.definirCustoEnergia(config.custoEnergia && config.custoEnergia.trim() !== "" ? formatarMoedaFinancas(hook.precoKwh, 2) : "R$ 0,00");
@@ -730,9 +751,9 @@ export function PaginaCalculadora() {
                         toast.success("Motores de custeio sincronizados!");
                      }
                   }} 
-                  className="w-full h-14 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-xl hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(245,158,11,0.3)] transition-all flex items-center justify-center gap-3 shadow-xl border-none"
+                  className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 font-bold uppercase text-[10px] tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 shadow"
                >
-                  <Settings size={16} /> Salvar & Sincronizar
+                  <Settings size={14} /> Salvar & Sincronizar
                </button>
             </div>
 
@@ -748,7 +769,7 @@ export function PaginaCalculadora() {
         aoFechar={() => setModalConfigFiscalAberto(false)} 
         titulo="Configurações Fiscais" 
         iconeTitulo={TrendingUp} 
-        corDestaque="rose" 
+        corDestaque="amber" 
         termoBusca="" 
         aoMudarBusca={() => {}} 
         temResultados={true} 
@@ -765,7 +786,7 @@ export function PaginaCalculadora() {
                 <div 
                   key={p.nome}
                   className={`p-3 rounded-xl border flex items-center justify-between gap-4 transition-all ${
-                    selecionado ? "border-rose-500 bg-rose-500/5" : "border-gray-100 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-800/10"
+                    selecionado ? "border-amber-500 bg-amber-500/5" : "border-gray-100 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-800/10"
                   }`}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer" 
@@ -776,7 +797,7 @@ export function PaginaCalculadora() {
                       hook.setIss(p.iss);
                     }}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selecionado ? "bg-rose-500 text-white" : "bg-gray-100 dark:bg-zinc-800 text-zinc-400"}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selecionado ? "bg-amber-500 text-white" : "bg-gray-100 dark:bg-zinc-800 text-zinc-400"}`}>
                       <TrendingUp size={14} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -786,7 +807,7 @@ export function PaginaCalculadora() {
                             type="text" 
                             value={nomeFiscalTemporario}
                             onChange={(e) => setNomeFiscalTemporario(e.target.value)}
-                            className="flex-1 min-w-0 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-rose-500 font-bold text-xs outline-none"
+                            className="flex-1 min-w-0 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-amber-500 font-bold text-xs outline-none"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
@@ -844,14 +865,14 @@ export function PaginaCalculadora() {
                               setIndiceFiscalSendoEditado(idx);
                               setNomeFiscalTemporario(p.nome);
                             }}
-                            className="opacity-0 group-hover/nome:opacity-100 hover:scale-110 active:scale-95 transition-all text-zinc-400 hover:text-rose-500 p-1 flex items-center justify-center rounded-md"
+                            className="opacity-0 group-hover/nome:opacity-100 hover:scale-110 active:scale-95 transition-all text-zinc-400 hover:text-amber-500 p-1 flex items-center justify-center rounded-md"
                             title="Alterar Nome"
                           >
                             <Pencil size={12} />
                           </button>
                         </div>
                       )}
-                      {selecionado && <span className="text-[10px] font-black uppercase text-rose-500">Ativo</span>}
+                      {selecionado && <span className="text-[10px] font-black uppercase text-amber-500">Ativo</span>}
                     </div>
                   </div>
 
@@ -867,7 +888,7 @@ export function PaginaCalculadora() {
                           hook.setPerfisFiscais(novos);
                           if (selecionado) hook.setImpostos(Number(e.target.value));
                         }}
-                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-rose-500" 
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-amber-500" 
                       />
                     </div>
                     <div className="flex flex-col">
@@ -881,7 +902,7 @@ export function PaginaCalculadora() {
                           hook.setPerfisFiscais(novos);
                           if (selecionado) hook.setIcms(Number(e.target.value));
                         }}
-                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-rose-500" 
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-amber-500" 
                       />
                     </div>
                     <div className="flex flex-col">
@@ -895,7 +916,7 @@ export function PaginaCalculadora() {
                           hook.setPerfisFiscais(novos);
                           if (selecionado) hook.setIss(Number(e.target.value));
                         }}
-                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-rose-500" 
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-amber-500" 
                       />
                     </div>
                     {p.nome !== "Produto" && p.nome !== "Servico" && p.nome !== "Industrializacao" && p.nome !== "MEI" ? (
@@ -931,25 +952,25 @@ export function PaginaCalculadora() {
                 type="text" 
                 placeholder="Ex: Simples Nacional" 
                 id="novoFiscalNome"
-                className="flex-1 min-w-[120px] h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none focus:border-rose-500" 
+                className="flex-1 min-w-[120px] h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none focus:border-amber-500" 
               />
               <input 
                 type="number" 
                 placeholder="Base %" 
                 id="novoFiscalBase"
-                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-rose-500" 
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-amber-500" 
               />
               <input 
                 type="number" 
                 placeholder="ICMS %" 
                 id="novoFiscalIcms"
-                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-rose-500" 
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-amber-500" 
               />
               <input 
                 type="number" 
                 placeholder="ISS %" 
                 id="novoFiscalIss"
-                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-rose-500" 
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-amber-500" 
               />
               <button 
                 onClick={() => {
@@ -991,7 +1012,7 @@ export function PaginaCalculadora() {
       <ModalListagemPremium 
         aberto={modalCanaisAberto} 
         aoFechar={() => setModalCanaisAberto(false)} 
-        titulo="Canais de Venda"        corDestaque="sky" 
+        titulo="Canais de Venda"        corDestaque="indigo" 
         termoBusca="" 
         aoMudarBusca={() => {}} 
         temResultados={true} 
@@ -1008,11 +1029,11 @@ export function PaginaCalculadora() {
                 <div 
                   key={p.nome}
                   className={`p-3 rounded-xl border flex items-center justify-between gap-4 transition-all ${
-                    selecionado ? "border-sky-500 bg-sky-500/5" : "border-gray-100 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-800/10"
+                    selecionado ? "border-indigo-500 bg-indigo-500/5" : "border-gray-100 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-800/10"
                   }`}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer" onClick={() => hook.setPerfilAtivo(p.nome)}>
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selecionado ? "bg-sky-500 text-white" : "bg-gray-100 dark:bg-zinc-800 text-zinc-400"}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selecionado ? "bg-indigo-500 text-white" : "bg-gray-100 dark:bg-zinc-800 text-zinc-400"}`}>
                       <Settings size={14} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1022,7 +1043,7 @@ export function PaginaCalculadora() {
                             type="text" 
                             value={nomeCanalTemporario}
                             onChange={(e) => setNomeCanalTemporario(e.target.value)}
-                            className="flex-1 min-w-0 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-sky-500 font-bold text-xs outline-none"
+                            className="flex-1 min-w-0 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-indigo-500 font-bold text-xs outline-none"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
@@ -1080,14 +1101,14 @@ export function PaginaCalculadora() {
                               setIndiceCanalSendoEditado(idx);
                               setNomeCanalTemporario(p.nome);
                             }}
-                            className="opacity-0 group-hover/nome:opacity-100 hover:scale-110 active:scale-95 transition-all text-zinc-400 hover:text-sky-500 p-1 flex items-center justify-center rounded-md"
+                            className="opacity-0 group-hover/nome:opacity-100 hover:scale-110 active:scale-95 transition-all text-zinc-400 hover:text-indigo-500 p-1 flex items-center justify-center rounded-md"
                             title="Alterar Nome"
                           >
                             <Pencil size={12} />
                           </button>
                         </div>
                       )}
-                      {selecionado && <span className="text-[10px] font-black uppercase text-sky-500">Ativo</span>}
+                      {selecionado && <span className="text-[10px] font-black uppercase text-indigo-500">Ativo</span>}
                     </div>
                   </div>
 
@@ -1102,7 +1123,7 @@ export function PaginaCalculadora() {
                           novos[idx].taxa = Number(e.target.value);
                           hook.setPerfisMarketplace(novos);
                         }}
-                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-sky-500" 
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-indigo-500" 
                       />
                     </div>
                     <div className="flex flex-col">
@@ -1115,7 +1136,7 @@ export function PaginaCalculadora() {
                           novos[idx].fixa = Number(e.target.value);
                           hook.setPerfisMarketplace(novos);
                         }}
-                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-sky-500" 
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-indigo-500" 
                       />
                     </div>
                     <div className="flex flex-col">
@@ -1129,7 +1150,7 @@ export function PaginaCalculadora() {
                           hook.setPerfisMarketplace(novos);
                           if (selecionado) hook.setFrete(Number(e.target.value));
                         }}
-                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-sky-500" 
+                        className="w-16 h-8 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-black text-xs outline-none text-right focus:border-indigo-500" 
                       />
                     </div>
                     {p.nome !== "Direto" ? (
@@ -1160,25 +1181,25 @@ export function PaginaCalculadora() {
                 type="text" 
                 placeholder="Ex: Mercado Livre" 
                 id="novoCanalNome"
-                className="flex-1 min-w-[120px] h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none focus:border-sky-500" 
+                className="flex-1 min-w-[120px] h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none focus:border-indigo-500" 
               />
               <input 
                 type="number" 
                 placeholder="Taxa %" 
                 id="novoCanalTaxa"
-                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-sky-500" 
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-indigo-500" 
               />
               <input 
                 type="number" 
                 placeholder="Fixa R$" 
                 id="novoCanalFixa"
-                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-sky-500" 
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-indigo-500" 
               />
               <input 
                 type="number" 
                 placeholder="Frete R$" 
                 id="novoCanalFrete"
-                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-sky-500" 
+                className="w-20 h-9 px-3 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 font-bold text-xs outline-none text-right focus:border-indigo-500" 
               />
               <button 
                 onClick={() => {
@@ -1308,6 +1329,77 @@ export function PaginaCalculadora() {
       </ModalListagemPremium>
 
       <FormularioInsumo aberto={modalInsumoAberto} aoCancelar={fecharInsumoAberto} insumoEditando={insumoEditando} aoSalvar={(dados) => adicionarOuAtualizarInsumo({ ...dados, id: dados.id || crypto.randomUUID(), dataCriacao: dados.dataCriacao || new Date(), dataAtualizacao: new Date(), historico: dados.historico || [] } as any)} />
+
+      <Dialogo
+        aberto={modalPdfAberto}
+        aoFechar={() => setModalPdfAberto(false)}
+        larguraMax="max-w-md"
+        esconderCabecalho={true}
+      >
+        <div className="p-8 flex flex-col gap-6 relative bg-[#0B0F19] border border-white/5 shadow-2xl rounded-2xl overflow-hidden">
+          {/* Fundo com efeito Glow */}
+          <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-sky-500/10 to-transparent blur-2xl pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col gap-6">
+            <div className="flex items-center gap-2.5 text-sky-400 mb-2">
+              <Crown size={18} className="fill-sky-400/20" />
+              <span className="text-xs font-black uppercase tracking-[0.25em]">Personalizar Orçamento PDF</span>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="block text-[10px] font-black uppercase tracking-wider text-sky-400/80">Nome do Estúdio</label>
+              <input 
+                type="text" 
+                placeholder="Ex: PrintPro Lab" 
+                value={nomeEstudio} 
+                onChange={(e) => setNomeEstudio(e.target.value)} 
+                className="w-full h-14 px-4 rounded-xl bg-zinc-900/50 border border-white/5 focus:border-sky-500/40 outline-none font-black text-xs text-white transition-all shadow-inner placeholder:text-zinc-700" 
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="block text-[10px] font-black uppercase tracking-wider text-sky-400/80">Slogan / Frase de Rodapé</label>
+              <input 
+                type="text" 
+                placeholder="Ex: Impressão 3D de alta precisão" 
+                value={sloganEstudio} 
+                onChange={(e) => setSloganEstudio(e.target.value)} 
+                className="w-full h-14 px-4 rounded-xl bg-zinc-900/50 border border-white/5 focus:border-sky-500/40 outline-none font-black text-xs text-white transition-all shadow-inner placeholder:text-zinc-700" 
+              />
+            </div>
+
+            <div className="p-4 rounded-2xl bg-zinc-950/60 border border-zinc-800/50 flex flex-col gap-1.5 mt-2">
+              <span className="text-[9px] font-black uppercase text-sky-400/60 border-b border-dashed border-zinc-800/50 pb-2 mb-1 tracking-wider">
+                Pré-Visualização do Documento
+              </span>
+              <span className="text-sm font-black text-white">
+                {nomeEstudio || "Seu Estúdio"}
+              </span>
+              <span className="text-[10px] font-bold text-zinc-400/80 italic">
+                {sloganEstudio || "Seu slogan aqui"}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-2 mt-4">
+              <button 
+                onClick={() => {
+                  hook.gerarPdf(nomeEstudio, sloganEstudio);
+                  setModalPdfAberto(false);
+                }}
+                className="w-full h-14 font-black uppercase tracking-[0.15em] text-xs rounded-2xl flex items-center justify-center gap-2 bg-sky-500 text-white hover:bg-sky-600 transition-all active:scale-95 shadow-[0_10px_20px_-5px_rgba(14,165,233,0.3)]"
+              >
+                <Download size={14} />
+                <span>Gerar Orçamento</span>
+              </button>
+              
+              <div className="flex justify-between items-center mt-3 border-t border-zinc-800/30 pt-3 text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] select-none">
+                <span>PRINTLOG OS V2.0</span>
+                <span>© 2026</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Dialogo>
         </motion.div>
       )}
     </AnimatePresence>

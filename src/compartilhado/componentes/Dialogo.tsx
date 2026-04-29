@@ -56,17 +56,17 @@ export function Dialogo({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-md"
+            className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-[2px]"
             onClick={aoFechar}
           />
 
           {/* Container Centralizado */}
           <div className={`fixed inset-0 z-[1000] flex items-center justify-center ${telaCheia ? "p-0" : "p-4 md:p-8"} pointer-events-none`}>
             <motion.div
-              initial={telaCheia ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={telaCheia ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", duration: 0.5, bounce: 0.2 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
               className={`
                                 w-full pointer-events-auto flex flex-col overflow-hidden bg-[var(--bg-card)] border-[var(--border-subtle)] shadow-2xl
                                 ${telaCheia ? "h-full w-full border-none rounded-none" : `${larguraMax} rounded-2xl border max-h-[90vh]`}

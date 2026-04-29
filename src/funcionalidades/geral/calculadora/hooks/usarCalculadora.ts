@@ -23,25 +23,52 @@ export function usarCalculadora() {
   const { pedidos } = usarPedidos();
 
   // --- ESTADOS BASE ---
-  const [materiaisSelecionados, setMateriaisSelecionados] = useState<MaterialSelecionado[]>([]);
-  const [tempo, setTempo] = useState<number>(0);
-  const [potencia, setPotencia] = useState<number>(0);
-  const [precoKwh, setPrecoKwh] = useState<number>(() => extrairValorNumerico(config.custoEnergia));
-  const [maoDeObra, setMaoDeObra] = useState<number>(() => extrairValorNumerico(config.horaOperador));
-  const [depreciacaoHora, setDepreciacaoHora] = useState<number>(() => extrairValorNumerico(config.horaMaquina));
-  const [margem, setMargem] = useState<number>(() => extrairValorNumerico(config.margemLucro));
+  const [materiaisSelecionados, setMateriaisSelecionados] = useState<MaterialSelecionado[]>(() => {
+    const salvo = localStorage.getItem("printlog_materiais_selecionados");
+    return salvo ? JSON.parse(salvo) : [];
+  });
+  const [tempo, setTempo] = useState<number>(() => Number(localStorage.getItem("printlog_tempo")) || 0);
+  const [potencia, setPotencia] = useState<number>(() => Number(localStorage.getItem("printlog_potencia")) || 0);
+  const [precoKwh, setPrecoKwh] = useState<number>(() => {
+    const salvo = localStorage.getItem("printlog_preco_kwh");
+    return salvo !== null ? Number(salvo) : extrairValorNumerico(config.custoEnergia);
+  });
+  const [maoDeObra, setMaoDeObra] = useState<number>(() => {
+    const salvo = localStorage.getItem("printlog_mao_de_obra");
+    return salvo !== null ? Number(salvo) : extrairValorNumerico(config.horaOperador);
+  });
+  const [depreciacaoHora, setDepreciacaoHora] = useState<number>(() => {
+    const salvo = localStorage.getItem("printlog_depreciacao_hora");
+    return salvo !== null ? Number(salvo) : extrairValorNumerico(config.horaMaquina);
+  });
+  const [margem, setMargem] = useState<number>(() => {
+    const salvo = localStorage.getItem("printlog_margem");
+    return salvo !== null ? Number(salvo) : extrairValorNumerico(config.margemLucro);
+  });
   
   // Novas variáveis de Lote e Setup
-  const [quantidade, setQuantidade] = useState<number>(1);
-  const [tempoSetup, setTempoSetup] = useState<number>(15); // Em minutos
-  const [taxaFalha, setTaxaFalha] = useState<number>(10); // Em porcentagem
-  const [materialPerdido, setMaterialPerdido] = useState<number>(0); // Gramas
-  const [tempoPerdido, setTempoPerdido] = useState<number>(0); // Minutos
+  const [quantidade, setQuantidade] = useState<number>(() => Number(localStorage.getItem("printlog_quantidade")) || 1);
+  const [tempoSetup, setTempoSetup] = useState<number>(() => {
+    const salvo = localStorage.getItem("printlog_tempo_setup");
+    return salvo !== null ? Number(salvo) : 15;
+  });
+  const [taxaFalha, setTaxaFalha] = useState<number>(() => {
+    const salvo = localStorage.getItem("printlog_taxa_falha");
+    return salvo !== null ? Number(salvo) : 10;
+  });
+  const [materialPerdido, setMaterialPerdido] = useState<number>(() => Number(localStorage.getItem("printlog_material_perdido")) || 0);
+  const [tempoPerdido, setTempoPerdido] = useState<number>(() => Number(localStorage.getItem("printlog_tempo_perdido")) || 0);
   
-  const [frete, setFrete] = useState<number>(0);
-  const [insumosFixos, setInsumosFixos] = useState<number>(0);
-  const [insumosSelecionados, setInsumosSelecionados] = useState<InsumoSelecionado[]>([]);
-  const [itensPosProcesso, setItensPosProcesso] = useState<ItemPosProcesso[]>([]);
+  const [frete, setFrete] = useState<number>(() => Number(localStorage.getItem("printlog_frete")) || 0);
+  const [insumosFixos, setInsumosFixos] = useState<number>(() => Number(localStorage.getItem("printlog_insumos_fixos")) || 0);
+  const [insumosSelecionados, setInsumosSelecionados] = useState<InsumoSelecionado[]>(() => {
+    const salvo = localStorage.getItem("printlog_insumos_selecionados");
+    return salvo ? JSON.parse(salvo) : [];
+  });
+  const [itensPosProcesso, setItensPosProcesso] = useState<ItemPosProcesso[]>(() => {
+    const salvo = localStorage.getItem("printlog_itens_pos_processo");
+    return salvo ? JSON.parse(salvo) : [];
+  });
   
   const [cobrarDesgaste, setCobrarDesgaste] = useState<boolean>(() => localStorage.getItem("printlog_cobrar_desgaste") !== "false");
   const [cobrarMaoDeObra, setCobrarMaoDeObra] = useState<boolean>(() => localStorage.getItem("printlog_cobrar_mao_de_obra") !== "false");
@@ -62,6 +89,23 @@ export function usarCalculadora() {
   useEffect(() => { localStorage.setItem("printlog_cobrar_impostos", String(cobrarImpostos)); }, [cobrarImpostos]);
   useEffect(() => { localStorage.setItem("printlog_perfil_ativo", perfilAtivo); }, [perfilAtivo]);
   useEffect(() => { localStorage.setItem("printlog_tipo_operacao", tipoOperacao); }, [tipoOperacao]);
+
+  useEffect(() => { localStorage.setItem("printlog_materiais_selecionados", JSON.stringify(materiaisSelecionados)); }, [materiaisSelecionados]);
+  useEffect(() => { localStorage.setItem("printlog_tempo", String(tempo)); }, [tempo]);
+  useEffect(() => { localStorage.setItem("printlog_potencia", String(potencia)); }, [potencia]);
+  useEffect(() => { localStorage.setItem("printlog_preco_kwh", String(precoKwh)); }, [precoKwh]);
+  useEffect(() => { localStorage.setItem("printlog_mao_de_obra", String(maoDeObra)); }, [maoDeObra]);
+  useEffect(() => { localStorage.setItem("printlog_depreciacao_hora", String(depreciacaoHora)); }, [depreciacaoHora]);
+  useEffect(() => { localStorage.setItem("printlog_margem", String(margem)); }, [margem]);
+  useEffect(() => { localStorage.setItem("printlog_quantidade", String(quantidade)); }, [quantidade]);
+  useEffect(() => { localStorage.setItem("printlog_tempo_setup", String(tempoSetup)); }, [tempoSetup]);
+  useEffect(() => { localStorage.setItem("printlog_taxa_falha", String(taxaFalha)); }, [taxaFalha]);
+  useEffect(() => { localStorage.setItem("printlog_material_perdido", String(materialPerdido)); }, [materialPerdido]);
+  useEffect(() => { localStorage.setItem("printlog_tempo_perdido", String(tempoPerdido)); }, [tempoPerdido]);
+  useEffect(() => { localStorage.setItem("printlog_frete", String(frete)); }, [frete]);
+  useEffect(() => { localStorage.setItem("printlog_insumos_fixos", String(insumosFixos)); }, [insumosFixos]);
+  useEffect(() => { localStorage.setItem("printlog_insumos_selecionados", JSON.stringify(insumosSelecionados)); }, [insumosSelecionados]);
+  useEffect(() => { localStorage.setItem("printlog_itens_pos_processo", JSON.stringify(itensPosProcesso)); }, [itensPosProcesso]);
 
   /**
    * Perfis fiscais padrão simplificados para o público alvo.
@@ -289,7 +333,28 @@ export function usarCalculadora() {
         materiaisSelecionados,
         tempo,
         perfilAtivo,
-        margem
+        margem,
+        potencia,
+        precoKwh,
+        maoDeObra,
+        depreciacaoHora,
+        quantidade,
+        tempoSetup,
+        taxaFalha,
+        materialPerdido,
+        tempoPerdido,
+        frete,
+        insumosFixos,
+        insumosSelecionados,
+        itensPosProcesso,
+        cobrarDesgaste,
+        cobrarMaoDeObra,
+        cobrarEnergia,
+        cobrarImpostos,
+        tipoOperacao,
+        impostos,
+        icms,
+        iss
       }
     };
     const novoHistorico = [novaVersao, ...historico];
@@ -299,10 +364,38 @@ export function usarCalculadora() {
   };
 
   const carregarSnapshot = (versao: VersaoCalculo) => {
-    setMateriaisSelecionados(versao.configuracoes.materiaisSelecionados);
-    setTempo(versao.configuracoes.tempo);
-    setPerfilAtivo(versao.configuracoes.perfilAtivo);
-    setMargem(versao.configuracoes.margem);
+    const c = versao.configuracoes;
+    if (!c) {
+      toast.error("Configurações do snapshot corrompidas.");
+      return;
+    }
+    if (c.materiaisSelecionados !== undefined) setMateriaisSelecionados(c.materiaisSelecionados);
+    if (c.tempo !== undefined) setTempo(c.tempo);
+    if (c.perfilAtivo !== undefined) setPerfilAtivo(c.perfilAtivo);
+    if (c.margem !== undefined) setMargem(c.margem);
+    
+    if (c.potencia !== undefined) setPotencia(c.potencia);
+    if (c.precoKwh !== undefined) setPrecoKwh(c.precoKwh);
+    if (c.maoDeObra !== undefined) setMaoDeObra(c.maoDeObra);
+    if (c.depreciacaoHora !== undefined) setDepreciacaoHora(c.depreciacaoHora);
+    if (c.quantidade !== undefined) setQuantidade(c.quantidade);
+    if (c.tempoSetup !== undefined) setTempoSetup(c.tempoSetup);
+    if (c.taxaFalha !== undefined) setTaxaFalha(c.taxaFalha);
+    if (c.materialPerdido !== undefined) setMaterialPerdido(c.materialPerdido);
+    if (c.tempoPerdido !== undefined) setTempoPerdido(c.tempoPerdido);
+    if (c.frete !== undefined) setFrete(c.frete);
+    if (c.insumosFixos !== undefined) setInsumosFixos(c.insumosFixos);
+    if (c.insumosSelecionados !== undefined) setInsumosSelecionados(c.insumosSelecionados);
+    if (c.itensPosProcesso !== undefined) setItensPosProcesso(c.itensPosProcesso);
+    if (c.cobrarDesgaste !== undefined) setCobrarDesgaste(c.cobrarDesgaste);
+    if (c.cobrarMaoDeObra !== undefined) setCobrarMaoDeObra(c.cobrarMaoDeObra);
+    if (c.cobrarEnergia !== undefined) setCobrarEnergia(c.cobrarEnergia);
+    if (c.cobrarImpostos !== undefined) setCobrarImpostos(c.cobrarImpostos);
+    if (c.tipoOperacao !== undefined) setTipoOperacao(c.tipoOperacao);
+    if (c.impostos !== undefined) setImpostos(c.impostos);
+    if (c.icms !== undefined) setIcms(c.icms);
+    if (c.iss !== undefined) setIss(c.iss);
+
     toast.success(`Carregado: ${versao.nome}`);
   };
 
@@ -323,7 +416,7 @@ export function usarCalculadora() {
   ].filter(d => d.value > 0), [calculo]);
 
   // --- FEATURE 1: EXPORTAÇÃO PDF ---
-  const gerarPdf = useCallback(() => {
+  const gerarPdf = useCallback((nomeEstudioCustom?: string, sloganCustom?: string) => {
     const dataRef = new Date();
     const validade = new Date();
     validade.setDate(dataRef.getDate() + 7);
@@ -347,7 +440,7 @@ export function usarCalculadora() {
         </head>
         <body>
           <div class="header">
-            <div class="logo">PRINTLOG.PRO</div>
+            <div class="logo">${(nomeEstudioCustom || "PRINTLOG.PRO").toUpperCase()}</div>
             <div style="text-align: right">
               <div class="label">Emitido em</div>
               <div style="font-weight: bold">${dataRef.toLocaleDateString('pt-BR')}</div>
@@ -375,7 +468,7 @@ export function usarCalculadora() {
           </div>
 
           <div class="footer">
-            Orçamento válido até ${validade.toLocaleDateString('pt-BR')} • Gerado via PrintLog v2 Professional
+            Orçamento válido até ${validade.toLocaleDateString('pt-BR')} • ${sloganCustom || "Gerado via PrintLog v2 Professional"}
           </div>
           <script>window.print();</script>
         </body>

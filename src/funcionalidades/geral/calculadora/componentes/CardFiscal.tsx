@@ -85,7 +85,7 @@ export function CardFiscal({
               >
                 <span>{p.nome.toUpperCase()}</span>
                 <span className={`text-[8px] font-bold opacity-80 ${tipoOperacao === id ? "text-orange-500/80" : "text-gray-400"} ${!cobrarImpostos ? "line-through text-zinc-500" : ""}`}>
-                  (%)
+                  {id === 'mei' ? "" : id === 'servico' ? `(${p.base}% + ${p.iss}%)` : `(${p.base}% + ${p.icms}%)`}
                 </span>
               </button>
             );
