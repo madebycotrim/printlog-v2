@@ -50,7 +50,7 @@ export function usarFormularioInsumo({ aberto, insumoEditando, aoSalvar, aoCance
   // Cálculo de custo efetivo (unidade de consumo)
   const custoEfetivo =
     itemFracionavelAtivo && rendimentoAtivo > 0
-      ? (custoMedioAtivo / rendimentoAtivo).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+      ? ((custoMedioAtivo / 100) / rendimentoAtivo).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
       : "R$ 0,00";
 
   // Efeito para scroll automático quando habilita fracionamento
@@ -83,6 +83,7 @@ export function usarFormularioInsumo({ aberto, insumoEditando, aoSalvar, aoCance
         reset({
           ...valoresPadrao,
           ...insumoEditando,
+          custoMedioUnidade: (insumoEditando.custoMedioUnidade || 0) / 100,
           linkCompra: insumoEditando.linkCompra || "",
           marca: insumoEditando.marca || "",
           unidadeConsumo: insumoEditando.unidadeConsumo || "",

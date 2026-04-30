@@ -3,13 +3,22 @@ import { CardResumo, CardResumoVazio } from "@/compartilhado/componentes/CardRes
 import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
 import { motion } from "framer-motion";
 
+import { Material } from "@/funcionalidades/producao/materiais/tipos";
+import { Insumo } from "@/funcionalidades/producao/insumos/tipos";
+import { ModalPatrimonio } from "@/funcionalidades/geral/painel/componentes/ModalPatrimonio";
+import { useState } from "react";
+
 interface PropriedadesResumoInsumos {
+  materiais: Material[];
+  insumos: Insumo[];
   totalItensUnicos: number;
   valorInvestido: number;
   alertasBaixoEstoque: number;
 }
 
-export function ResumoInsumos({ totalItensUnicos, valorInvestido, alertasBaixoEstoque }: PropriedadesResumoInsumos) {
+export function ResumoInsumos({ materiais, insumos, totalItensUnicos, valorInvestido, alertasBaixoEstoque }: PropriedadesResumoInsumos) {
+  const [modalPatrimonioAberto, definirModalPatrimonioAberto] = useState(false);
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
@@ -24,6 +33,8 @@ export function ResumoInsumos({ totalItensUnicos, valorInvestido, alertasBaixoEs
         valor={centavosParaReais(valorInvestido)}
         icone={DollarSign}
         cor="emerald"
+        aoClicar={() => definirModalPatrimonioAberto(true)}
+        textoAcao="Ver Detalhes"
       />
 
       <CardResumo
@@ -35,6 +46,14 @@ export function ResumoInsumos({ totalItensUnicos, valorInvestido, alertasBaixoEs
       />
 
       <CardResumoVazio icone={BoxSelect} />
+
+      <ModalPatrimonio
+        aberto={modalPatrimonioAberto}
+        aoFechar={() => definirModalPatrimonioAberto(false)}
+        materiais={materiais}
+        insumos={insumos}
+        valorTotal={valorInvestido}
+      />
     </motion.div>
   );
 }

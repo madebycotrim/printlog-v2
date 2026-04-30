@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, PackageSearch, Sparkles, AlertTriangle } from "lucide-react";
+import { Plus, PackageSearch, Sparkles } from "lucide-react";
+import { useEffect } from "react";
 import { usarBeta } from "@/compartilhado/contextos/ContextoBeta";
+import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
@@ -13,10 +15,23 @@ import { ListaMateriais } from "./componentes/ListaMateriais";
 import { ModalHistoricoUso } from "./componentes/ModalHistoricoUso";
 import { ModalArquivamentoMaterial } from "./componentes/ModalArquivamentoMaterial";
 import { ModalReposicaoEstoque } from "./componentes/ModalReposicaoEstoque";
+import { usarArmazemInsumos } from "@/funcionalidades/producao/insumos/estado/armazemInsumos";
+import { servicoInventario } from "@/compartilhado/servicos/servicoInventario";
+import { apiInsumos } from "@/funcionalidades/producao/insumos/servicos/apiInsumos";
+import { ALERTA_ESTOQUE_FILAMENTO_GRAMAS } from "@/compartilhado/constantes/constantesNegocio";
 
 export function PaginaMateriais() {
   const { estado, acoes } = usarGerenciadorMateriais();
+  const { insumos, definirInsumos } = usarArmazemInsumos();
+  const { usuario } = usarAutenticacao();
   const { betaEstoqueInteligente } = usarBeta();
+
+  // 🔄 SINCRONIZAÇÃO DE INSUMOS PARA CÁLCULO CONSOLIDADO
+  useEffect(() => {
+    if (usuario?.uid) {
+      apiInsumos.listar(usuario.uid).then(definirInsumos);
+    }
+  }, [usuario?.uid]);
 
   usarDefinirCabecalho({
     titulo: "Estoque de Insumos",
@@ -29,6 +44,9 @@ export function PaginaMateriais() {
       aoClicar: () => acoes.abrirEditar(null as unknown as Material),
     },
   });
+
+  // Consolidação de métricas para o dashboard da página
+  const metricasConsolidadas = servicoInventario.gerarRelatorioConsolidado(estado.materiais, insumos);
 
   return (
     <div className="space-y-10 min-h-[60vh] flex flex-col">
@@ -68,9 +86,10 @@ export function PaginaMateriais() {
           >
             <ResumoEstoque
               materiais={estado.materiais}
+              insumos={insumos}
               totalEmbalagens={estado.metricas.totalEmbalagens}
-              valorInvestido={estado.metricas.valorInvestido}
-              alertasBaixoEstoque={estado.metricas.alertasBaixoEstoque}
+              valorInvestido={metricasConsolidadas.valorTotalEstoqueCentavos}
+              alertasBaixoEstoque={metricasConsolidadas.itensEmAlerta}
             />
 
             {betaEstoqueInteligente && estado.metricas.alertasBaixoEstoque > 0 && (
@@ -92,7 +111,7 @@ export function PaginaMateriais() {
                        <span className="bg-indigo-500/20 text-indigo-300 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">IA Lab</span>
                     </div>
                     <p className="text-xs text-indigo-300/80 mt-1 leading-relaxed max-w-xl">
-                      Historicamente, você consome rolos similares muito rápido. Seu estoque atual tem <strong className="text-indigo-200">{estado.metricas.alertasBaixoEstoque} material(is)</strong> abaixo do seu limite de <strong className="text-indigo-200">{limiteAlertaEstoque}g</strong>. Sugerimos preparar uma ordem de compra nos próximos <strong>5 dias</strong> para não travar a linha de produção.
+                      Historicamente, você consome rolos similares muito rápido. Seu estoque atual tem <strong className="text-indigo-200">{estado.metricas.alertasBaixoEstoque} material(is)</strong> abaixo do seu limite de <strong className="text-indigo-200">{ALERTA_ESTOQUE_FILAMENTO_GRAMAS}g</strong>. Sugerimos preparar uma ordem de compra nos próximos <strong>5 dias</strong> para não travar a linha de produção.
                     </p>
                   </div>
                 </div>

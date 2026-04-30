@@ -13,9 +13,23 @@ import { FiltrosInsumo } from "./componentes/FiltrosInsumo";
 import { motion, AnimatePresence } from "framer-motion";
 import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
 import { Carregamento } from "@/compartilhado/componentes/Carregamento";
+import { useEffect } from "react";
+import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
+import { usarArmazemMateriais } from "@/funcionalidades/producao/materiais/estado/armazemMateriais";
+import { servicoInventario } from "@/compartilhado/servicos/servicoInventario";
+import { apiMateriais } from "@/funcionalidades/producao/materiais/servicos/apiMateriais";
 
 export function PaginaInsumos() {
   const { estado, acoes } = usarGerenciadorInsumos();
+  const { materiais, definirMateriais } = usarArmazemMateriais();
+  const { usuario } = usarAutenticacao();
+
+  // 🔄 SINCRONIZAÇÃO DE MATERIAIS PARA CÁLCULO CONSOLIDADO
+  useEffect(() => {
+    if (usuario?.uid) {
+      apiMateriais.listar(usuario.uid).then(definirMateriais);
+    }
+  }, [usuario?.uid]);
 
   usarDefinirCabecalho({
     titulo: "Meus Insumos",
@@ -28,6 +42,8 @@ export function PaginaInsumos() {
     },
     aoBuscar: acoes.definirFiltroPesquisa,
   });
+
+  const metricasConsolidadas = servicoInventario.gerarRelatorioConsolidado(materiais, estado.insumos);
 
   return (
     <div className="space-y-10 min-h-[60vh] flex flex-col">
@@ -65,9 +81,11 @@ export function PaginaInsumos() {
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
             <ResumoInsumos
+              materiais={materiais}
+              insumos={estado.insumos}
               totalItensUnicos={estado.kpis.totalItens}
-              valorInvestido={estado.kpis.valorInvestido}
-              alertasBaixoEstoque={estado.kpis.alertasBaixoEstoque}
+              valorInvestido={metricasConsolidadas.valorTotalEstoqueCentavos}
+              alertasBaixoEstoque={metricasConsolidadas.itensEmAlerta}
             />
 
             <div className="mt-8">

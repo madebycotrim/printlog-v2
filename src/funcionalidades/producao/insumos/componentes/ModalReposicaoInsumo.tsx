@@ -60,7 +60,7 @@ export function ModalReposicaoInsumo({ aberto, insumo, aoFechar, aoConfirmar }: 
     const custoNumerico = Number(custoRealStr);
 
     if (qtdNumerica > 0 && custoNumerico >= 0) {
-      aoConfirmar(insumo.id, qtdNumerica, custoNumerico, data.observacao);
+      aoConfirmar(insumo.id, qtdNumerica, Math.round(custoNumerico * 100), data.observacao);
       reset();
       fecharModalRealmente();
     }

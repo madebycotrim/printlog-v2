@@ -25,7 +25,10 @@ export function SecaoEstoquePreco({ register, errors, setValue, unidadeMedidaAti
           rotulo="Valor Unitário"
           placeholder="0,00"
           erro={errors.custoMedioUnidade?.message}
-          {...register("custoMedioUnidade", { required: "Obrigatório", setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })}
+          {...register("custoMedioUnidade", { 
+            required: "Obrigatório", 
+            setValueAs: (v: string) => Math.round(parseFloat(String(v).replace(",", ".")) * 100) || 0 
+          })}
         />
 
         <CampoTexto

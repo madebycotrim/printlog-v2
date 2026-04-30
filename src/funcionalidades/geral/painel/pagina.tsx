@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useShallow } from "zustand/react/shallow";
 import toast from "react-hot-toast";
 import { usarArmazemConfiguracoes } from "@/funcionalidades/sistema/configuracoes/estado/armazemConfiguracoes";
 import { Crown, Sparkles } from "lucide-react";
@@ -23,6 +24,11 @@ import { usarArmazemImpressoras } from "@/funcionalidades/producao/impressoras/e
 import { usarArmazemInsumos } from "@/funcionalidades/producao/insumos/estado/armazemInsumos";
 import { usarPedidos } from "@/funcionalidades/producao/projetos/hooks/usarPedidos";
 import { ALERTA_ESTOQUE_FILAMENTO_GRAMAS } from "@/compartilhado/constantes/constantesNegocio";
+import { servicoInventario } from "@/compartilhado/servicos/servicoInventario";
+import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
+import { apiMateriais } from "@/funcionalidades/producao/materiais/servicos/apiMateriais";
+import { apiInsumos } from "@/funcionalidades/producao/insumos/servicos/apiInsumos";
+import { apiImpressoras } from "@/funcionalidades/producao/impressoras/servicos/apiImpressoras";
 
 // Componentes Separados
 import { AtalhoItem } from "./componentes/AtalhoItem";
@@ -33,6 +39,7 @@ import { RelatorioInventario } from "./componentes/RelatorioInventario";
 import { RelatorioPerformanceOperacional } from "./componentes/RelatorioPerformanceOperacional";
 import { CardResumo } from "@/compartilhado/componentes/CardResumo";
 import { StatusPedido } from "@/compartilhado/tipos/modelos";
+import { ModalPatrimonio } from "./componentes/ModalPatrimonio";
 
 export function PaginaInicial() {
   const { usuario } = usarAutenticacao();
@@ -44,10 +51,34 @@ export function PaginaInicial() {
   const impressoras = usarArmazemImpressoras((s) => s.impressoras);
   const insumos = usarArmazemInsumos((s) => s.insumos);
 
+  const acoesMateriais = usarArmazemMateriais(useShallow(s => ({ definirMateriais: s.definirMateriais })));
+  const acoesInsumos = usarArmazemInsumos(useShallow(s => ({ definirInsumos: s.definirInsumos })));
+  const acoesImpressoras = usarArmazemImpressoras(useShallow(s => ({ definirImpressoras: s.definirImpressoras })));
+
+  // 🔄 SINCRONIZAÇÃO GLOBAL NO DASHBOARD
+  useEffect(() => {
+    if (usuario?.uid) {
+      const sincronizarTudo = async () => {
+        try {
+          const [mats, ins, imps] = await Promise.all([
+            apiMateriais.listar(usuario.uid),
+            apiInsumos.listar(usuario.uid),
+            apiImpressoras.listar(usuario.uid)
+          ]);
+          acoesMateriais.definirMateriais(mats);
+          acoesInsumos.definirInsumos(ins);
+          acoesImpressoras.definirImpressoras(imps);
+        } catch (erro) {
+          console.error("Erro ao sincronizar dashboard:", erro);
+        }
+      };
+      sincronizarTudo();
+    }
+  }, [usuario?.uid]);
+
   // 🧮 CÁLCULOS DE KPI
-  const totaisPecas = insumos.reduce((acc, i) => acc + i.quantidadeAtual, 0);
+  const metricasInventario = servicoInventario.gerarRelatorioConsolidado(materiais, insumos);
   const maquinasAtivas = impressoras.filter((i) => !i.dataAposentadoria).length;
-  const alertaMateriais = materiais.filter((m) => m.pesoRestanteGramas < ALERTA_ESTOQUE_FILAMENTO_GRAMAS).length;
   const pedidosAtivos = pedidos.filter(
     (p) => p.status !== StatusPedido.CONCLUIDO && p.status !== StatusPedido.ARQUIVADO,
   ).length;
@@ -57,6 +88,7 @@ export function PaginaInicial() {
   const definirPlano = usarArmazemConfiguracoes((s) => s.definirPlano);
   const salvarConfiguracoes = usarArmazemConfiguracoes((s) => s.salvarNoD1);
   const [carregandoUpgrade, definirCarregandoUpgrade] = useState(false);
+  const [modalPatrimonioAberto, definirModalPatrimonioAberto] = useState(false);
 
   const realizarUpgradeGratis = async () => {
     if (!usuario?.uid) return;
@@ -208,8 +240,8 @@ export function PaginaInicial() {
             textoAcao="Gerenciar"
           />
           <CardResumo
-            titulo="Filamentos em Alerta"
-            valor={alertaMateriais}
+            titulo="Alertas de Estoque"
+            valor={metricasInventario.itensEmAlerta}
             unidade="crítico"
             icone={Box}
             cor="rose"
@@ -217,13 +249,12 @@ export function PaginaInicial() {
             textoAcao="Verificar"
           />
           <CardResumo 
-            titulo="Total de Insumos" 
-            valor={totaisPecas} 
-            unidade="unidades" 
+            titulo="Patrimônio em Estoque" 
+            valor={centavosParaReais(metricasInventario.valorTotalEstoqueCentavos)} 
             icone={Package} 
             cor="indigo" 
-            aoClicar={() => navegar("/materiais")}
-            textoAcao="Estoque"
+            aoClicar={() => definirModalPatrimonioAberto(true)}
+            textoAcao="Ver Detalhes"
           />
         </div>
       </section>
@@ -270,6 +301,15 @@ export function PaginaInicial() {
           </div>
         </div>
       </section>
+      
+      {/* MODAIS GLOBAIS */}
+      <ModalPatrimonio
+        aberto={modalPatrimonioAberto}
+        aoFechar={() => definirModalPatrimonioAberto(false)}
+        materiais={materiais}
+        insumos={insumos}
+        valorTotal={metricasInventario.valorTotalEstoqueCentavos}
+      />
     </div>
   );
 }

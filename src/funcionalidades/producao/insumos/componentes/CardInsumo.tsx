@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Insumo, CategoriaInsumo } from "@/funcionalidades/producao/insumos/tipos";
 import { Dica } from "@/compartilhado/componentes/Dica";
+import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
 
 /** Mapa de cores por categoria para a barra lateral do card */
 const CORES_CATEGORIA: Record<CategoriaInsumo, string> = {
@@ -70,13 +71,13 @@ export function CardInsumo({
           <div className="flex items-baseline gap-1">
             <span className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase">UN:</span>
             <span className="text-[14px] font-black text-gray-700 dark:text-zinc-300 tabular-nums">
-              {insumo.custoMedioUnidade.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              {centavosParaReais(insumo.custoMedioUnidade)}
             </span>
           </div>
           <div className="flex items-center gap-1 leading-none mt-1">
             <span className="text-[8px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">VALOR:</span>
             <span className="text-[9px] font-bold text-zinc-500 dark:text-zinc-500 tabular-nums uppercase underline decoration-zinc-800/20 underline-offset-2">
-              {(insumo.quantidadeAtual * insumo.custoMedioUnidade).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              {centavosParaReais(insumo.quantidadeAtual * insumo.custoMedioUnidade)}
             </span>
           </div>
         </div>

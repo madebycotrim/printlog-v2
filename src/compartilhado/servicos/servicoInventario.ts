@@ -95,8 +95,8 @@ export const servicoInventario = {
     });
 
     insumos.forEach((i) => {
-      const valorItem = i.quantidadeAtual * (i.custoMedioUnidade || 0);
-      valorTotal += valorItem;
+      const valorItemCentavos = i.quantidadeAtual * (i.custoMedioUnidade || 0);
+      valorTotal += valorItemCentavos;
 
       if (i.quantidadeAtual <= i.quantidadeMinima) {
         alertas++;

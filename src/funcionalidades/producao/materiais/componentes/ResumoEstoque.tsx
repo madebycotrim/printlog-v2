@@ -8,8 +8,12 @@ import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
 
 import { motion } from "framer-motion";
 
+import { Insumo } from "@/funcionalidades/producao/insumos/tipos";
+import { ModalPatrimonio } from "@/funcionalidades/geral/painel/componentes/ModalPatrimonio";
+
 interface PropriedadesResumoEstoque {
   materiais: Material[];
+  insumos: Insumo[];
   totalEmbalagens: number;
   valorInvestido: number;
   alertasBaixoEstoque: number;
@@ -20,11 +24,14 @@ interface PropriedadesResumoEstoque {
  */
 export function ResumoEstoque({
   materiais,
+  insumos,
   totalEmbalagens,
   valorInvestido,
   alertasBaixoEstoque,
 }: PropriedadesResumoEstoque) {
   const [modalGraficoAberto, definirModalGraficoAberto] = useState(false);
+  const [modalPatrimonioAberto, definirModalPatrimonioAberto] = useState(false);
+
   const previsaoResumo = useMemo(() => {
     const hoje = new Date();
     const trintaDiasAtras = new Date();
@@ -74,6 +81,8 @@ export function ResumoEstoque({
         valor={centavosParaReais(valorInvestido)}
         icone={DollarSign}
         cor="emerald"
+        aoClicar={() => definirModalPatrimonioAberto(true)}
+        textoAcao="Ver Detalhes"
       />
 
       <CardResumo
@@ -104,6 +113,14 @@ export function ResumoEstoque({
           <GraficoConsumoMateriais materiais={materiais} />
         </div>
       </Dialogo>
+
+      <ModalPatrimonio
+        aberto={modalPatrimonioAberto}
+        aoFechar={() => definirModalPatrimonioAberto(false)}
+        materiais={materiais}
+        insumos={insumos}
+        valorTotal={valorInvestido}
+      />
     </motion.div>
   );
 }
