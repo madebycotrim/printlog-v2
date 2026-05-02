@@ -25,7 +25,19 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
             const { results: pedidos } = await env.DB.prepare(
                 "SELECT * FROM pedidos_impressao WHERE id_usuario = ? AND arquivado = 0 ORDER BY data_criacao DESC"
             ).bind(usuarioId).all();
-            return new Response(JSON.stringify(pedidos), { headers: { "Content-Type": "application/json" } });
+
+            // Desempacotar dados extras para o frontend ver as colunas virtuais
+            const processados = pedidos.map((p: any) => {
+                if (p.dados_extras) {
+                    try {
+                        const extras = JSON.parse(p.dados_extras);
+                        return { ...p, ...extras };
+                    } catch (e) { return p; }
+                }
+                return p;
+            });
+
+            return new Response(JSON.stringify(processados), { headers: { "Content-Type": "application/json" } });
         }
 
         // POST - Criar
@@ -39,34 +51,31 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
             const valor_centavos = dados.valor_centavos ?? dados.valorCentavos ?? 0;
             const data_criacao = dados.data_criacao ?? dados.dataCriacao ?? new Date().toISOString();
             const descricao = dados.descricao ?? '';
-            const material = dados.material ?? '';
-            const peso_gramas = dados.peso_gramas ?? dados.pesoGramas ?? null;
-            const tempo_minutos = dados.tempo_minutos ?? dados.tempoMinutos ?? null;
-            const observacoes = dados.observacoes ?? '';
 
-            // Agrupar detalhes técnicos na descrição já que o banco não tem as colunas específicas
-            const descricaoCompleta = [
-                descricao,
-                material ? `Material: ${material}` : null,
-                peso_gramas ? `Peso: ${peso_gramas}g` : null,
-                tempo_minutos ? `Tempo: ${tempo_minutos}min` : null,
-                observacoes ? `Obs: ${observacoes}` : null
-            ].filter(Boolean).join(' | ');
+            // Preparar objeto de dados extras para não sujar a descrição
+            const dadosExtras = {
+                material: dados.material ?? dados.material_base,
+                peso_gramas: dados.peso_gramas ?? dados.pesoGramas,
+                tempo_minutos: dados.tempo_minutos ?? dados.tempoMinutos,
+                observacoes: dados.observacoes,
+                insumos_secundarios: dados.insumos_secundarios ? (typeof dados.insumos_secundarios === 'string' ? JSON.parse(dados.insumos_secundarios) : dados.insumos_secundarios) : []
+            };
 
             await env.DB.prepare(`
                 INSERT INTO pedidos_impressao (
                     id, id_usuario, id_cliente, id_impressora, descricao, 
-                    status, valor_centavos, data_criacao, arquivado
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                    status, valor_centavos, data_criacao, dados_extras, arquivado
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
             `).bind(
                 novoId, 
                 usuarioId, 
                 id_cliente, 
                 id_impressora, 
-                descricaoCompleta, 
+                descricao, 
                 dados.status ?? 'pendente', 
                 Number(valor_centavos) || 0, 
-                data_criacao
+                data_criacao,
+                JSON.stringify(dadosExtras)
             ).run();
 
             return new Response(JSON.stringify({ id: novoId, sucesso: true }), { 
@@ -84,10 +93,13 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
             const valor_centavos = dados.valor_centavos ?? dados.valorCentavos ?? 0;
             const data_conclusao = dados.data_conclusao ?? dados.dataConclusao ?? null;
 
+            const dadosExtras = dados.dados_extras ? JSON.stringify(dados.dados_extras) : null;
+
             await env.DB.prepare(`
                 UPDATE pedidos_impressao SET 
                     status = ?, descricao = ?, valor_centavos = ?,
-                    data_conclusao = ?, id_cliente = ?, id_impressora = ?
+                    data_conclusao = ?, id_cliente = ?, id_impressora = ?,
+                    dados_extras = ?
                 WHERE id = ? AND id_usuario = ?
             `).bind(
                 dados.status ?? 'pendente', 
@@ -96,6 +108,7 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
                 data_conclusao, 
                 id_cliente, 
                 id_impressora,
+                dadosExtras,
                 dados.id, 
                 usuarioId
             ).run();

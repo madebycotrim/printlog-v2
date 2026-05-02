@@ -8,13 +8,37 @@ import { criarPedidoSchema, atualizarPedidoSchema, CriarPedidoInput, AtualizarPe
  */
 export const apiPedidos = {
     /**
+     * Mapeia um objeto do banco (snake_case) de volta para o frontend (camelCase).
+     */
+    mapearParaFrontend: (dados: any): Pedido => {
+        return {
+            id: dados.id,
+            idUsuario: dados.id_usuario,
+            idCliente: dados.id_cliente ?? dados.idCliente,
+            nomeCliente: dados.nome_cliente,
+            descricao: dados.descricao,
+            status: dados.status,
+            valorCentavos: dados.valor_centavos ?? dados.valorCentavos,
+            dataCriacao: new Date(dados.data_criacao ?? dados.dataCriacao),
+            dataConclusao: (dados.data_conclusao ?? dados.dataConclusao) ? new Date(dados.data_conclusao ?? dados.dataConclusao) : undefined,
+            prazoEntrega: (dados.prazo_entrega ?? dados.prazoEntrega) ? new Date(dados.prazo_entrega ?? dados.prazoEntrega) : undefined,
+            observacoes: dados.observacoes,
+            material: dados.material,
+            pesoGramas: dados.peso_gramas ?? dados.pesoGramas,
+            tempoMinutos: dados.tempo_minutos ?? dados.tempoMinutos,
+            idImpressora: dados.id_impressora ?? dados.idImpressora,
+            insumosSecundarios: typeof dados.insumos_secundarios === 'string' 
+                ? JSON.parse(dados.insumos_secundarios) 
+                : (dados.insumos_secundarios ?? dados.insumosSecundarios ?? [])
+        };
+    },
+
+    /**
      * Busca todos os pedidos do usuário no D1.
-     * O backend deve extrair o ID do usuário do Token de Autenticação.
      */
     buscarTodos: async (_usuarioId: string): Promise<Pedido[]> => {
-        // Nota: O usuarioId não é mais enviado via header customizado inseguro.
-        // O servicoBaseApi injeta o Bearer Token que contém o ID validado.
-        return servicoBaseApi.get<Pedido[]>("/api/pedidos");
+        const resultados = await servicoBaseApi.get<any[]>("/api/pedidos");
+        return (resultados || []).map(apiPedidos.mapearParaFrontend);
     },
 
     /**
