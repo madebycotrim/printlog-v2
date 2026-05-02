@@ -133,6 +133,18 @@ export function formatarDataHora(data: Date | string | number): string {
 }
 
 /**
+ * Formata um objeto Date para o padrão brasileiro completo (Ex: 15 de março de 2024)
+ */
+export function formatarDataCompleta(data: Date | string | number): string {
+    const d = new Date(data);
+    return d.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+    });
+}
+
+/**
  * Retorna o termo correto (singular/plural) baseado na quantidade.
  * Ex: pluralizar(2, "unidade", "unidades") -> "2 unidades"
  */

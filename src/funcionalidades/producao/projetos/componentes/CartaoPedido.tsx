@@ -1,4 +1,5 @@
 import { DollarSign, User, MoreVertical, Trash2, Edit3, Clock, Package } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { Pedido } from "../tipos";
 import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,17 +9,21 @@ import { verificarSeEstaAtrasado } from "@/compartilhado/utilitarios/gestaoAtras
 import { formatarDataCurta } from "@/compartilhado/utilitarios/formatadores";
 import { StatusPedido } from "@/compartilhado/tipos/modelos";
 import { usarArmazemImpressoras } from "@/funcionalidades/producao/impressoras/estado/armazemImpressoras";
+import { ModalDetalhesPedido } from "./ModalDetalhesPedido";
+import { ModalFalhaProjeto } from "./ModalFalhaProjeto";
 import { Settings } from "lucide-react";
 
 interface PropriedadesCartaoPedido {
   pedido: Pedido;
-  aoEditar?: (id: string) => void;
+  abrirFormularioEdicao?: (id: string) => void;
 }
 
-export function CartaoPedido({ pedido, aoEditar }: PropriedadesCartaoPedido) {
+export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCartaoPedido) {
   const { excluirPedido, moverPedido } = usarPedidos();
   const { impressoras } = usarArmazemImpressoras();
   const [menuAberto, setMenuAberto] = useState(false);
+  const [modalDetalhesAberto, setModalDetalhesAberto] = useState(false);
+  const [modalFalhaAberto, setModalFalhaAberto] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const estaAtrasado = useMemo(() => verificarSeEstaAtrasado(pedido), [pedido]);
@@ -60,13 +65,17 @@ export function CartaoPedido({ pedido, aoEditar }: PropriedadesCartaoPedido) {
         e.dataTransfer.setData("text/plain", pedido.id);
         e.dataTransfer.effectAllowed = "move";
       }}
-      onClick={() => !menuAberto && aoEditar?.(pedido.id)}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!menuAberto) setModalDetalhesAberto(true);
+      }}
       className={`${menuAberto ? "cursor-default" : "cursor-grab active:cursor-grabbing"} group/card ${menuAberto ? "relative z-[100]" : "relative z-10"} active:scale-[0.98] transition-transform`}
     >
       <div
         className={`
           relative p-3 rounded-xl border transition-all duration-300
-          bg-[#121214] border-white/[0.04] group-hover/card:border-white/10
+          bg-[#121214] border-white/5 group-hover/card:border-white/10
           ${estaAtrasado ? "border-rose-500/30 ring-1 ring-rose-500/10 shadow-[0_0_15px_rgba(244,63,94,0.1)]" : "hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)]"}
           ${menuAberto ? "z-[100]" : "z-10"}
         `}
@@ -115,12 +124,23 @@ export function CartaoPedido({ pedido, aoEditar }: PropriedadesCartaoPedido) {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      aoEditar?.(pedido.id);
+                      abrirFormularioEdicao?.(pedido.id);
                       setMenuAberto(false);
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:bg-white/5 hover:text-white transition-colors"
                   >
                     <Edit3 size={12} className="text-indigo-400" /> Editar
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setModalFalhaAberto(true);
+                      setMenuAberto(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:bg-white/5 hover:text-white transition-colors"
+                  >
+                    <Settings size={12} className="text-amber-500/70" /> Registrar Falha
                   </button>
                   <button
                     onClick={(e) => {
@@ -256,6 +276,22 @@ export function CartaoPedido({ pedido, aoEditar }: PropriedadesCartaoPedido) {
           </div>
         </div>
       </div>
+
+      <ModalDetalhesPedido 
+        aberto={modalDetalhesAberto} 
+        aoFechar={() => setModalDetalhesAberto(false)} 
+        pedido={pedido} 
+      />
+
+      <ModalFalhaProjeto
+        aberto={modalFalhaAberto}
+        aoFechar={() => setModalFalhaAberto(false)}
+        pedido={pedido}
+        aoConfirmar={() => {
+          // Aqui no futuro chamaremos o serviço real
+          toast.success("Falha registrada. O sistema descontou o material perdido.");
+        }}
+      />
     </div>
   );
 }

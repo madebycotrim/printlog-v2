@@ -45,7 +45,7 @@ export function PaginaProjetos() {
     setPedidoEdicao(null);
   };
 
-  const aoEditar = (id: string) => {
+  const abrirFormularioEdicao = (id: string) => {
     const pedido = pedidos.find((p) => p.id === id);
     if (pedido) {
       setPedidoEdicao(pedido);
@@ -97,7 +97,7 @@ export function PaginaProjetos() {
             />
 
             <div className="flex-1 min-h-0">
-              <QuadroKanban pedidosInjetados={pedidosFiltrados} aoEditar={aoEditar} aoMover={moverPedido} />
+              <QuadroKanban pedidosInjetados={pedidosFiltrados} abrirFormularioEdicao={abrirFormularioEdicao} aoMover={moverPedido} />
             </div>
           </motion.div>
         )}
@@ -117,14 +117,14 @@ export function PaginaProjetos() {
         aberto={modalArquivoAberto}
         aoFechar={() => setModalArquivoAberto(false)}
         pedidos={pedidos}
-        aoEditar={aoEditar}
+        abrirFormularioEdicao={abrirFormularioEdicao}
       />
 
       <ModalProjetosAtrasados
         aberto={modalAtrasadosAberto}
         aoFechar={() => setModalAtrasadosAberto(false)}
         pedidos={pedidos}
-        aoEditar={aoEditar}
+        abrirFormularioEdicao={abrirFormularioEdicao}
       />
     </div>
   );

@@ -71,7 +71,7 @@ export function StatusTempoReal() {
                 onClick={() => navegar("/impressoras")}
                 className="mt-8 w-full py-4 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-black font-black text-xs uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
             >
-                Ver Parque Completo
+                VER FARM COMPLETA
                 <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
         </div>

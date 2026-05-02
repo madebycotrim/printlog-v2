@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Save, Tag, FileText, Calendar, User, ArrowUpRight, ArrowDownLeft } from "lucide-react";
-import { Dialogo } from "@/compartilhado/componentes/Dialogo";
 import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
 import { CampoMonetario } from "@/compartilhado/componentes/CampoMonetario";
 import { AcoesDescarte } from "@/compartilhado/componentes/AcoesDescarte";
@@ -116,137 +115,135 @@ export function FormularioLancamento({ aberto, aoSalvar, aoCancelar }: Formulari
   };
 
   return (
-    <Dialogo aberto={aberto} aoFechar={lidarComTentativaFechamento} titulo="Registro Financeiro" larguraMax="max-w-xl">
-      <form onSubmit={handleSubmit(aoSubmeter)} className="flex flex-col bg-white dark:bg-[#18181b]">
-        <div className="p-6 md:p-8 space-y-10">
-          <div className="space-y-6">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-              Dados da Movimentação
-            </h4>
+    <form onSubmit={handleSubmit(aoSubmeter)} className="flex flex-col bg-white dark:bg-[#18181b]">
+      <div className="p-6 md:p-8 space-y-10">
+        <div className="space-y-6">
+          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+            Dados da Movimentação
+          </h4>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                Tipo de Fluxo
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setValue("tipo", TipoLancamentoFinanceiro.ENTRADA, { shouldDirty: true })}
+                  className={`flex items-center justify-center gap-2 py-3 rounded-2xl border-2 transition-all ${
+                    tipoSelecionado === TipoLancamentoFinanceiro.ENTRADA
+                      ? "bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-400"
+                      : "bg-transparent border-zinc-100 dark:border-white/5 text-zinc-400"
+                  }`}
+                >
+                  <ArrowUpRight size={16} strokeWidth={3} />
+                  <span className="text-[11px] font-black uppercase">Entrada</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setValue("tipo", TipoLancamentoFinanceiro.SAIDA, { shouldDirty: true })}
+                  className={`flex items-center justify-center gap-2 py-3 rounded-2xl border-2 transition-all ${
+                    tipoSelecionado === TipoLancamentoFinanceiro.SAIDA
+                      ? "bg-rose-500/10 border-rose-500 text-rose-600 dark:text-rose-400"
+                      : "bg-transparent border-zinc-100 dark:border-white/5 text-zinc-400"
+                  }`}
+                >
+                  <ArrowDownLeft size={16} strokeWidth={3} />
+                  <span className="text-[11px] font-black uppercase">Saída</span>
+                </button>
+              </div>
+            </div>
+
+            <CampoMonetario
+              rotulo="Valor Real"
+              erro={errors.valor?.message}
+              placeholder="0,00"
+              icone={tipoSelecionado === TipoLancamentoFinanceiro.ENTRADA ? ArrowUpRight : ArrowDownLeft}
+              {...register("valor", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+            Categorização & Vínculo
+          </h4>
+
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                Vincular Cliente (Opcional)
+              </label>
+              <Combobox
+                opcoes={estadoClientes.clientes.map((c) => ({ valor: c.id, rotulo: c.nome }))}
+                valor={clienteSelecionado || ""}
+                aoAlterar={(val) => setValue("idCliente", val, { shouldDirty: true })}
+                aoCriarNovo={lidarComCriarCliente}
+                placeholder="Pesquisar parceiro..."
+                icone={User}
+              />
+            </div>
+
+            <CampoTexto
+              rotulo="O que foi?"
+              icone={FileText}
+              placeholder="Ex: Venda de Action Figure, Compra de Bico 0.4..."
+              erro={errors.descricao?.message}
+              {...register("descricao")}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
-                  Tipo de Fluxo
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setValue("tipo", TipoLancamentoFinanceiro.ENTRADA, { shouldDirty: true })}
-                    className={`flex items-center justify-center gap-2 py-3 rounded-2xl border-2 transition-all ${
-                      tipoSelecionado === TipoLancamentoFinanceiro.ENTRADA
-                        ? "bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-400"
-                        : "bg-transparent border-zinc-100 dark:border-white/5 text-zinc-400"
-                    }`}
-                  >
-                    <ArrowUpRight size={16} strokeWidth={3} />
-                    <span className="text-[11px] font-black uppercase">Entrada</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setValue("tipo", TipoLancamentoFinanceiro.SAIDA, { shouldDirty: true })}
-                    className={`flex items-center justify-center gap-2 py-3 rounded-2xl border-2 transition-all ${
-                      tipoSelecionado === TipoLancamentoFinanceiro.SAIDA
-                        ? "bg-rose-500/10 border-rose-500 text-rose-600 dark:text-rose-400"
-                        : "bg-transparent border-zinc-100 dark:border-white/5 text-zinc-400"
-                    }`}
-                  >
-                    <ArrowDownLeft size={16} strokeWidth={3} />
-                    <span className="text-[11px] font-black uppercase">Saída</span>
-                  </button>
-                </div>
-              </div>
-
-              <CampoMonetario
-                rotulo="Valor Real"
-                erro={errors.valor?.message}
-                placeholder="0,00"
-                icone={tipoSelecionado === TipoLancamentoFinanceiro.ENTRADA ? ArrowUpRight : ArrowDownLeft}
-                {...register("valor", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })}
+              <CampoTexto
+                rotulo="Categoria"
+                icone={Tag}
+                placeholder="Vendas, Peças, Fixos..."
+                erro={errors.categoria?.message}
+                {...register("categoria")}
               />
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-              Categorização & Vínculo
-            </h4>
-
-            <div className="grid grid-cols-1 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
-                  Vincular Cliente (Opcional)
-                </label>
-                <Combobox
-                  opcoes={estadoClientes.clientes.map((c) => ({ valor: c.id, rotulo: c.nome }))}
-                  valor={clienteSelecionado || ""}
-                  aoAlterar={(val) => setValue("idCliente", val, { shouldDirty: true })}
-                  aoCriarNovo={lidarComCriarCliente}
-                  placeholder="Pesquisar parceiro..."
-                  icone={User}
-                />
-              </div>
 
               <CampoTexto
-                rotulo="O que foi?"
-                icone={FileText}
-                placeholder="Ex: Venda de Action Figure, Compra de Bico 0.4..."
-                erro={errors.descricao?.message}
-                {...register("descricao")}
+                rotulo="Data"
+                icone={Calendar}
+                type="date"
+                erro={errors.data?.message}
+                {...register("data", { valueAsDate: true })}
               />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <CampoTexto
-                  rotulo="Categoria"
-                  icone={Tag}
-                  placeholder="Vendas, Peças, Fixos..."
-                  erro={errors.categoria?.message}
-                  {...register("categoria")}
-                />
-
-                <CampoTexto
-                  rotulo="Data"
-                  icone={Calendar}
-                  type="date"
-                  erro={errors.data?.message}
-                  {...register("data", { valueAsDate: true })}
-                />
-              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="p-6 border-t border-zinc-100 dark:border-white/5 bg-zinc-50/50 dark:bg-[#0e0e11]/50 flex flex-col items-end gap-3 rounded-b-[2rem]">
-          {!confirmarDescarte ? (
-            <div className="flex items-center gap-3 w-full justify-between md:justify-end">
-              <button
-                type="button"
-                onClick={lidarComTentativaFechamento}
-                className="px-6 py-2.5 text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className={`px-8 py-3 flex-1 md:flex-none justify-center text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all active:scale-95 flex items-center gap-2 ${
-                  tipoSelecionado === TipoLancamentoFinanceiro.ENTRADA
-                    ? "bg-emerald-600 shadow-emerald-600/20 hover:bg-emerald-500"
-                    : "bg-rose-600 shadow-rose-600/20 hover:bg-rose-500"
-                }`}
-              >
-                <Save size={16} strokeWidth={3} />
-                {tipoSelecionado === TipoLancamentoFinanceiro.ENTRADA ? "Confirmar Entrada" : "Confirmar Saída"}
-              </button>
-            </div>
-          ) : (
-            <AcoesDescarte
-              aoConfirmarDescarte={aoCancelar}
-              aoContinuarEditando={() => setConfirmarDescarte(false)}
-            />
-          )}
-        </div>
-      </form>
-    </Dialogo>
+      <div className="p-6 border-t border-zinc-100 dark:border-white/5 bg-zinc-50/50 dark:bg-[#0e0e11]/50 flex flex-col items-end gap-3 rounded-b-[2rem]">
+        {!confirmarDescarte ? (
+          <div className="flex items-center gap-3 w-full justify-between md:justify-end">
+            <button
+              type="button"
+              onClick={lidarComTentativaFechamento}
+              className="px-6 py-2.5 text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-all"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className={`px-8 py-3 flex-1 md:flex-none justify-center text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all active:scale-95 flex items-center gap-2 ${
+                tipoSelecionado === TipoLancamentoFinanceiro.ENTRADA
+                  ? "bg-emerald-600 shadow-emerald-600/20 hover:bg-emerald-500"
+                  : "bg-rose-600 shadow-rose-600/20 hover:bg-rose-500"
+              }`}
+            >
+              <Save size={16} strokeWidth={3} />
+              {tipoSelecionado === TipoLancamentoFinanceiro.ENTRADA ? "Confirmar Entrada" : "Confirmar Saída"}
+            </button>
+          </div>
+        ) : (
+          <AcoesDescarte
+            aoConfirmarDescarte={aoCancelar}
+            aoContinuarEditando={() => setConfirmarDescarte(false)}
+          />
+        )}
+      </div>
+    </form>
   );
 }

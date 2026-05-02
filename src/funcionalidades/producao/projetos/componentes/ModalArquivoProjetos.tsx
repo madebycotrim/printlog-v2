@@ -9,14 +9,14 @@ interface PropriedadesModalArquivoProjetos {
   aberto: boolean;
   aoFechar: () => void;
   pedidos: Pedido[];
-  aoEditar?: (id: string) => void;
+  abrirFormularioEdicao?: (id: string) => void;
 }
 
 /**
  * 🗄️ ModalArquivoProjetos - Histórico de Produção
  * Utiliza o padrão universal ModalListagemPremium.
  */
-export function ModalArquivoProjetos({ aberto, aoFechar, pedidos, aoEditar }: PropriedadesModalArquivoProjetos) {
+export function ModalArquivoProjetos({ aberto, aoFechar, pedidos, abrirFormularioEdicao }: PropriedadesModalArquivoProjetos) {
   const [busca, setBusca] = useState("");
 
   const pedidosArquivados = useMemo(() => {
@@ -49,7 +49,7 @@ export function ModalArquivoProjetos({ aberto, aoFechar, pedidos, aoEditar }: Pr
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filtrados.map((p) => (
-          <CartaoPedido key={p.id} pedido={p} aoEditar={aoEditar} />
+          <CartaoPedido key={p.id} pedido={p} abrirFormularioEdicao={abrirFormularioEdicao} />
         ))}
       </div>
     </ModalListagemPremium>

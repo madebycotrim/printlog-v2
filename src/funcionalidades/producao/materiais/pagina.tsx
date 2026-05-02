@@ -34,7 +34,7 @@ export function PaginaMateriais() {
   }, [usuario?.uid]);
 
   usarDefinirCabecalho({
-    titulo: "Estoque de Insumos",
+    titulo: "Meus Materiais",
     subtitulo: "Gestão inteligente de filamentos, resinas e patrimônio técnico",
     placeholderBusca: "Buscar fabricante, cor ou tipo de material...",
     aoBuscar: acoes.definirTermoBusca,

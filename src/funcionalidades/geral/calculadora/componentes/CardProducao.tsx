@@ -27,9 +27,6 @@ export const CardProducao = memo(function CardProducao({
   tempo, setTempo, potencia, setPotencia, precoKwh, setPrecoKwh, custoEnergia, cobrarEnergia, setCobrarEnergia, posProcesso, setPosProcesso,
   impressoras = [], idImpressoraSelecionada, quantidade, setQuantidade
 }: CardProducaoProps) {
-  const [novoItemNome, setNovoItemNome] = useState("");
-  const [novoItemValor, setNovoItemValor] = useState(0);
-
   const impressoraAtiva = impressoras.find(i => i.id === idImpressoraSelecionada);
 
   return (
@@ -182,40 +179,84 @@ export const CardProducao = memo(function CardProducao({
 
         {/* Coluna Direita: Pós-Processamento */}
         <div className="flex-1 flex flex-col h-full md:pl-6">
-          <label className="block h-4 text-xs font-black uppercase text-gray-400 mb-2 shrink-0">
-            PÓS-PROCESSAMENTO
-          </label>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white">
+                Pós-Processamento
+              </label>
+              <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Lixamento, Pintura, Cola e Acabamentos</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setPosProcesso([...posProcesso, { id: crypto.randomUUID(), nome: "Novo Item", valor: 0 }]);
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[9px] font-black uppercase tracking-widest rounded-lg hover:brightness-110 transition-all"
+            >
+              <Plus size={10} strokeWidth={3} />
+              Adicionar Item
+            </button>
+          </div>
 
-          <div className="h-[140px] overflow-y-auto space-y-2 mb-3 pr-2">
+          <div className="h-[200px] overflow-y-auto space-y-2 mb-3 pr-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-800/50">
             {posProcesso.length === 0 ? (
               <div className="w-full border border-dashed border-gray-100 dark:border-white/5 rounded-2xl flex flex-col items-center justify-center h-full min-h-[120px] p-4 text-center bg-transparent">
                 <Plus size={20} className="text-gray-400 dark:text-zinc-600 mb-2" />
-                <span className="text-xs font-black text-gray-400 dark:text-zinc-500 uppercase tracking-wider">Nenhum item adicionado</span>
-                <span className="text-[10px] font-bold text-gray-300 dark:text-zinc-600 uppercase mt-1">Ex: Lixamento, Pintura, Cola...</span>
+                <span className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">Nenhum acabamento extra aplicado</span>
               </div>
             ) : (
-              posProcesso.map(item => (
-                <div key={item.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-transparent">
-                  <span className="text-xs font-bold uppercase truncate max-w-[120px] text-gray-900 dark:text-white">{item.nome}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-black text-zinc-900 dark:text-white">
-                      <ContadorAnimado valor={item.valor} />
-                    </span>
-                    <button onClick={() => setPosProcesso(posProcesso.filter(i => i.id !== item.id))} className="text-rose-500 hover:scale-110 transition-transform">
+              <div className="space-y-3">
+                {posProcesso.map((item, index) => (
+                  <div key={item.id} className="flex items-center gap-3 p-2 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 rounded-xl group animate-in slide-in-from-right-2 duration-300">
+                    <div className="flex-1 min-w-[120px]">
+                      <input
+                        type="text"
+                        value={item.nome}
+                        placeholder="Nome do item..."
+                        onChange={(e) => {
+                          const novaLista = [...posProcesso];
+                          novaLista[index].nome = e.target.value;
+                          setPosProcesso(novaLista);
+                        }}
+                        className="w-full bg-transparent border-0 border-b border-zinc-200 dark:border-white/10 text-[11px] font-black uppercase tracking-tight text-zinc-900 dark:text-white outline-none focus:border-amber-500 py-1 transition-colors"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 w-20">
+                      <input
+                        type="number"
+                        placeholder="0,00"
+                        value={item.valor === 0 ? "" : item.valor}
+                        onChange={(e) => {
+                          const novaLista = [...posProcesso];
+                          novaLista[index].valor = Number(e.target.value);
+                          setPosProcesso(novaLista);
+                        }}
+                        className="w-full bg-transparent border-0 border-b border-zinc-200 dark:border-white/10 text-[11px] font-black text-center text-zinc-900 dark:text-white outline-none focus:border-amber-500 py-1 transition-colors"
+                      />
+                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">R$</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setPosProcesso(posProcesso.filter(i => i.id !== item.id))}
+                      className="p-1.5 text-zinc-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+                    >
                       <Trash2 size={12} />
                     </button>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
+                ))}
 
-          <div className="flex gap-2 shrink-0 mt-auto">
-            <input type="text" placeholder="Item..." value={novoItemNome} onChange={(e) => setNovoItemNome(e.target.value)} className="flex-1 h-11 px-4 rounded-xl bg-zinc-100/50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-white/5 focus-within:border-amber-500/40 outline-none font-black text-xs uppercase text-zinc-900 dark:text-white transition-all shadow-inner" />
-            <input type="number" placeholder="R$" value={novoItemValor === 0 ? "" : novoItemValor} onChange={(e) => setNovoItemValor(Number(e.target.value))} className="w-20 h-11 px-4 rounded-xl bg-zinc-100/50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-white/5 focus-within:border-amber-500/40 outline-none font-black text-xs text-zinc-900 dark:text-white transition-all shadow-inner" />
-            <button onClick={() => { if (novoItemNome && novoItemValor > 0) { setPosProcesso([...posProcesso, { id: crypto.randomUUID(), nome: novoItemNome, valor: novoItemValor }]); setNovoItemNome(""); setNovoItemValor(0); } }} className="w-11 h-11 rounded-xl bg-amber-500 text-white flex items-center justify-center hover:bg-amber-600 transition-colors">
-              <Plus size={16} />
-            </button>
+                <div className="pt-2 px-3 flex justify-end">
+                  <div className="text-right">
+                    <p className="text-[8px] font-black uppercase tracking-widest text-zinc-400">Total em Pós-Processamento</p>
+                    <p className="text-xs font-black text-zinc-900 dark:text-white">
+                      {posProcesso.reduce((acc, i) => acc + (i.valor || 0), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

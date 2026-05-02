@@ -1,6 +1,11 @@
-import { StatusPedido } from "@/compartilhado/tipos/modelos";
+import { StatusPedido, TipoLancamentoFinanceiro } from "@/compartilhado/tipos/modelos";
 import { Pedido, CriarPedidoInput, AtualizarPedidoInput } from "../tipos";
 import { apiPedidos } from "./apiPedidos";
+import { apiMateriais } from "@/funcionalidades/producao/materiais/servicos/apiMateriais";
+import { apiInsumos } from "@/funcionalidades/producao/insumos/servicos/apiInsumos";
+import { servicoFinanceiro } from "@/funcionalidades/comercial/financeiro/servicos/servicoFinanceiro";
+import { usarArmazemNotificacoes } from "@/compartilhado/estado/armazemNotificacoes";
+import { TipoNotificacao, CategoriaNotificacao } from "@/compartilhado/tipos/notificacoes";
 
 /**
  * Serviço de Negócio para Pedidos e Fluxo de Produção.
@@ -92,6 +97,98 @@ class ServicoPedidos {
   }
 
   async atualizarStatus(id: string, novoStatus: StatusPedido, usuarioId: string): Promise<Pedido> {
+    // Para realizar o abate e financeiro, precisamos dos dados do pedido
+    const todos = await apiPedidos.buscarTodos(usuarioId);
+    const pedido = todos.find(p => p.id === id);
+
+    // Lógica de Ativação (Aprovação do Orçamento)
+    if (novoStatus === StatusPedido.EM_PRODUCAO && pedido && pedido.status === StatusPedido.A_FAZER) {
+      const rastreioId = `aprovacao-${id}`;
+
+      // 1. Abate de Materiais (Filamentos/Resinas)
+      if (pedido.materiais && pedido.materiais.length > 0) {
+        for (const mat of pedido.materiais) {
+          try {
+            // Buscamos o material atual para saber o peso restante
+            const listaMats = await apiMateriais.listar(usuarioId);
+            const materialEstoque = listaMats.find(m => m.id === mat.idMaterial);
+            
+            if (materialEstoque) {
+              const novoPeso = Math.max(0, (materialEstoque.pesoRestanteGramas || 0) - mat.quantidadeGasta);
+              await apiMateriais.atualizar(
+                { id: mat.idMaterial, pesoRestanteGramas: novoPeso },
+                usuarioId,
+                {
+                  data: new Date().toISOString(),
+                  nomePeca: pedido.descricao,
+                  quantidadeGastaGramas: mat.quantidadeGasta,
+                  status: "SUCESSO"
+                }
+              );
+
+              // Alerta de Estoque Baixo Inteligente
+              if (novoPeso < 200) {
+                usarArmazemNotificacoes.getState().adicionarNotificacao({
+                  titulo: `Estoque Baixo: ${mat.nome} ⚠️`,
+                  mensagem: `Restam apenas ${Math.round(novoPeso)}g. Considere comprar mais em breve.`,
+                  tipo: TipoNotificacao.AVISO,
+                  categoria: CategoriaNotificacao.SISTEMA,
+                  idReferencia: mat.idMaterial,
+                  link: "/materiais"
+                });
+              }
+            }
+          } catch (e) {
+            console.error(`[Estoque] Erro ao bater material ${mat.nome}:`, e);
+          }
+        }
+      }
+
+      // 2. Abate de Insumos Secundários (Parafusos, etc)
+      if (pedido.insumosSecundarios && pedido.insumosSecundarios.length > 0) {
+        for (const ins of pedido.insumosSecundarios) {
+          try {
+            const listaIns = await apiInsumos.listar(usuarioId);
+            const insumoEstoque = listaIns.find(i => i.id === ins.idInsumo);
+
+            if (insumoEstoque) {
+              const novaQtd = Math.max(0, (insumoEstoque.quantidadeAtual || 0) - ins.quantidade);
+              await apiInsumos.atualizar(
+                { id: ins.idInsumo, quantidadeAtual: novaQtd },
+                usuarioId,
+                {
+                  id: crypto.randomUUID(),
+                  data: new Date().toISOString(),
+                  tipo: "Saída",
+                  quantidade: ins.quantidade,
+                  motivo: "Consumo",
+                  observacao: `Uso no projeto: ${pedido.descricao}`,
+                  valorTotal: ins.quantidade * (insumoEstoque.custoMedioUnidade || 0)
+                }
+              );
+            }
+          } catch (e) {
+            console.error(`[Estoque] Erro ao bater insumo ${ins.nome}:`, e);
+          }
+        }
+      }
+
+      // 3. Lançamento Financeiro (Receita)
+      try {
+        await servicoFinanceiro.registrarLancamento({
+          descricao: `Receita: ${pedido.descricao}`,
+          valorCentavos: pedido.valorCentavos,
+          tipo: TipoLancamentoFinanceiro.ENTRADA,
+          categoria: "Venda de Impressão 3D",
+          data: new Date(),
+          idCliente: pedido.idCliente,
+          idReferencia: pedido.id,
+        }, usuarioId, rastreioId);
+      } catch (e) {
+        console.error("[Financeiro] Erro ao registrar lançamento:", e);
+      }
+    }
+
     return this.atualizarPedido({ id, status: novoStatus }, usuarioId);
   }
 

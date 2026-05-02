@@ -7,11 +7,11 @@ import { verificarSeEstaAtrasado } from "@/compartilhado/utilitarios/gestaoAtras
 
 interface PropriedadesQuadroKanban {
   pedidosInjetados?: Pedido[];
-  aoEditar?: (id: string) => void;
+  abrirFormularioEdicao?: (id: string) => void;
   aoMover?: (id: string, novoStatus: StatusPedido) => void;
 }
 
-export function QuadroKanban({ pedidosInjetados, aoEditar, aoMover }: PropriedadesQuadroKanban) {
+export function QuadroKanban({ pedidosInjetados, abrirFormularioEdicao, aoMover }: PropriedadesQuadroKanban) {
   const { pedidos: pedidosHook, carregando, moverPedido: moverPedidoHook } = usarPedidos();
 
   // Se pedidosInjetados for fornecido, usa ele (para busca/filtros da página),
@@ -75,7 +75,7 @@ export function QuadroKanban({ pedidosInjetados, aoEditar, aoMover }: Propriedad
             cor={coluna.cor}
             pedidos={pedidosDaColuna}
             aoMover={lidarComMover}
-            aoEditar={aoEditar}
+            abrirFormularioEdicao={abrirFormularioEdicao}
           />
         );
       })}

@@ -9,11 +9,11 @@ interface PropriedadesColunaKanban {
   status: StatusPedido;
   pedidos: Pedido[];
   aoMover: (id: string, novoStatus: StatusPedido) => void;
-  aoEditar?: (id: string) => void;
+  abrirFormularioEdicao?: (id: string) => void;
   cor: string;
 }
 
-export function ColunaKanban({ titulo, status, pedidos, aoMover, aoEditar, cor }: PropriedadesColunaKanban) {
+export function ColunaKanban({ titulo, status, pedidos, aoMover, abrirFormularioEdicao, cor }: PropriedadesColunaKanban) {
   const [arrastandoSobre, setArrastandoSobre] = useState(false);
 
   const lidarComDragEnter = (e: React.DragEvent) => {
@@ -98,7 +98,7 @@ export function ColunaKanban({ titulo, status, pedidos, aoMover, aoEditar, cor }
               className="flex-1 min-h-0 flex flex-col gap-4 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-white/5"
             >
               {pedidos.map((pedido) => (
-                <CartaoPedido key={pedido.id} pedido={pedido} aoEditar={aoEditar} />
+                <CartaoPedido key={pedido.id} pedido={pedido} abrirFormularioEdicao={abrirFormularioEdicao} />
               ))}
             </motion.div>
           )}

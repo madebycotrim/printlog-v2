@@ -1,0 +1,218 @@
+import { Crown, Settings, Zap, Percent, Wrench, Clock, X } from "lucide-react";
+import { Dialogo } from "@/compartilhado/componentes/Dialogo";
+import { extrairValorNumerico } from "@/compartilhado/utilitarios/formatadores";
+
+/**
+ * Interface para as propriedades do ModalConfiguracoes.
+ */
+interface PropriedadesModalConfiguracoes {
+  aberto: boolean;
+  aoFechar: () => void;
+  eProOuSuperior: boolean;
+  config: any;
+  hook: any;
+  aoSalvar: () => Promise<void>;
+}
+
+/**
+ * Modal de configurações de motores de custeio e identidade visual do estúdio.
+ */
+export function ModalConfiguracoes({
+  aberto,
+  aoFechar,
+  eProOuSuperior,
+  config,
+  hook,
+  aoSalvar
+}: PropriedadesModalConfiguracoes) {
+  return (
+    <Dialogo aberto={aberto} aoFechar={aoFechar} larguraMax="max-w-4xl" esconderCabecalho={true}>
+      <div className="flex flex-col md:flex-row bg-[#121214] rounded-2xl overflow-hidden shadow-2xl relative w-full border border-zinc-800">
+
+        {/* PAINEL ESQUERDO: IDENTIDADE (PDF) */}
+        <div className="w-full md:w-2/5 p-8 bg-[#18181b] relative flex flex-col border-b md:border-b-0 md:border-r border-zinc-800">
+          <div className="relative z-10 flex-1 flex flex-col justify-between h-full">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <Crown size={16} className="text-zinc-400" />
+                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-300">Personalizar Orçamento</h3>
+              </div>
+
+              <div className={`space-y-4 transition-all ${!eProOuSuperior ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+                <div className="flex flex-col gap-1.5 group">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-1">Nome do Estúdio</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: PrintPro Lab"
+                    value={config.nomeEstudio}
+                    onChange={(e) => config.definirIdentidadeEstudio(e.target.value, config.sloganEstudio)}
+                    className="w-full h-11 bg-zinc-900 border border-zinc-800 rounded-lg px-3 text-xs font-bold text-white focus:border-zinc-700 focus:outline-none transition-all placeholder:text-zinc-600 shadow-sm"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5 group">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-1">Slogan / Frase de Rodapé</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Impressão 3D de alta precisão"
+                    value={config.sloganEstudio}
+                    onChange={(e) => config.definirIdentidadeEstudio(config.nomeEstudio, e.target.value)}
+                    className="w-full h-11 bg-zinc-900 border border-zinc-800 rounded-lg px-3 text-xs font-bold text-white focus:border-zinc-700 focus:outline-none transition-all placeholder:text-zinc-600 shadow-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Preview Dinâmico do Rodapé PRO */}
+            {eProOuSuperior && (
+              <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col gap-1 mt-6">
+                <span className="text-[9px] font-black uppercase text-zinc-500 border-b border-zinc-800 pb-1.5 mb-1 tracking-wider">
+                  Pré-Visualização
+                </span>
+                <span className="text-xs font-bold text-zinc-200 truncate">
+                  {config.nomeEstudio || "Seu Estúdio"}
+                </span>
+                <span className="text-[10px] font-bold text-zinc-500 italic truncate">
+                  {config.sloganEstudio || "Seu slogan aqui"}
+                </span>
+              </div>
+            )}
+
+            {!eProOuSuperior && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-sm rounded-xl text-center gap-2">
+                <Crown size={24} className="text-zinc-500" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs font-black uppercase tracking-wider text-zinc-300">Exclusivo PRO</span>
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-relaxed">
+                    Personalize seus orçamentos
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="relative z-10 mt-6 flex justify-between items-center text-[8px] font-bold text-zinc-600 uppercase tracking-widest pt-4 border-t border-zinc-800/40">
+            <span>PrintLog OS</span>
+            <span>2026</span>
+          </div>
+        </div>
+
+        {/* PAINEL DIREITO: MOTORES OPERACIONAIS */}
+        <div className="w-full md:w-3/5 p-8 bg-[#121214] relative flex flex-col justify-between">
+          <button
+            onClick={aoFechar}
+            className="absolute top-6 right-6 w-8 h-8 rounded-lg text-zinc-500 hover:text-zinc-200 transition-all bg-zinc-900 border border-zinc-800 flex items-center justify-center"
+          >
+            <X size={14} />
+          </button>
+
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
+              <Settings size={18} />
+            </div>
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wider text-zinc-200 leading-none">Operacional</h3>
+              <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Motores base de custeio</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 items-center">
+            {/* Energia */}
+            <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Zap size={14} className="text-zinc-500" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Energia</span>
+                  <span className="text-[7px] font-bold text-zinc-500">Custo por kWh</span>
+                </div>
+              </div>
+              <input
+                type="text"
+                placeholder="R$ 0,00"
+                value={extrairValorNumerico(config.custoEnergia) === 0 ? "" : config.custoEnergia}
+                onChange={(e) => {
+                  config.definirCustoEnergia(e.target.value);
+                  hook.setPrecoKwh(extrairValorNumerico(e.target.value));
+                }}
+                className="w-full h-10 bg-zinc-950 border border-zinc-800 focus:border-zinc-700 outline-none rounded-lg px-3 font-bold text-xs text-white text-center"
+              />
+            </div>
+
+            {/* Margem */}
+            <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Percent size={14} className="text-zinc-500" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Margem Lucro</span>
+                  <span className="text-[7px] font-bold text-zinc-500">Padrão do estúdio</span>
+                </div>
+              </div>
+              <input
+                type="text"
+                placeholder="0,00%"
+                value={extrairValorNumerico(config.margemLucro) === 0 ? "" : config.margemLucro}
+                onChange={(e) => {
+                  config.definirMargemLucro(e.target.value);
+                  hook.setMargem(extrairValorNumerico(e.target.value));
+                }}
+                className="w-full h-10 bg-zinc-950 border border-zinc-800 focus:border-zinc-700 outline-none rounded-lg px-3 font-bold text-xs text-white text-center"
+              />
+            </div>
+
+            {/* Operador */}
+            <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Wrench size={14} className="text-zinc-500" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Operador</span>
+                  <span className="text-[7px] font-bold text-zinc-500">Mão de obra / h</span>
+                </div>
+              </div>
+              <input
+                type="text"
+                placeholder="R$ 0,00"
+                value={extrairValorNumerico(config.horaOperador) === 0 ? "" : config.horaOperador}
+                onChange={(e) => {
+                  config.definirHoraOperador(e.target.value);
+                  hook.setMaoDeObra(extrairValorNumerico(e.target.value));
+                }}
+                className="w-full h-10 bg-zinc-950 border border-zinc-800 focus:border-zinc-700 outline-none rounded-lg px-3 font-bold text-xs text-white text-center"
+              />
+            </div>
+
+            {/* Máquina */}
+            <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Clock size={14} className="text-zinc-500" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Máquina</span>
+                  <span className="text-[7px] font-bold text-zinc-500">Uso do equipamento / h</span>
+                </div>
+              </div>
+              <input
+                type="text"
+                placeholder="R$ 0,00"
+                value={extrairValorNumerico(config.horaMaquina) === 0 ? "" : config.horaMaquina}
+                onChange={(e) => {
+                  config.definirHoraMaquina(e.target.value);
+                  hook.setDepreciacaoHora(extrairValorNumerico(e.target.value));
+                }}
+                className="w-full h-10 bg-zinc-950 border border-zinc-800 focus:border-zinc-700 outline-none rounded-lg px-3 font-bold text-xs text-white text-center"
+              />
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <button
+              onClick={aoSalvar}
+              className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 font-bold uppercase text-[10px] tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 shadow"
+            >
+              <Settings size={14} /> Salvar & Sincronizar
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </Dialogo>
+  );
+}

@@ -11,6 +11,12 @@ export interface InsumoProjeto {
   custoUnitarioCentavos: number; // Snapshot do custo no momento da aplicação
 }
 
+export interface MaterialProjeto {
+  idMaterial: string;
+  nome: string;
+  quantidadeGasta: number;
+}
+
 export interface Pedido {
   id: string;
   idUsuario: string;
@@ -28,6 +34,7 @@ export interface Pedido {
   tempoMinutos?: number;
   idImpressora?: string; // Novo campo v9.0
   insumosSecundarios?: InsumoProjeto[]; // Novo campo v9.0
+  materiais?: MaterialProjeto[]; // Detalhado para abate de estoque
 }
 
 export interface CriarPedidoInput {
@@ -41,6 +48,7 @@ export interface CriarPedidoInput {
   tempoMinutos?: number;
   idImpressora?: string;
   insumosSecundarios?: InsumoProjeto[];
+  materiais?: MaterialProjeto[];
 }
 
 export interface AtualizarPedidoInput extends Partial<CriarPedidoInput> {

@@ -11,6 +11,16 @@ export const apiPedidos = {
      * Mapeia um objeto do banco (snake_case) de volta para o frontend (camelCase).
      */
     mapearParaFrontend: (dados: any): Pedido => {
+        // Tenta extrair dados do baú JSON (dados_extras) para máxima flexibilidade
+        let extras: any = {};
+        if (dados.dados_extras) {
+            try {
+                extras = typeof dados.dados_extras === 'string' ? JSON.parse(dados.dados_extras) : dados.dados_extras;
+            } catch (e) {
+                console.warn("[apiPedidos] Erro ao processar dados_extras:", e);
+            }
+        }
+
         return {
             id: dados.id,
             idUsuario: dados.id_usuario,
@@ -22,14 +32,17 @@ export const apiPedidos = {
             dataCriacao: new Date(dados.data_criacao ?? dados.dataCriacao),
             dataConclusao: (dados.data_conclusao ?? dados.dataConclusao) ? new Date(dados.data_conclusao ?? dados.dataConclusao) : undefined,
             prazoEntrega: (dados.prazo_entrega ?? dados.prazoEntrega) ? new Date(dados.prazo_entrega ?? dados.prazoEntrega) : undefined,
-            observacoes: dados.observacoes,
+            observacoes: dados.observacoes || extras.observacoes,
             material: dados.material,
             pesoGramas: dados.peso_gramas ?? dados.pesoGramas,
             tempoMinutos: dados.tempo_minutos ?? dados.tempoMinutos,
-            idImpressora: dados.id_impressora ?? dados.idImpressora,
-            insumosSecundarios: typeof dados.insumos_secundarios === 'string' 
+            idImpressora: dados.id_impressora ?? dados.idImpressora ?? extras.idImpressora,
+            insumosSecundarios: extras.insumosSecundarios || (typeof dados.insumos_secundarios === 'string' 
                 ? JSON.parse(dados.insumos_secundarios) 
-                : (dados.insumos_secundarios ?? dados.insumosSecundarios ?? [])
+                : (dados.insumos_secundarios ?? dados.insumosSecundarios ?? [])),
+            materiais: extras.materiais || (typeof dados.materiais === 'string'
+                ? JSON.parse(dados.materiais)
+                : (dados.materiais ?? []))
         };
     },
 
@@ -48,17 +61,19 @@ export const apiPedidos = {
     mapearParaBanco: (dados: any) => {
         const mapeado: any = {};
         
-        // IDs e Chaves (Compatibilidade com Produção)
+        // IDs e Chaves (Garante envio em snake_case e camelCase para o servidor)
         if (dados.id) mapeado.id = dados.id;
         if (dados.idUsuario) mapeado.id_usuario = dados.idUsuario;
-        if (dados.idCliente) {
-            mapeado.id_cliente = dados.idCliente === "" ? null : dados.idCliente;
-            mapeado.idCliente = mapeado.id_cliente; // Envia ambos para garantir
-        }
-        if (dados.idImpressora !== undefined) {
-            mapeado.id_impressora = (dados.idImpressora === "" || dados.idImpressora === null) ? null : dados.idImpressora;
-            mapeado.idImpressora = mapeado.id_impressora;
-        }
+        
+        // Cliente
+        const id_cliente = dados.idCliente || dados.id_cliente;
+        mapeado.id_cliente = id_cliente === "" ? null : id_cliente;
+        mapeado.idCliente = mapeado.id_cliente;
+
+        // Impressora
+        const id_impressora = dados.idImpressora || dados.id_impressora;
+        mapeado.id_impressora = (id_impressora === "" || id_impressora === null) ? null : id_impressora;
+        mapeado.idImpressora = mapeado.id_impressora;
         
         // Campos de Texto e Status
         if (dados.descricao) mapeado.descricao = dados.descricao;
@@ -100,10 +115,22 @@ export const apiPedidos = {
             mapeado.prazoEntrega = mapeado.prazo_entrega;
         }
 
-        // JSON para strings
+        // Empacota tudo no baú JSON (dados_extras) para garantir persistência total
+        const dadosExtras = {
+            insumosSecundarios: dados.insumosSecundarios,
+            materiais: dados.materiais,
+            idImpressora: mapeado.id_impressora,
+            prazoEntrega: mapeado.prazo_entrega,
+            observacoes: mapeado.observacoes
+        };
+        mapeado.dados_extras = JSON.stringify(dadosExtras);
+
+        // Mantém compatibilidade com colunas específicas se elas existirem
         if (dados.insumosSecundarios) {
             mapeado.insumos_secundarios = JSON.stringify(dados.insumosSecundarios);
-            mapeado.insumosSecundarios = mapeado.insumos_secundarios;
+        }
+        if (dados.materiais) {
+            mapeado.materiais = JSON.stringify(dados.materiais);
         }
 
         return mapeado;

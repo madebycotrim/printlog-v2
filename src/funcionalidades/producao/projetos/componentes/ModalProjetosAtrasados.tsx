@@ -9,14 +9,14 @@ interface PropriedadesModalProjetosAtrasados {
   aberto: boolean;
   aoFechar: () => void;
   pedidos: Pedido[];
-  aoEditar?: (id: string) => void;
+  abrirFormularioEdicao?: (id: string) => void;
 }
 
 /**
  * 🚨 ModalProjetosAtrasados - Gestão de Urgências
  * Utiliza o padrão universal ModalListagemPremium com destaque Rose.
  */
-export function ModalProjetosAtrasados({ aberto, aoFechar, pedidos, aoEditar }: PropriedadesModalProjetosAtrasados) {
+export function ModalProjetosAtrasados({ aberto, aoFechar, pedidos, abrirFormularioEdicao }: PropriedadesModalProjetosAtrasados) {
   const [busca, setBusca] = useState("");
 
   const pedidosAtrasados = useMemo(() => {
@@ -49,7 +49,7 @@ export function ModalProjetosAtrasados({ aberto, aoFechar, pedidos, aoEditar }: 
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filtrados.map((p) => (
-          <CartaoPedido key={p.id} pedido={p} aoEditar={aoEditar} />
+          <CartaoPedido key={p.id} pedido={p} abrirFormularioEdicao={abrirFormularioEdicao} />
         ))}
       </div>
     </ModalListagemPremium>
