@@ -12,13 +12,13 @@ import { CriarPedidoInput, Pedido } from "./tipos";
 import { ResumoProjetos } from "./componentes/ResumoProjetos";
 import { motion, AnimatePresence } from "framer-motion";
 import { Carregamento } from "@/compartilhado/componentes/Carregamento";
+import { useNavigate } from "react-router-dom";
 
 export function PaginaProjetos() {
-  const [modalAberto, setModalAberto] = useState(false);
+  const navigate = useNavigate();
   const [modalArquivoAberto, setModalArquivoAberto] = useState(false);
   const [modalAtrasadosAberto, setModalAtrasadosAberto] = useState(false);
-  const [pedidoEdicao, setPedidoEdicao] = useState<Pedido | null>(null);
-  const { pedidos, pedidosFiltrados, criarPedido, atualizarPedido, moverPedido, pesquisar, carregando } = usarPedidos();
+  const { pedidos, pedidosFiltrados, moverPedido, pesquisar, carregando } = usarPedidos();
 
   usarDefinirCabecalho({
     titulo: "Fluxo de Produção",
@@ -29,28 +29,13 @@ export function PaginaProjetos() {
       texto: "Novo Pedido",
       icone: Plus,
       aoClicar: () => {
-        setPedidoEdicao(null);
-        setModalAberto(true);
+        navigate("/calculadora");
       },
     },
   });
 
-  const aoSalvar = async (dados: CriarPedidoInput) => {
-    if (pedidoEdicao) {
-      await atualizarPedido({ ...dados, id: pedidoEdicao.id });
-    } else {
-      await criarPedido(dados);
-    }
-    setModalAberto(false);
-    setPedidoEdicao(null);
-  };
-
   const abrirFormularioEdicao = (id: string) => {
-    const pedido = pedidos.find((p) => p.id === id);
-    if (pedido) {
-      setPedidoEdicao(pedido);
-      setModalAberto(true);
-    }
+    navigate(`/calculadora?id=${id}`);
   };
 
   return (
@@ -79,7 +64,7 @@ export function PaginaProjetos() {
               descricao="Crie o seu primeiro pedido para iniciar a gestão de produção no Kanban."
               icone={FolderKanban}
               textoBotao="Novo Pedido"
-              aoClicarBotao={() => setModalAberto(true)}
+              aoClicarBotao={() => navigate("/calculadora")}
             />
           </motion.div>
         ) : (
@@ -102,16 +87,6 @@ export function PaginaProjetos() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <FormularioPedido
-        aberto={modalAberto}
-        pedidoEdicao={pedidoEdicao}
-        aoSalvar={aoSalvar}
-        aoCancelar={() => {
-          setModalAberto(false);
-          setPedidoEdicao(null);
-        }}
-      />
 
       <ModalArquivoProjetos
         aberto={modalArquivoAberto}

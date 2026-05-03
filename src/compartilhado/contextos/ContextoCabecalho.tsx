@@ -46,10 +46,24 @@ export function ProvedorCabecalho({ children }: { children: ReactNode }) {
   const [dados, setDados] = useState<DadosCabecalho>(DADOS_PADRAO);
 
   const definirDados = (novosDados: DadosCabecalho) => {
-    // Pequena otimização para evitar updates desnecessários se for estritamente igual
     setDados((prev) => {
-      if (prev === novosDados) return prev;
-      // Poderíamos fazer deep equal aqui, mas a correção principal está no hook
+      // Comparamos propriedades básicas para evitar loop infinito
+      // Se as propriedades fundamentais forem iguais, não atualizamos
+      // Nota: elementoAcao é difícil de comparar profundamente, 
+      // então dependemos da estabilidade no chamador ou ignoramos se o resto for igual.
+      const basicoIgual = 
+        prev.titulo === novosDados.titulo &&
+        prev.subtitulo === novosDados.subtitulo &&
+        prev.ocultarBusca === novosDados.ocultarBusca &&
+        prev.ocultarNotificacoes === novosDados.ocultarNotificacoes &&
+        prev.placeholderBusca === novosDados.placeholderBusca &&
+        prev.elementoAcao === novosDados.elementoAcao &&
+        prev.acao?.texto === novosDados.acao?.texto &&
+        prev.acao?.desabilitado === novosDados.acao?.desabilitado &&
+        prev.segundaAcao?.texto === novosDados.segundaAcao?.texto &&
+        prev.segundaAcao?.desabilitado === novosDados.segundaAcao?.desabilitado;
+
+      if (basicoIgual) return prev;
       return novosDados;
     });
   };

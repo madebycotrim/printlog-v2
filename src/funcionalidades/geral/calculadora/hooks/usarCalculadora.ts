@@ -310,7 +310,7 @@ export function usarCalculadora() {
     const horasDecimaisSetup = tempoSetup / 60;
     const custoMaoDeObraCentavos = cobrarMaoDeObra ? Math.round(horasDecimaisSetup * maoDeObra * 100) : 0;
 
-    const custoPosProcessoCentavos = itensPosProcesso.reduce((t, i) => t + (i.valor * 100), 0) * (modoEntrada === 'lote' ? 1 : quantidade);
+    const custoPosProcessoCentavos = itensPosProcesso.reduce((t, i) => t + (i.valor), 0) * (modoEntrada === 'lote' ? 1 : quantidade);
     const custoInsumosFixosCentavos = cobrarInsumosFixos ? Math.round(insumosFixos * 100) : 0;
     const custoFreteCentavos = cobrarLogistica ? Math.round(frete * 100) : 0;
 

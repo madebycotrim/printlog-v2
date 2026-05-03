@@ -34,7 +34,8 @@ class ServicoPedidos {
       idImpressora: p.id_impressora || p.idImpressora,
       pesoGramas: (p.peso_gramas !== undefined) ? p.peso_gramas : p.pesoGramas,
       tempoMinutos: (p.tempo_minutos !== undefined) ? p.tempo_minutos : p.tempoMinutos,
-      insumosSecundarios: typeof p.insumos_secundarios === 'string' ? JSON.parse(p.insumos_secundarios) : (p.insumos_secundarios || p.insumosSecundarios || [])
+      insumosSecundarios: typeof p.insumos_secundarios === 'string' ? JSON.parse(p.insumos_secundarios) : (p.insumos_secundarios || p.insumosSecundarios || []),
+      posProcesso: typeof p.pos_processo === 'string' ? JSON.parse(p.pos_processo) : (p.pos_processo || p.posProcesso || [])
     }));
 
     const agora = new Date();

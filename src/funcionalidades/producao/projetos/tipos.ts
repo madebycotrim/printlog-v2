@@ -17,6 +17,12 @@ export interface MaterialProjeto {
   quantidadeGasta: number;
 }
 
+export interface ItemPosProcesso {
+  id: string;
+  nome: string;
+  valor: number;
+}
+
 export interface Pedido {
   id: string;
   idUsuario: string;
@@ -35,6 +41,8 @@ export interface Pedido {
   idImpressora?: string; // Novo campo v9.0
   insumosSecundarios?: InsumoProjeto[]; // Novo campo v9.0
   materiais?: MaterialProjeto[]; // Detalhado para abate de estoque
+  posProcesso?: ItemPosProcesso[]; // Novo campo v10.0
+  configuracoes?: any; // Baú técnico para restauração total da calculadora
 }
 
 export interface CriarPedidoInput {
@@ -49,6 +57,8 @@ export interface CriarPedidoInput {
   idImpressora?: string;
   insumosSecundarios?: InsumoProjeto[];
   materiais?: MaterialProjeto[];
+  posProcesso?: ItemPosProcesso[];
+  configuracoes?: any;
 }
 
 export interface AtualizarPedidoInput extends Partial<CriarPedidoInput> {

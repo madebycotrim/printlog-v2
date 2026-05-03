@@ -26,12 +26,14 @@ interface PainelResultadosProps {
   insumosFixos?: number;
   tempo?: number;
   modoEntrada?: 'unitario' | 'lote';
+  frete?: number;
+  taxaFixa?: number;
 }
 
 export const PainelResultados = memo(function PainelResultados({
   calculo, dadosPizza, aba, setAba, salvarProjeto, gerarPdf, carregandoPdf,
   materiais = [], insumos = [], posProcesso = [], quantidade = 1, insumosFixos = 0,
-  tempo = 0, modoEntrada = 'unitario'
+  tempo = 0, modoEntrada = 'unitario', frete = 0, taxaFixa = 0
 }: PainelResultadosProps) {
   const { usuario } = usarAutenticacao();
   const { betaOrcamentosMagicos, templateOrcamento } = usarBeta();
@@ -204,6 +206,7 @@ export const PainelResultados = memo(function PainelResultados({
             { label: 'Mão de Obra', valor: calculo.custoMaoDeObra, icone: Timer, cor: 'text-emerald-400' },
             { label: 'Depreciação', valor: calculo.custoDepreciacao, icone: Activity, cor: 'text-zinc-400' },
             { label: 'Taxas & Impostos', valor: calculo.taxaMarketplace + calculo.impostoVenda, icone: DollarSign, cor: 'text-violet-400' },
+            { label: 'Frete e Logística', valor: (modoEntrada === 'lote' ? frete * 100 : frete * 100 * quantidade) + (taxaFixa * 100), icone: Package, cor: 'text-orange-400' },
           ].filter(i => i.valor > 0);
 
           const estaVazio = itens.length === 0;

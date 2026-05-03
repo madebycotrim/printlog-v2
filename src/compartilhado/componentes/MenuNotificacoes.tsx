@@ -93,7 +93,7 @@ export function MenuNotificacoes() {
             </div>
 
             {/* Lista de Notificações */}
-            <div className="max-h-[400px] overflow-y-auto overflow-x-hidden scrollbar-hide">
+            <div className="max-h-[550px] overflow-y-auto overflow-x-hidden scrollbar-hide">
               {notificacoes.length === 0 ? (
                 <div className="p-12 text-center space-y-4">
                   <div className="w-12 h-12 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto text-gray-400">
@@ -147,13 +147,6 @@ export function MenuNotificacoes() {
                   </div>
                 ))
               )}
-            </div>
-
-            {/* Footer */}
-            <div className="p-4 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/2 text-center">
-              <button className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-500 transition-colors">
-                Central de Notificações Completa (Fase 3)
-              </button>
             </div>
           </motion.div>
         )}

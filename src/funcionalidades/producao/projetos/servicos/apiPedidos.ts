@@ -42,7 +42,15 @@ export const apiPedidos = {
                 : (dados.insumos_secundarios ?? dados.insumosSecundarios ?? [])),
             materiais: extras.materiais || (typeof dados.materiais === 'string'
                 ? JSON.parse(dados.materiais)
-                : (dados.materiais ?? []))
+                : (dados.materiais ?? [])),
+            posProcesso: (extras.posProcesso && extras.posProcesso.length > 0) 
+                ? extras.posProcesso 
+                : (typeof dados.pos_processo === 'string' && dados.pos_processo !== "[]"
+                    ? JSON.parse(dados.pos_processo)
+                    : (dados.pos_processo ?? dados.posProcesso ?? extras.posProcesso ?? [])),
+            configuracoes: extras.configuracoes || (typeof dados.configuracoes === 'string'
+                ? JSON.parse(dados.configuracoes)
+                : (dados.configuracoes ?? {}))
         };
     },
 
@@ -119,6 +127,8 @@ export const apiPedidos = {
         const dadosExtras = {
             insumosSecundarios: dados.insumosSecundarios,
             materiais: dados.materiais,
+            posProcesso: dados.posProcesso,
+            configuracoes: dados.configuracoes,
             idImpressora: mapeado.id_impressora,
             prazoEntrega: mapeado.prazo_entrega,
             observacoes: mapeado.observacoes
@@ -131,6 +141,9 @@ export const apiPedidos = {
         }
         if (dados.materiais) {
             mapeado.materiais = JSON.stringify(dados.materiais);
+        }
+        if (dados.posProcesso) {
+            mapeado.pos_processo = JSON.stringify(dados.posProcesso);
         }
 
         return mapeado;

@@ -2,9 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 import {
-  Settings, Check, X, Plus,
-  ChevronDown, Box, Package, History, Crown, Trash, Pencil, TrendingUp, AlertTriangle, AlertCircle, Download, RotateCcw,
-  FolderKanban, Star, Wallet
+  Download, Crown
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
@@ -18,11 +16,9 @@ import { usarGerenciadorInsumos } from "@/funcionalidades/producao/insumos/hooks
 import { usarPedidos } from "@/funcionalidades/producao/projetos/hooks/usarPedidos";
 import { usarGerenciadorClientes } from "@/funcionalidades/comercial/clientes/hooks/usarGerenciadorClientes";
 import { Dialogo } from "@/compartilhado/componentes/Dialogo";
-import { ModalListagemPremium } from "@/compartilhado/componentes/ModalListagemPremium";
 import { FormularioMaterial } from "@/funcionalidades/producao/materiais/componentes/FormularioMaterial";
 import { FormularioInsumo } from "@/funcionalidades/producao/insumos/componentes/FormularioInsumo";
-import { Carretel, GarrafaResina } from "@/compartilhado/componentes/Icones3D";
-import { formatarMoedaFinancas, formatarPorcentagem, centavosParaReais, extrairValorNumerico } from "@/compartilhado/utilitarios/formatadores";
+import { formatarMoedaFinancas, formatarPorcentagem, extrairValorNumerico } from "@/compartilhado/utilitarios/formatadores";
 
 // Hook e Componentes Refatorados
 import { usarCalculadora } from "./hooks/usarCalculadora";
@@ -34,8 +30,7 @@ import { CardLogistica } from "./componentes/CardLogistica";
 import { CardFiscal } from "./componentes/CardFiscal";
 import { PainelResultados } from "./componentes/PainelResultados";
 import { ModalHistorico } from "./componentes/ModalHistorico";
-import { Zap, Clock, Wrench, Percent, BrainCircuit } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 // Novos Componentes Extraídos
 import { CardIdentificacaoProjeto } from "./componentes/CardIdentificacaoProjeto";
@@ -59,7 +54,6 @@ export function PaginaCalculadora() {
   }, [usuario]);
 
   const config = usarArmazemConfiguracoes();
-  const { criarPedido } = usarPedidos();
   const { estado: estadoClientes, acoes: acoesClientes } = usarGerenciadorClientes();
   const { estado } = usarGerenciadorImpressoras();
   const { impressoras = [] } = estado;
@@ -70,11 +64,13 @@ export function PaginaCalculadora() {
 
   // Hook Central de Inteligência
   const hook = usarCalculadora();
+  const [searchParams] = useSearchParams();
+  const idEdicao = searchParams.get("id");
+  const { pedidos, criarPedido, atualizarPedido } = usarPedidos();
 
   // Estados de UI locais
   const [abertoSeletor, setAbertoSeletor] = useState(false);
   const [modalArmazemAberto, setModalArmazemAberto] = useState(false);
-  const [modalArmazemInsumosAberto, setModalArmazemInsumosAberto] = useState(false);
   const [modalCanaisAberto, setModalCanaisAberto] = useState(false);
   const [nomeProjeto, setNomeProjeto] = useState('');
   const [descricaoProjeto, setDescricaoProjeto] = useState('');
@@ -102,6 +98,9 @@ export function PaginaCalculadora() {
   const [mostrarPerdas, setMostrarPerdas] = useState(false);
   const [mostrarCustosFixos, setMostrarCustosFixos] = useState(false);
   const [abaResultado, setAbaResultado] = useState<'orcamento' | 'metricas'>('orcamento');
+
+  const carregandoDados = estado.carregando || estadoMateriais.carregando;
+
   const [buscaMaterial, setBuscaMaterial] = useState("");
   const [buscaMaterialArmazem, setBuscaMaterialArmazem] = useState("");
   const [filtroTipoMaterial, setFiltroTipoMaterial] = useState<'TODOS' | 'FDM' | 'SLA'>('TODOS');
@@ -170,6 +169,95 @@ export function PaginaCalculadora() {
     hook.setMateriaisSelecionados(prev => prev.filter(m => m.id !== id));
   }, [hook.setMateriaisSelecionados]);
 
+  // Lógica para carregar projeto existente (Edição)
+  useEffect(() => {
+    if (idEdicao && pedidos.length > 0) {
+      const p = pedidos.find((item: any) => item.id === idEdicao);
+      if (p) {
+        setNomeProjeto(p.descricao);
+        setDescricaoProjeto(p.observacoes || "");
+        setClienteProjetoId(p.idCliente);
+        
+        // Carregar cliente no seletor
+        const cli = (estadoClientes.clientes || []).find(c => c.id === p.idCliente);
+        if (cli) setBuscaClienteSeletor(cli.nome);
+
+        // Carregamento de Tempo (Prioriza split horas/minutos se existir)
+        const cfg = p.configuracoes || {};
+        const horas = cfg.tempoHoras ?? Math.floor((p.tempoMinutos ?? 0) / 60);
+        const minutos = cfg.tempoMinutos ?? ((p.tempoMinutos ?? 0) % 60);
+        hook.setTempo(horas * 60 + minutos);
+        hook.setImpressoraSelecionadaId(p.idImpressora || "");
+        
+        // Carregar Materiais
+        if (p.materiais && p.materiais.length > 0) {
+          const matsPreenchidos = p.materiais.map((m: any) => {
+            const original = materiais.find(mat => mat.id === m.idMaterial);
+            return {
+              id: m.idMaterial,
+              nome: m.nome,
+              quantidade: m.quantidadeGasta,
+              precoKgCentavos: original ? Math.round((original.precoCentavos / original.pesoGramas) * 1000) : 0,
+              cor: original?.cor || "#ffffff",
+              tipo: original?.tipo || "FDM",
+              tipoMaterial: original?.tipoMaterial || ""
+            };
+          });
+          hook.setMateriaisSelecionados(matsPreenchidos);
+        }
+
+        // Carregar Insumos
+        if (p.insumosSecundarios && p.insumosSecundarios.length > 0) {
+          const insPreenchidos = p.insumosSecundarios.map((i: any) => ({
+            id: i.idInsumo,
+            nome: i.nome,
+            quantidade: i.quantidade,
+            custoCentavos: i.custoUnitarioCentavos
+          }));
+          hook.setInsumosSelecionados(insPreenchidos);
+        }
+
+        // Carregar Pós-Processamento
+        if (p.posProcesso && p.posProcesso.length > 0) {
+          hook.setItensPosProcesso(p.posProcesso);
+        }
+
+        // --- RESTAURAR TODAS AS VARIÁVEIS TÉCNICAS (v10.0) ---
+        if (p.configuracoes) {
+          const cfg = p.configuracoes;
+          if (cfg.potencia !== undefined) hook.setPotencia(cfg.potencia);
+          if (cfg.precoKwh !== undefined) hook.setPrecoKwh(cfg.precoKwh);
+          if (cfg.maoDeObra !== undefined) hook.setMaoDeObra(cfg.maoDeObra);
+          if (cfg.depreciacaoHora !== undefined) hook.setDepreciacaoHora(cfg.depreciacaoHora);
+          if (cfg.margem !== undefined) hook.setMargem(cfg.margem);
+          if (cfg.quantidade !== undefined) hook.setQuantidade(cfg.quantidade);
+          if (cfg.modoEntrada !== undefined) hook.setModoEntrada(cfg.modoEntrada);
+          if (cfg.tempoSetup !== undefined) hook.setTempoSetup(cfg.tempoSetup);
+          if (cfg.taxaFalha !== undefined) hook.setTaxaFalha(cfg.taxaFalha);
+          if (cfg.materialPerdido !== undefined) hook.setMaterialPerdido(cfg.materialPerdido);
+          if (cfg.tempoPerdido !== undefined) hook.setTempoPerdido(cfg.tempoPerdido);
+          if (cfg.frete !== undefined) hook.setFrete(cfg.frete);
+          if (cfg.insumosFixos !== undefined) hook.setInsumosFixos(cfg.insumosFixos);
+          
+          // Toggles de Cobrança
+          if (cfg.cobrarDesgaste !== undefined) hook.setCobrarDesgaste(cfg.cobrarDesgaste);
+          if (cfg.cobrarMaoDeObra !== undefined) hook.setCobrarMaoDeObra(cfg.cobrarMaoDeObra);
+          if (cfg.cobrarEnergia !== undefined) hook.setCobrarEnergia(cfg.cobrarEnergia);
+          if (cfg.cobrarImpostos !== undefined) hook.setCobrarImpostos(cfg.cobrarImpostos);
+          if (cfg.cobrarInsumosFixos !== undefined) hook.setCobrarInsumosFixos(cfg.cobrarInsumosFixos);
+          if (cfg.cobrarLogistica !== undefined) hook.setCobrarLogistica(cfg.cobrarLogistica);
+          
+          // Perfis e Fiscal
+          if (cfg.perfilAtivo !== undefined) hook.setPerfilAtivo(cfg.perfilAtivo);
+          if (cfg.tipoOperacao !== undefined) hook.setTipoOperacao(cfg.tipoOperacao);
+          if (cfg.impostos !== undefined) hook.setImpostos(cfg.impostos);
+          if (cfg.icms !== undefined) hook.setIcms(cfg.icms);
+          if (cfg.iss !== undefined) hook.setIss(cfg.iss);
+        }
+      }
+    }
+  }, [idEdicao, pedidos, materiais, estadoClientes.clientes]);
+
   const confirmarSalvarProjeto = async () => {
     if (!clienteProjetoId) {
       toast.error("Selecione um cliente para vincular ao projeto.");
@@ -177,85 +265,129 @@ export function PaginaCalculadora() {
     }
 
     try {
-      const novoPedido = await criarPedido({
+      // Trava de segurança: garante que valores desabilitados sejam zero absoluto
+      const precoFinal = hook.calculo.precoSugerido;
+      console.log("[Calculadora] Salvando projeto com valor (centavos):", precoFinal);
+
+      const dadosBase = {
         idCliente: clienteProjetoId,
         descricao: nomeProjeto || "Orçamento sem nome",
-        valorCentavos: hook.calculo.precoSugerido,
-        material: hook.materiaisSelecionados.length > 0 ? hook.materiaisSelecionados.map(m => m.nome).join(", ") : "Material Padrão",
-        pesoGramas: hook.materiaisSelecionados.reduce((acc, m) => acc + m.quantidade, 0),
-        tempoMinutos: Math.round(hook.tempo * 60),
+        valorCentavos: precoFinal,
+        material: hook.materiaisSelecionados.length > 0 ? hook.materiaisSelecionados.map((m: any) => m.nome).join(", ") : "Material Padrão",
+        pesoGramas: hook.materiaisSelecionados.reduce((acc: number, m: any) => acc + m.quantidade, 0),
+        tempoMinutos: Math.round(hook.tempo),
         idImpressora: hook.impressoraSelecionadaId,
         prazoEntrega: hook.estimativaPrazo.data,
-        observacoes: descricaoProjeto ? `${descricaoProjeto}\n\nGerado via calculadora em ${new Date().toLocaleDateString('pt-BR')}.` : `Gerado via calculadora em ${new Date().toLocaleDateString('pt-BR')}.`,
-        materiais: hook.materiaisSelecionados.map(m => ({
+        observacoes: descricaoProjeto?.includes("Gerado via calculadora") 
+          ? descricaoProjeto 
+          : descricaoProjeto 
+            ? `${descricaoProjeto}\n\nGerado via calculadora em ${new Date().toLocaleDateString('pt-BR')}.` 
+            : `Gerado via calculadora em ${new Date().toLocaleDateString('pt-BR')}.`,
+        materiais: hook.materiaisSelecionados.map((m: any) => ({
           idMaterial: m.id,
           nome: m.nome,
           quantidadeGasta: m.quantidade
         })),
-        insumosSecundarios: hook.insumosSelecionados.map(i => ({
+        insumosSecundarios: hook.insumosSelecionados.map((i: any) => ({
           idInsumo: i.id,
           nome: i.nome,
           quantidade: i.quantidade,
           custoUnitarioCentavos: i.custoCentavos
-        }))
-      });
-
-      if (novoPedido) {
-        toast.success("Orçamento salvo com sucesso!");
-        
-        // Gerar link do WhatsApp se houver telefone
-        const cliente = (estadoClientes.clientes || []).find(c => c.id === clienteProjetoId);
-        if (cliente?.telefone) {
-          const mensagem = encodeURIComponent(
-            `*ORÇAMENTO DE IMPRESSÃO 3D*\n\n` +
-            `Olá ${cliente.nome.split(' ')[0]},\n` +
-            `Segue o orçamento para: *${nomeProjeto}*\n\n` +
-            `*Detalhes:* ${descricaoProjeto || 'Impressão personalizada'}\n` +
-            `*Prazo est.:* ${hook.estimativaPrazo.data ? new Date(hook.estimativaPrazo.data).toLocaleDateString('pt-BR') : 'A combinar'}\n` +
-            `*Valor:* R$ ${(hook.calculo.precoSugerido / 100).toFixed(2).replace('.', ',')}\n\n` +
-            `_Gerado por PrintLog v2_`
-          );
-          
-          const urlWhats = `https://wa.me/55${cliente.telefone.replace(/\D/g, '')}?text=${mensagem}`;
-          
-          toast((t) => (
-            <div className="flex flex-col gap-3">
-              <span className="text-xs font-bold text-zinc-300">Deseja enviar para o WhatsApp do cliente?</span>
-              <div className="flex gap-2">
-                <a 
-                  href={urlWhats} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  onClick={() => toast.dismiss(t.id)}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all text-center flex-1"
-                >
-                  Enviar Agora
-                </a>
-                <button 
-                  onClick={() => toast.dismiss(t.id)}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
-                >
-                  Depois
-                </button>
-              </div>
-            </div>
-          ), { duration: 6000, position: 'bottom-right' });
+        })),
+        posProcesso: hook.itensPosProcesso.map((p: any) => ({
+          id: p.id,
+          nome: p.nome,
+          valor: p.valor
+        })),
+        configuracoes: {
+          potencia: hook.potencia,
+          precoKwh: hook.precoKwh,
+          maoDeObra: hook.maoDeObra,
+          depreciacaoHora: hook.depreciacaoHora,
+          margem: hook.margem,
+          quantidade: hook.quantidade,
+          modoEntrada: hook.modoEntrada,
+          tempoSetup: hook.tempoSetup,
+          taxaFalha: hook.taxaFalha,
+          materialPerdido: hook.materialPerdido,
+          tempoPerdido: hook.tempoPerdido,
+          frete: hook.frete,
+          insumosFixos: hook.insumosFixos,
+          tempoHoras: Math.floor(hook.tempo / 60),
+          tempoMinutos: hook.tempo % 60,
+          cobrarDesgaste: hook.cobrarDesgaste,
+          cobrarMaoDeObra: hook.cobrarMaoDeObra,
+          cobrarEnergia: hook.cobrarEnergia,
+          cobrarImpostos: hook.cobrarImpostos,
+          cobrarInsumosFixos: hook.cobrarInsumosFixos,
+          cobrarLogistica: hook.cobrarLogistica,
+          perfilAtivo: hook.perfilAtivo,
+          tipoOperacao: hook.tipoOperacao,
+          impostos: hook.impostos,
+          icms: hook.icms,
+          iss: hook.iss
         }
+      };
 
-        // Resetar Formulário
-        hook.limpar();
-        setNomeProjeto("");
-        setDescricaoProjeto("");
-        setClienteProjetoId("");
-        setBuscaClienteSeletor("");
-        
-        // Redirecionar para a fila de projetos
-        navegar("/projetos");
+      if (idEdicao) {
+        await atualizarPedido({ ...dadosBase, id: idEdicao });
+        toast.success("Projeto atualizado com sucesso!");
+      } else {
+        await criarPedido(dadosBase);
+        toast.success("Orçamento salvo com sucesso!");
       }
+
+      // Gerar link do WhatsApp se houver telefone
+      const cliente = (estadoClientes.clientes || []).find((c: any) => c.id === clienteProjetoId);
+      if (cliente?.telefone) {
+        const mensagem = encodeURIComponent(
+          `*ORÇAMENTO DE IMPRESSÃO 3D*\n\n` +
+          `Olá ${cliente.nome.split(' ')[0]},\n` +
+          `Segue o orçamento para: *${nomeProjeto}*\n\n` +
+          `*Detalhes:* ${descricaoProjeto || 'Impressão personalizada'}\n` +
+          `*Prazo est.:* ${hook.estimativaPrazo.data ? new Date(hook.estimativaPrazo.data).toLocaleDateString('pt-BR') : 'A combinar'}\n` +
+          `*Valor:* R$ ${(hook.calculo.precoSugerido / 100).toFixed(2).replace('.', ',')}\n\n` +
+          `_Gerado por PrintLog v2_`
+        );
+        
+        const urlWhats = `https://wa.me/55${cliente.telefone.replace(/\D/g, '')}?text=${mensagem}`;
+        
+        toast((t) => (
+          <div className="flex flex-col gap-3">
+            <span className="text-xs font-bold text-zinc-300">Deseja enviar para o WhatsApp do cliente?</span>
+            <div className="flex gap-2">
+              <a 
+                href={urlWhats} 
+                target="_blank" 
+                rel="noreferrer"
+                onClick={() => toast.dismiss(t.id)}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all text-center flex-1"
+              >
+                Enviar Agora
+              </a>
+              <button 
+                onClick={() => toast.dismiss(t.id)}
+                className="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+              >
+                Depois
+              </button>
+            </div>
+          </div>
+        ), { duration: 6000, position: 'bottom-right' });
+      }
+
+      // Resetar Formulário
+      hook.limpar();
+      setNomeProjeto("");
+      setDescricaoProjeto("");
+      setClienteProjetoId("");
+      setBuscaClienteSeletor("");
+      
+      // Redirecionar para a fila de projetos
+      navegar("/projetos");
     } catch (erro) {
       console.warn("Erro ao salvar projeto:", erro);
       hook.salvarSnapshot(nomeProjeto || "Orçamento via Calculadora");
-      // Mesmo com erro de rede, o snapshot salvou no offline, então resetamos
       hook.limpar();
       setNomeProjeto("");
       setDescricaoProjeto("");
@@ -317,13 +449,13 @@ export function PaginaCalculadora() {
 
   const abrirModalArmazem = useCallback(() => setModalArmazemAberto(true), []);
   const abrirCriarMaterial = useCallback(() => acoesMateriais.abrirEditar(null as any), [acoesMateriais]);
-  const abrirModalInsumos = useCallback(() => setModalArmazemInsumosAberto(true), []);
+  const abrirModalInsumos = useCallback(() => toast.error("Gerenciamento de armazém de insumos em desenvolvimento."), []);
   const abrirModalNovoInsumo = useCallback(() => abrirCriarInsumo(), [abrirCriarInsumo]);
   const abrirModalCanais = useCallback(() => setModalCanaisAberto(true), []);
   const abrirModalFiscal = useCallback(() => setModalConfigFiscalAberto(true), []);
-  usarDefinirCabecalho({
-    titulo: "Precificação Inteligente",
-    subtitulo: "Engenharia de custos e rentabilidade",
+  const dadosCabecalho = useMemo(() => ({
+    titulo: idEdicao ? "Atualizar Inteligência" : "Precificação Inteligente",
+    subtitulo: idEdicao ? `Editando: ${nomeProjeto}` : "Engenharia de custos e rentabilidade",
     ocultarBusca: true,
     elementoAcao: (
       <SeletorImpressora
@@ -342,7 +474,9 @@ export function PaginaCalculadora() {
         aoAbrirConfiguracoes={() => setModalConfigAberto(true)}
       />
     )
-  });
+  }), [abertoSeletor, impressoras, impressoraSelecionada, hook.limpar, hook.setImpressoraSelecionadaId, hook.setPotencia]);
+
+  usarDefinirCabecalho(dadosCabecalho);
 
   return (
     <AnimatePresence mode="wait">
@@ -519,6 +653,8 @@ export function PaginaCalculadora() {
               insumosFixos={hook.insumosFixos}
               tempo={hook.tempo}
               modoEntrada={hook.modoEntrada}
+              frete={hook.frete}
+              taxaFixa={hook.taxaFixa}
             />
           </div>
 

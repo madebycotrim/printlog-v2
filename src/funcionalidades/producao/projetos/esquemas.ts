@@ -14,6 +14,12 @@ export const materialProjetoSchema = z.object({
   quantidadeGasta: z.number().min(0),
 });
 
+export const itemPosProcessoSchema = z.object({
+  id: z.string().uuid().or(z.string()),
+  nome: z.string().min(1),
+  valor: z.number().min(0),
+});
+
 export const criarPedidoSchema = z.object({
   idCliente: z.string().min(1),
   descricao: z.string().min(1),
@@ -26,6 +32,8 @@ export const criarPedidoSchema = z.object({
   idImpressora: z.string().uuid().or(z.string()).optional(),
   insumosSecundarios: z.array(insumoProjetoSchema).optional(),
   materiais: z.array(materialProjetoSchema).optional(),
+  posProcesso: z.array(itemPosProcessoSchema).optional(),
+  configuracoes: z.any().optional(),
 });
 
 export const atualizarPedidoSchema = criarPedidoSchema.partial().extend({

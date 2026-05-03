@@ -198,11 +198,11 @@ export const CardProducao = memo(function CardProducao({
             </button>
           </div>
 
-          <div className="h-[200px] overflow-y-auto space-y-2 mb-3 pr-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-800/50">
+          <div className="min-h-[140px] max-h-[240px] overflow-y-auto space-y-2 mb-3 pr-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-800/50 transition-all">
             {posProcesso.length === 0 ? (
-              <div className="w-full border border-dashed border-gray-100 dark:border-white/5 rounded-2xl flex flex-col items-center justify-center h-full min-h-[120px] p-4 text-center bg-transparent">
+              <div className="w-full border border-dashed border-gray-100 dark:border-white/5 rounded-2xl flex flex-col items-center justify-center h-[140px] p-4 text-center bg-transparent opacity-60">
                 <Plus size={20} className="text-gray-400 dark:text-zinc-600 mb-2" />
-                <span className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">Nenhum acabamento extra aplicado</span>
+                <span className="text-[9px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest leading-relaxed">Nenhum acabamento<br/>extra aplicado</span>
               </div>
             ) : (
               <div className="space-y-3">
@@ -223,18 +223,18 @@ export const CardProducao = memo(function CardProducao({
                     </div>
 
                     <div className="flex items-center gap-2 w-20">
+                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">R$</span>
                       <input
                         type="number"
                         placeholder="0,00"
-                        value={item.valor === 0 ? "" : item.valor}
+                        value={item.valor === 0 ? "" : (item.valor / 100)}
                         onChange={(e) => {
                           const novaLista = [...posProcesso];
-                          novaLista[index].valor = Number(e.target.value);
+                          novaLista[index].valor = Math.round(Number(e.target.value) * 100);
                           setPosProcesso(novaLista);
                         }}
                         className="w-full bg-transparent border-0 border-b border-zinc-200 dark:border-white/10 text-[11px] font-black text-center text-zinc-900 dark:text-white outline-none focus:border-amber-500 py-1 transition-colors"
                       />
-                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">R$</span>
                     </div>
 
                     <button
@@ -251,7 +251,7 @@ export const CardProducao = memo(function CardProducao({
                   <div className="text-right">
                     <p className="text-[8px] font-black uppercase tracking-widest text-zinc-400">Total em Pós-Processamento</p>
                     <p className="text-xs font-black text-zinc-900 dark:text-white">
-                      {posProcesso.reduce((acc, i) => acc + (i.valor || 0), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      {(posProcesso.reduce((acc, i) => acc + (i.valor || 0), 0) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </p>
                   </div>
                 </div>

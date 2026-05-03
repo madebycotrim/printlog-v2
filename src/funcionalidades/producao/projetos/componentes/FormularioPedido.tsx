@@ -3,8 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
-    Save, User, FileText, Calendar, Scale, Clock, 
-    Cpu, DollarSign, Box, Package 
+    Save, User, FileText, Calendar, 
+    Cpu, DollarSign, Box, Package, Settings, TrendingUp, MessageSquare, ChevronDown
 } from "lucide-react";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
 import { Dialogo } from "@/compartilhado/componentes/Dialogo";
@@ -49,12 +49,13 @@ type PedidoFormData = z.infer<typeof esquemaPedido>;
 
 interface PropriedadesFormularioPedido {
     aberto: boolean;
-    aoSalvar: (dados: CriarPedidoInput) => Promise<any> | void;
-    aoCancelar: () => void;
     pedidoEdicao?: Pedido | null;
+    aoSalvar: (dados: CriarPedidoInput) => Promise<void>;
+    aoCancelar: () => void;
+    ehPagina?: boolean;
 }
 
-export function FormularioPedido({ aberto, aoSalvar, aoCancelar, pedidoEdicao }: PropriedadesFormularioPedido) {
+export function FormularioPedido({ aberto, pedidoEdicao, aoSalvar, aoCancelar, ehPagina = false }: PropriedadesFormularioPedido) {
     const { estado, acoes } = usarGerenciadorClientes();
     
     const [modalArmazemAberto, setModalArmazemAberto] = useState(false);
@@ -176,220 +177,314 @@ export function FormularioPedido({ aberto, aoSalvar, aoCancelar, pedidoEdicao }:
         setModalInsumosAberto(false);
     };
 
-    return (
-        <Dialogo aberto={aberto} aoFechar={aoCancelar} titulo={pedidoEdicao ? "Painel de Edição de Projeto" : "Configuração de Novo Projeto"} larguraMax="max-w-6xl">
-            <form onSubmit={handleSubmit(aoSubmeter)} className="flex flex-col bg-zinc-950">
-                <div className="p-8 max-h-[78vh] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 hover:scrollbar-thumb-zinc-700">
-                    
-                    {/* CABEÇALHO DINÂMICO (FULL WIDTH) */}
-                    <header className="relative p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-600/20 to-violet-600/5 border border-indigo-500/10 overflow-hidden group mb-10">
-                        <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/10 blur-[60px] rounded-full group-hover:bg-indigo-500/20 transition-all duration-700" />
+    const ConteudoFormulario = (
+        <div className={`flex flex-col bg-[#080809] ${ehPagina ? 'min-h-screen' : 'min-h-[75vh] max-h-[85vh]'} overflow-hidden ${!ehPagina && 'rounded-b-3xl'}`}>
+            <form onSubmit={handleSubmit(aoSubmeter)} className="flex flex-col h-full overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
                         
-                        <div className="relative flex items-center gap-6">
-                            <div className="w-16 h-16 rounded-2xl bg-indigo-500 flex items-center justify-center text-white shadow-xl shadow-indigo-500/20 ring-4 ring-indigo-500/10">
-                                <Package size={28} strokeWidth={2.5} />
+                        {/* 🚀 HEADER DE ESTADO (Estilo Calculadora) */}
+                        <div className="flex items-center justify-between p-6 rounded-3xl bg-[#121214] border border-white/5 shadow-2xl">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-sky-400 border border-sky-500/30 bg-sky-500/5">
+                                    <Cpu size={24} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <h2 className="text-lg font-black text-white uppercase tracking-tighter italic">
+                                        {pedidoEdicao ? "Ajustar Parâmetros" : "Lançar Novo Projeto"}
+                                    </h2>
+                                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                                        {pedidoEdicao ? `Identificador Técnico: #${pedidoEdicao.id.slice(0,12)}` : "Engenharia de Custos e Fila de Produção"}
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-xl font-black text-white uppercase tracking-tight">
-                                    {pedidoEdicao ? "Ajustar Parâmetros" : "Novo Fluxo de Trabalho"}
-                                </h2>
-                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
-                                    {pedidoEdicao ? `Editando ID: #${pedidoEdicao.id.slice(0,8)}` : "Preencha os detalhes técnicos para iniciar"}
-                                </p>
+
+                            <div className="hidden md:flex flex-col items-end gap-2">
+                                <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Valor de Mercado</span>
+                                <div className="flex items-center gap-3 px-6 py-3 bg-zinc-950/60 border border-white/5 rounded-2xl focus-within:border-emerald-500/40 transition-all">
+                                    <DollarSign size={16} className="text-emerald-500" />
+                                    <input 
+                                        type="text" 
+                                        className="bg-transparent text-xl font-black text-emerald-400 outline-none tabular-nums w-32 text-right"
+                                        onChange={(e) => setValue("valorCentavos", extrairValorNumerico(e.target.value), { shouldDirty: true })}
+                                        value={(watch("valorCentavos") || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </header>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                        {/* COLUNA ESQUERDA: IDENTIFICAÇÃO E TÉCNICA */}
-                        <div className="space-y-12">
-                            {/* SEÇÃO: CLIENTE */}
-                            <section className="space-y-6">
-                                <div className="flex items-center gap-3 px-2">
-                                    <div className="w-1.5 h-6 rounded-full bg-indigo-500" />
-                                    <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400">Identificação & Cliente</h3>
-                                </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            {/* 🛠️ LADO ESQUERDO: INFRAESTRUTURA */}
+                            <div className="lg:col-span-7 space-y-8">
                                 
-                                <div className="p-1 rounded-[2rem] bg-white/[0.02] border border-white/5">
-                                    <Combobox
-                                        titulo="Responsável pelo Projeto"
-                                        opcoes={opcoesClientes}
-                                        valor={watch("idCliente")}
-                                        aoAlterar={(val) => setValue("idCliente", val, { shouldDirty: true })}
-                                        aoCriarNovo={lidarComCriarCliente}
-                                        placeholder="Selecione ou crie um cliente..."
-                                        icone={User}
-                                        erro={errors.idCliente?.message}
-                                    />
-                                </div>
-                            </section>
-
-                            {/* SEÇÃO: ESPECIFICAÇÕES TÉCNICAS */}
-                            <section className="space-y-6">
-                                <div className="flex items-center gap-3 px-2">
-                                    <div className="w-1.5 h-6 rounded-full bg-emerald-500" />
-                                    <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400">Especificações Técnicas</h3>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <CampoTexto
-                                        rotulo="Título do Projeto / Descrição do Job"
-                                        placeholder="Ex: Chaveiro Astronauta V2 - Escala 1:10"
-                                        icone={FileText}
-                                        erro={errors.descricao?.message}
-                                        {...register("descricao")}
-                                    />
-
-                                    <div className="p-6 bg-zinc-900/40 rounded-[2.5rem] border border-white/5 space-y-6">
-                                        <div className="grid grid-cols-2 gap-6">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Tempo Est. (Min)</label>
-                                                <div className="flex items-center gap-3 px-5 py-4 bg-black/40 border border-white/5 rounded-2xl focus-within:border-emerald-500/50 transition-all group">
-                                                    <Clock size={16} className="text-zinc-500 group-focus-within:text-emerald-500" />
-                                                    <input type="number" className="w-full bg-transparent text-sm font-black text-white outline-none" {...register("tempoMinutos", { valueAsNumber: true })} />
-                                                </div>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Peso Total (G)</label>
-                                                <div className="flex items-center gap-3 px-5 py-4 bg-black/40 border border-white/5 rounded-2xl focus-within:border-emerald-500/50 transition-all group">
-                                                    <Scale size={16} className="text-zinc-500 group-focus-within:text-emerald-500" />
-                                                    <input type="number" className="w-full bg-transparent text-sm font-black text-white outline-none" {...register("pesoGramas", { valueAsNumber: true })} />
-                                                </div>
-                                            </div>
+                                {/* 1. IDENTIFICAÇÃO (Estilo CardIdentificacaoProjeto) */}
+                                <div className="p-6 rounded-3xl bg-[#121214] border border-white/5 flex flex-col gap-6 shadow-2xl backdrop-blur-3xl group transition-all duration-500 overflow-hidden relative">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+                                    
+                                    <div className="relative z-10 flex items-center gap-3 border-b border-white/5 pb-4">
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-indigo-400 border border-indigo-500/30 bg-indigo-500/5">
+                                            <User size={18} />
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Equipamento</label>
-                                            <div className="flex items-center gap-3 px-5 py-4 bg-black/40 border border-white/5 rounded-2xl focus-within:border-emerald-500/50 transition-all group">
-                                                <Cpu size={16} className="text-zinc-500 group-focus-within:text-emerald-500" />
-                                                <select className="w-full bg-transparent text-sm font-black text-white outline-none appearance-none cursor-pointer" {...register("idImpressora")}>
-                                                    <option value="" className="bg-zinc-900">Automático</option>
-                                                    {opcoesImpressoras.map(o => <option key={o.valor} value={o.valor} className="bg-zinc-900">{o.rotulo}</option>)}
-                                                </select>
-                                            </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-black uppercase tracking-wider text-white">Identificação do Job</span>
+                                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Vincule o cliente e os detalhes operacionais</span>
                                         </div>
                                     </div>
-                                </div>
-                            </section>
-                        </div>
 
-                        {/* COLUNA DIREITA: COMPOSIÇÃO E FINANCEIRO */}
-                        <div className="space-y-12">
-                            {/* SEÇÃO: MATERIAIS E INSUMOS */}
-                            <section className="space-y-8">
-                                <div className="flex items-center gap-3 px-2">
-                                    <div className="w-1.5 h-6 rounded-full bg-sky-500" />
-                                    <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400">Composição & Suprimentos</h3>
-                                </div>
-                                
-                                <div className="grid grid-cols-1 gap-12">
-                                    <SeletorMateriaisPedido
-                                        selecionados={materiaisSelecionados}
-                                        aoAbrirArmazem={() => setModalArmazemAberto(true)}
-                                        aoAlterar={(novos) => {
-                                            setValue("materiais", novos, { shouldDirty: true });
-                                            setValue("material", novos.map(m => m.nome).join(", "));
-                                            setValue("pesoGramas", novos.reduce((acc, m) => acc + m.quantidadeGasta, 0));
-                                        }}
-                                    />
-                                    <SeletorInsumosSecundarios
-                                        selecionados={insumosSecundarios}
-                                        aoAbrirArmazem={() => setModalInsumosAberto(true)}
-                                        aoAlterar={(novos) => setValue("insumosSecundarios", novos, { shouldDirty: true })}
-                                    />
-                                </div>
-                            </section>
-
-                            {/* SEÇÃO: PRAZOS E VALORES */}
-                            <section className="space-y-8">
-                                <div className="flex items-center gap-3 px-2">
-                                    <div className="w-1.5 h-6 rounded-full bg-amber-500" />
-                                    <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400">Financeiro & Entrega</h3>
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-6">
-                                    <CampoTexto rotulo="Data Limite para Entrega" type="date" icone={Calendar} {...register("prazoEntrega")} />
-                                    
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Preço Final do Projeto (BRL)</label>
-                                        <div className="flex items-center gap-4 px-6 py-5 bg-emerald-500/[0.03] border border-emerald-500/20 rounded-[2rem] focus-within:border-emerald-500 transition-all group">
-                                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-focus-within:bg-emerald-500 group-focus-within:text-white transition-all">
-                                                <DollarSign size={20} strokeWidth={3} />
-                                            </div>
-                                            <input 
-                                                type="text" 
-                                                className="w-full bg-transparent text-2xl font-black text-white outline-none tabular-nums"
-                                                onChange={(e) => setValue("valorCentavos", extrairValorNumerico(e.target.value), { shouldDirty: true })}
-                                                value={(watch("valorCentavos") || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    <div className="relative z-10 space-y-6">
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Cliente do Projeto</label>
+                                            <Combobox
+                                                titulo=""
+                                                opcoes={opcoesClientes}
+                                                valor={watch("idCliente")}
+                                                aoAlterar={(val) => setValue("idCliente", val, { shouldDirty: true })}
+                                                aoCriarNovo={lidarComCriarCliente}
+                                                placeholder="Buscar ou digitar cliente..."
+                                                icone={User}
+                                                erro={errors.idCliente?.message}
                                             />
                                         </div>
+
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Nome / Descrição do Job</label>
+                                            <div className="relative flex items-center bg-zinc-950/60 border border-white/5 focus-within:border-indigo-500/40 rounded-xl h-12 transition-all">
+                                                <FileText size={16} className="absolute left-4 text-zinc-600" />
+                                                <input 
+                                                    type="text"
+                                                    placeholder="Ex: Protótipo de Engenharia Rev.02"
+                                                    className="w-full h-full bg-transparent pl-12 pr-4 font-bold text-xs text-white outline-none placeholder:text-zinc-700"
+                                                    {...register("descricao")}
+                                                />
+                                            </div>
+                                            {errors.descricao && <span className="text-[9px] font-black text-rose-500 uppercase ml-1">{errors.descricao.message}</span>}
+                                        </div>
                                     </div>
                                 </div>
-                            </section>
+
+                                {/* 2. HARDWARE (Estilo CardProducao) */}
+                                <div className="p-6 rounded-3xl bg-[#121214] border border-white/5 flex flex-col gap-6 shadow-2xl backdrop-blur-3xl group transition-all duration-500 relative">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                                    <div className="relative z-10 flex items-center gap-3 border-b border-white/5 pb-4">
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-emerald-400 border border-emerald-500/30 bg-emerald-500/5">
+                                            <Settings size={18} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-black uppercase tracking-wider text-white">Hardware & Alocação</span>
+                                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Defina o equipamento e o deadline técnico</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Equipamento Ativo</label>
+                                            <div className="relative flex items-center bg-zinc-950/60 border border-white/5 focus-within:border-emerald-500/40 rounded-xl h-12 transition-all">
+                                                <Cpu size={16} className="absolute left-4 text-zinc-600" />
+                                                <select 
+                                                    className="w-full h-full bg-transparent pl-12 pr-4 font-bold text-xs text-white outline-none appearance-none cursor-pointer" 
+                                                    {...register("idImpressora")}
+                                                >
+                                                    <option value="" className="bg-zinc-900">AUTO-ALOCAÇÃO (SISTEMA)</option>
+                                                    {opcoesImpressoras.map(o => <option key={o.valor} value={o.valor} className="bg-zinc-900">{o.rotulo}</option>)}
+                                                </select>
+                                                <ChevronDown size={14} className="absolute right-4 text-zinc-600 pointer-events-none" />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Prazo de Entrega</label>
+                                            <div className="relative flex items-center bg-zinc-950/60 border border-white/5 focus-within:border-emerald-500/40 rounded-xl h-12 transition-all">
+                                                <Calendar size={16} className="absolute left-4 text-zinc-600" />
+                                                <input 
+                                                    type="date" 
+                                                    className="w-full h-full bg-transparent pl-12 pr-4 font-bold text-xs text-white outline-none [color-scheme:dark]" 
+                                                    {...register("prazoEntrega")} 
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 🏗️ LADO DIREITO: MÉTRICAS E MATERIAIS */}
+                            <div className="lg:col-span-5 space-y-8">
+                                 
+                                 {/* 3. PERFORMANCE (Métricas Técnicas) */}
+                                 <div className="p-6 rounded-3xl bg-[#121214] border border-white/5 flex flex-col gap-6 shadow-2xl backdrop-blur-3xl group transition-all duration-500 relative">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                                    <div className="relative z-10 flex items-center gap-3 border-b border-white/5 pb-4">
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-amber-500 border border-amber-500/30 bg-amber-500/5">
+                                            <TrendingUp size={18} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-black uppercase tracking-wider text-white">Métricas de Performance</span>
+                                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Tempo de máquina e massa total</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="relative z-10 grid grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-2 p-5 rounded-2xl bg-zinc-950/60 border border-white/5 group/time transition-all hover:border-amber-500/20">
+                                            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Tempo Estimado</span>
+                                            <div className="flex items-center gap-3 mt-1">
+                                                <div className="flex-1 flex items-baseline gap-1">
+                                                    <input 
+                                                        type="number" 
+                                                        className="bg-transparent text-2xl font-black text-white outline-none tabular-nums w-full"
+                                                        value={Math.floor((watch("tempoMinutos") || 0) / 60)}
+                                                        onChange={(e) => {
+                                                            const h = Math.max(0, parseInt(e.target.value) || 0);
+                                                            const m = (watch("tempoMinutos") || 0) % 60;
+                                                            setValue("tempoMinutos", (h * 60) + m, { shouldDirty: true });
+                                                        }}
+                                                    />
+                                                    <span className="text-[10px] font-black text-amber-500 uppercase italic">H</span>
+                                                </div>
+                                                <div className="w-px h-6 bg-white/10" />
+                                                <div className="flex-1 flex items-baseline gap-1">
+                                                    <input 
+                                                        type="number" 
+                                                        max={59}
+                                                        className="bg-transparent text-2xl font-black text-white outline-none tabular-nums w-full"
+                                                        value={(watch("tempoMinutos") || 0) % 60}
+                                                        onChange={(e) => {
+                                                            const h = Math.floor((watch("tempoMinutos") || 0) / 60);
+                                                            const m = Math.max(0, Math.min(59, parseInt(e.target.value) || 0));
+                                                            setValue("tempoMinutos", (h * 60) + m, { shouldDirty: true });
+                                                        }}
+                                                    />
+                                                    <span className="text-[10px] font-black text-amber-500 uppercase italic">Min</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-2 p-5 rounded-2xl bg-zinc-950/60 border border-white/5 transition-all hover:border-white/10">
+                                            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Massa Total</span>
+                                            <div className="flex items-baseline gap-1 mt-1">
+                                                <input 
+                                                    type="number" 
+                                                    className="bg-transparent text-2xl font-black text-white outline-none tabular-nums w-full" 
+                                                    {...register("pesoGramas", { valueAsNumber: true })} 
+                                                />
+                                                <span className="text-[10px] font-black text-zinc-500 uppercase italic">G</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 4. MATERIAIS (Seletor Premium) */}
+                                <div className="p-6 rounded-3xl bg-[#121214] border border-white/5 flex flex-col gap-6 shadow-2xl backdrop-blur-3xl group transition-all duration-500 relative">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                                    <div className="relative z-10 flex items-center gap-3 border-b border-white/5 pb-4">
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sky-400 border border-sky-500/30 bg-sky-500/5">
+                                            <Box size={18} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-black uppercase tracking-wider text-white">Inventário de Suprimentos</span>
+                                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Materiais e insumos secundários</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="relative z-10 space-y-6">
+                                        <SeletorMateriaisPedido
+                                            selecionados={materiaisSelecionados}
+                                            aoAbrirArmazem={() => setModalArmazemAberto(true)}
+                                            aoAlterar={(novos) => {
+                                                setValue("materiais", novos, { shouldDirty: true });
+                                                setValue("material", novos.map(m => m.nome).join(", "));
+                                                setValue("pesoGramas", novos.reduce((acc, m) => acc + m.quantidadeGasta, 0));
+                                            }}
+                                        />
+                                        <SeletorInsumosSecundarios
+                                            selecionados={insumosSecundarios}
+                                            aoAbrirArmazem={() => setModalInsumosAberto(true)}
+                                            aoAlterar={(novos) => setValue("insumosSecundarios", novos, { shouldDirty: true })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 📝 OBSERVAÇÕES TÉCNICAS */}
+                        <div className="p-6 rounded-3xl bg-[#121214] border border-white/5 shadow-2xl relative overflow-hidden group">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-400 border border-white/10 bg-white/5">
+                                    <MessageSquare size={18} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-black uppercase tracking-wider text-white">Log de Operação / Notas</span>
+                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Instruções especiais para a produção</span>
+                                </div>
+                            </div>
+                            <div className="relative bg-zinc-950/60 border border-white/5 rounded-2xl p-4 focus-within:border-white/20 transition-all">
+                                <textarea 
+                                    className="w-full bg-transparent outline-none font-bold text-xs text-zinc-300 min-h-[100px] resize-none placeholder:text-zinc-700"
+                                    placeholder="Ex: Reforçar paredes internas, acabamento com primer cinza..."
+                                    {...register("observacoes")}
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    {/* OBSERVAÇÕES (FULL WIDTH) */}
-                    <section className="mt-12">
-                        <CampoAreaTexto
-                            rotulo="Observações Internas (Opcional)"
-                            placeholder="Notas sobre acabamento, cores específicas ou detalhes de envio..."
-                            icone={FileText}
-                            {...register("observacoes")}
-                        />
-                    </section>
-                </div>
+                    {/* 📑 FOOTER DE AÇÕES (Dashboard Style) */}
+                    <footer className="px-12 py-8 bg-[#0a0a0c] border-t border-white/5 flex items-center justify-between">
+                        <button 
+                            type="button" 
+                            onClick={aoCancelar} 
+                            className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 hover:text-white transition-colors"
+                        >
+                            Abortar Alterações
+                        </button>
+                        
+                        <button 
+                            type="submit" 
+                            className="group relative flex items-center gap-6 px-10 py-4 bg-white text-black rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-white/10 overflow-hidden"
+                        >
+                            <Save size={18} strokeWidth={3} />
+                            <span className="text-[11px] font-black uppercase tracking-[0.2em]">
+                                {pedidoEdicao ? "Atualizar Inteligência" : "Confirmar Workflow"}
+                            </span>
+                        </button>
+                    </footer>
+                </form>
 
-                {/* RODAPÉ DE AÇÕES */}
-                <footer className="px-8 py-8 bg-zinc-900/80 backdrop-blur-xl border-t border-white/5 flex items-center justify-between">
-                    <button 
-                        type="button" 
-                        onClick={aoCancelar} 
-                        className="px-8 py-3 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 hover:text-white transition-colors"
-                    >
-                        Descartar
-                    </button>
-                    
-                    <button 
-                        type="submit" 
-                        className="group relative flex items-center gap-4 px-12 py-4 bg-white text-zinc-950 rounded-[1.5rem] hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-white/5 overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <Save size={18} strokeWidth={3} className="relative z-10" />
-                        <span className="relative z-10 text-xs font-black uppercase tracking-widest">
-                            {pedidoEdicao ? "Salvar Alterações" : "Lançar no Kanban"}
-                        </span>
-                    </button>
-                </footer>
-            </form>
-
-            {/* Modais de Seleção */}
-            <ModalListagemPremium aberto={modalArmazemAberto} aoFechar={() => setModalArmazemAberto(false)} titulo="Armazém de Materiais" iconeTitulo={Box} corDestaque="amber" termoBusca={buscaMaterial} aoMudarBusca={setBuscaMaterial} temResultados={materiaisFiltrados.length > 0} totalResultados={materiaisFiltrados.length}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {materiaisFiltrados.map(m => (
-                        <div key={m.id} onClick={() => selecionarMaterial(m)} className="p-4 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:border-amber-500/40 cursor-pointer transition-all flex items-center gap-4 group">
-                            <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform"><Box size={24} /></div>
-                            <div className="flex flex-col">
-                                <span className="text-xs font-black uppercase text-zinc-900 dark:text-white">{m.nome}</span>
-                                <span className="text-[10px] font-bold text-zinc-500 uppercase">{m.tipo} • {m.cor}</span>
+                {/* Modais de Seleção (Mantendo lógica) */}
+                <ModalListagemPremium aberto={modalArmazemAberto} aoFechar={() => setModalArmazemAberto(false)} titulo="Armazém de Materiais" iconeTitulo={Box} corDestaque="amber" termoBusca={buscaMaterial} aoMudarBusca={setBuscaMaterial} temResultados={materiaisFiltrados.length > 0} totalResultados={materiaisFiltrados.length}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {materiaisFiltrados.map(m => (
+                            <div key={m.id} onClick={() => selecionarMaterial(m)} className="p-4 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:border-amber-500/40 cursor-pointer transition-all flex items-center gap-4 group">
+                                <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform"><Box size={24} /></div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-black uppercase text-zinc-900 dark:text-white">{m.nome}</span>
+                                    <span className="text-[10px] font-bold text-zinc-500 uppercase">{m.tipo} • {m.cor}</span>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            </ModalListagemPremium>
+                        ))}
+                    </div>
+                </ModalListagemPremium>
 
-            <ModalListagemPremium aberto={modalInsumosAberto} aoFechar={() => setModalInsumosAberto(false)} titulo="Armazém de Insumos" iconeTitulo={Package} corDestaque="sky" termoBusca={buscaInsumo} aoMudarBusca={setBuscaInsumo} temResultados={insumosFiltrados.length > 0} totalResultados={insumosFiltrados.length}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {insumosFiltrados.map(i => (
-                        <div key={i.id} onClick={() => selecionarInsumo(i)} className="p-4 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:border-sky-500/40 cursor-pointer transition-all flex items-center gap-4 group">
-                            <div className="w-12 h-12 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-500 group-hover:scale-110 transition-transform"><Package size={24} /></div>
-                            <div className="flex flex-col">
-                                <span className="text-xs font-black uppercase text-zinc-900 dark:text-white">{i.nome}</span>
-                                <span className="text-[10px] font-bold text-zinc-500 uppercase">{i.categoria} • {i.unidadeMedida}</span>
+                <ModalListagemPremium aberto={modalInsumosAberto} aoFechar={() => setModalInsumosAberto(false)} titulo="Armazém de Insumos" iconeTitulo={Package} corDestaque="sky" termoBusca={buscaInsumo} aoMudarBusca={setBuscaInsumo} temResultados={insumosFiltrados.length > 0} totalResultados={insumosFiltrados.length}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {insumosFiltrados.map(i => (
+                            <div key={i.id} onClick={() => selecionarInsumo(i)} className="p-4 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:border-sky-500/40 cursor-pointer transition-all flex items-center gap-4 group">
+                                <div className="w-12 h-12 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-500 group-hover:scale-110 transition-transform"><Package size={24} /></div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-black uppercase text-zinc-900 dark:text-white">{i.nome}</span>
+                                    <span className="text-[10px] font-bold text-zinc-500 uppercase">{i.categoria} • {i.unidadeMedida}</span>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            </ModalListagemPremium>
+                        ))}
+                    </div>
+                </ModalListagemPremium>
+            </div>
+    );
+
+    if (ehPagina) return ConteudoFormulario;
+
+    return (
+        <Dialogo aberto={aberto} aoFechar={aoCancelar} titulo={pedidoEdicao ? "Painel de Inteligência de Produção" : "Novo Workflow de Engenharia"} larguraMax="max-w-6xl">
+            {ConteudoFormulario}
         </Dialogo>
     );
 }

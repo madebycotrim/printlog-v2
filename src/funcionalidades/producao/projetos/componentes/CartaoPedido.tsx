@@ -11,6 +11,7 @@ import { StatusPedido } from "@/compartilhado/tipos/modelos";
 import { usarArmazemImpressoras } from "@/funcionalidades/producao/impressoras/estado/armazemImpressoras";
 import { ModalDetalhesPedido } from "./ModalDetalhesPedido";
 import { ModalFalhaProjeto } from "./ModalFalhaProjeto";
+import { ModalExcluirPedido } from "./ModalExcluirPedido";
 import { Settings } from "lucide-react";
 
 interface PropriedadesCartaoPedido {
@@ -24,6 +25,7 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
   const [menuAberto, setMenuAberto] = useState(false);
   const [modalDetalhesAberto, setModalDetalhesAberto] = useState(false);
   const [modalFalhaAberto, setModalFalhaAberto] = useState(false);
+  const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const estaAtrasado = useMemo(() => verificarSeEstaAtrasado(pedido), [pedido]);
@@ -146,7 +148,7 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      if (confirm("Excluir este pedido permanentemente?")) excluirPedido(pedido.id);
+                      setModalExcluirAberto(true);
                       setMenuAberto(false);
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-rose-500/70 hover:bg-rose-500/10 hover:text-rose-500 transition-colors"
@@ -206,7 +208,7 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      if (confirm("Cancelar este orçamento?")) excluirPedido(pedido.id);
+                      setModalExcluirAberto(true);
                     }}
                     className="bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all border border-rose-500/20"
                   >
@@ -291,6 +293,13 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
           // Aqui no futuro chamaremos o serviço real
           toast.success("Falha registrada. O sistema descontou o material perdido.");
         }}
+      />
+
+      <ModalExcluirPedido
+        aberto={modalExcluirAberto}
+        aoFechar={() => setModalExcluirAberto(false)}
+        pedido={pedido}
+        aoConfirmar={(id) => excluirPedido(id)}
       />
     </div>
   );
