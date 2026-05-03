@@ -141,12 +141,11 @@ export function PaginaMateriais() {
         )}
       </AnimatePresence>
 
-      {/* Modal de Cadastro/Edição */}
+      {/* Modal de Cadastro (Exclusivo para Novo Insumo) */}
       <FormularioMaterial
         aberto={estado.modalAberto}
         aoSalvar={acoes.salvarMaterial}
         aoCancelar={acoes.fecharEditar}
-        materialEditando={estado.materialSendoEditado}
       />
 
       {/* Modal Unificado de Uso e Histórico (Fase 4) */}
@@ -154,6 +153,8 @@ export function PaginaMateriais() {
         <ModalHistoricoUso
           aberto={estado.modalHistoricoAberto}
           material={estado.materialParaHistorico}
+          abaInicial={estado.abaHistoricoInicial}
+          aoSalvarCadastro={acoes.salvarMaterial}
           aoFechar={acoes.fecharHistorico}
         />
       )}

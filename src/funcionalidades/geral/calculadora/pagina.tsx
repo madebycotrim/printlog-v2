@@ -99,6 +99,13 @@ export function PaginaCalculadora() {
   const [mostrarCustosFixos, setMostrarCustosFixos] = useState(false);
   const [abaResultado, setAbaResultado] = useState<'orcamento' | 'metricas'>('orcamento');
 
+  // Resetar a calculadora ao sair da página (Sidebar, Navegação, etc)
+  useEffect(() => {
+    return () => {
+      hook.limpar(true);
+    };
+  }, [hook.limpar]);
+
   const carregandoDados = estado.carregando || estadoMateriais.carregando;
 
   const [buscaMaterial, setBuscaMaterial] = useState("");
@@ -638,9 +645,9 @@ export function PaginaCalculadora() {
               gerarPdf={() => {
                 const clienteFinal = buscaClienteSeletor.trim() || "Consumidor Final";
                 if (!eProOuSuperior) {
-                  hook.gerarPdf("", "", clienteFinal, nomeProjeto);
+                  hook.gerarPdf("", "", clienteFinal, nomeProjeto, idEdicao || undefined);
                 } else if (config.nomeEstudio.trim() !== "") {
-                  hook.gerarPdf(config.nomeEstudio, config.sloganEstudio, clienteFinal, nomeProjeto);
+                  hook.gerarPdf(config.nomeEstudio, config.sloganEstudio, clienteFinal, nomeProjeto, idEdicao || undefined);
                 } else {
                   setModalPdfAberto(true);
                 }
@@ -712,7 +719,7 @@ export function PaginaCalculadora() {
             aoAlternarFavorito={acoesMateriais.alternarFavorito}
           />
 
-          <FormularioMaterial aberto={estadoMateriais.modalAberto} aoSalvar={acoesMateriais.salvarMaterial} aoCancelar={acoesMateriais.fecharEditar} materialEditando={estadoMateriais.materialSendoEditado} />
+          <FormularioMaterial aberto={estadoMateriais.modalAberto} aoSalvar={acoesMateriais.salvarMaterial} aoCancelar={acoesMateriais.fecharEditar} />
 
           <FormularioInsumo aberto={modalInsumoAberto} aoCancelar={fecharInsumoAberto} insumoEditando={insumoEditando} aoSalvar={(dados) => adicionarOuAtualizarInsumo({ ...dados, id: dados.id || crypto.randomUUID(), dataCriacao: dados.dataCriacao || new Date(), dataAtualizacao: new Date(), historico: dados.historico || [] } as any)} />
 
@@ -771,7 +778,7 @@ export function PaginaCalculadora() {
                 <div className="flex flex-col gap-2 mt-4">
                   <button
                     onClick={() => {
-                      hook.gerarPdf(config.nomeEstudio, config.sloganEstudio, buscaClienteSeletor, nomeProjeto);
+                      hook.gerarPdf(config.nomeEstudio, config.sloganEstudio, buscaClienteSeletor, nomeProjeto, idEdicao || undefined);
                       setModalPdfAberto(false);
                     }}
                     className="w-full h-14 font-black uppercase tracking-[0.15em] text-xs rounded-2xl flex items-center justify-center gap-2 bg-sky-500 text-white hover:bg-sky-600 transition-all active:scale-95 shadow-[0_10px_20px_-5px_rgba(14,165,233,0.3)]"

@@ -89,7 +89,7 @@ export interface Impressora {
   intervaloRevisaoMinutos?: number;
   /** Rastreamento de consumíveis críticos */
   pecasDesgaste?: PecaDesgaste[];
-  /** Simulação de histórico de produção vinculada */
+  /** Histórico de projetos produzidos nesta impressora */
   historicoProducao?: RegistroProducao[];
   /** Histórico de Manutenção da Impressora */
   historicoManutencao?: RegistroManutencao[];
@@ -97,4 +97,14 @@ export interface Impressora {
   dataAposentadoria?: string;
   dataCriacao: Date;
   dataAtualizacao: Date;
+
+  // ── Métricas de Desempenho e Financeiro ───────────────────────────────────
+  /** Total de projetos concluídos nesta impressora */
+  totalProjetosConcluidos?: number;
+  /** Receita bruta gerada por esta impressora (em centavos) */
+  receitaAcumuladaCentavos?: Centavos;
+  /** Custo de energia elétrica acumulado (em centavos) */
+  custoEnergiaCentavos?: Centavos;
+  /** ROI calculado: (receitaAcumulada - custoCompra) / custoCompra * 100 */
+  roiPercentual?: number;
 }

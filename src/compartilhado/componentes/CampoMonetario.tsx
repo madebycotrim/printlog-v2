@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, forwardRef, ElementType, ChangeEvent } from "react";
+import { InputHTMLAttributes, forwardRef, ElementType, ChangeEvent, useState } from "react";
 import { DollarSign } from "lucide-react";
 
 interface CampoMonetarioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
@@ -14,15 +14,36 @@ interface CampoMonetarioProps extends Omit<InputHTMLAttributes<HTMLInputElement>
  * @lgpd Sem coleta de dados pessoais.
  */
 export const CampoMonetario = forwardRef<HTMLInputElement, CampoMonetarioProps>(
-  ({ rotulo, erro, prefixo = "BRL", icone: Icone = DollarSign, className = "", onChange, ...props }, ref) => {
+  ({ rotulo, erro, prefixo = "BRL", icone: Icone = DollarSign, className = "", onChange, value, onBlur, ...props }, ref) => {
+    const [focado, setFocado] = useState(false);
+    const [valorTemporario, setValorTemporario] = useState<string | undefined>(undefined);
 
     /**
      * Intercepta o onChange para normalizar vírgula → ponto.
-     * Permite que o react-hook-form receba sempre o formato numérico correto.
      */
     const lidarComMudanca = (e: ChangeEvent<HTMLInputElement>) => {
+      const v = e.target.value;
+      setValorTemporario(v);
+      
+      const valorNormalizado = v.replace(",", ".");
+      if (valorNormalizado === ".") {
+        e.target.value = "0.";
+        setValorTemporario("0.");
+      }
+      
       onChange?.(e);
     };
+
+    const lidarComBlur = (e: any) => {
+      setFocado(false);
+      setValorTemporario(undefined);
+      onBlur?.(e);
+    };
+
+    // Só mostra o valor do buffer (digitação atual) ou o valor real se for diferente de zero
+    const valorParaExibir = valorTemporario !== undefined 
+      ? valorTemporario 
+      : (value === 0 || value === "0" || value === undefined ? "" : value);
 
     return (
       <div className={`space-y-1.5 ${className}`}>
@@ -46,7 +67,10 @@ export const CampoMonetario = forwardRef<HTMLInputElement, CampoMonetarioProps>(
             ref={ref}
             type="text"
             inputMode="decimal"
-            pattern="[0-9]*[.,]?[0-9]*"
+            pattern="^[0-9]*[.,]?[0-9]*$"
+            value={valorParaExibir}
+            onFocus={() => setFocado(true)}
+            onBlur={lidarComBlur}
             {...props}
             onChange={lidarComMudanca}
             className={`w-full h-10 bg-transparent border-0 border-b-2 outline-none transition-all duration-300 placeholder:text-gray-400/50 dark:placeholder:text-zinc-700 font-normal text-sm text-gray-900 dark:text-white pl-8 pr-12

@@ -41,7 +41,7 @@ export function usarGerenciadorMateriais() {
   const [materialParaHistorico, definirMaterialParaHistorico] = useState<Material | null>(null);
   const [materialParaExcluir, definirMaterialParaExcluir] = useState<Material | null>(null);
   const [materialParaRepor, definirMaterialParaRepor] = useState<Material | null>(null);
-  const [abaHistoricoInicial, definirAbaHistoricoInicial] = useState<"extrato" | "novo">("extrato");
+  const [abaHistoricoInicial, definirAbaHistoricoInicial] = useState<"extrato" | "novo" | "cadastro">("extrato");
 
   // Estados de Filtro e Ordenação
   const [filtro, definirFiltro] = useState<FiltroTipoMaterial>("TODOS");
@@ -84,10 +84,14 @@ export function usarGerenciadorMateriais() {
    */
   const salvarMaterial = async (dadosDoFormulario: any) => {
     if (!usuario?.uid) return;
-    const eEdicao = Boolean(materialSendoEditado);
     
-    const materialParaSalvar: Material = materialSendoEditado 
-      ? { ...materialSendoEditado, ...dadosDoFormulario, dataAtualizacao: new Date() }
+    // Detecta se é edição pelo ID presente nos dados ou no estado
+    const idParaVerificar = dadosDoFormulario.id || materialSendoEditado?.id;
+    const materialExistente = materiais.find(m => m.id === idParaVerificar);
+    const eEdicao = Boolean(materialExistente);
+    
+    const materialParaSalvar: Material = eEdicao 
+      ? { ...materialExistente!, ...dadosDoFormulario, dataAtualizacao: new Date() }
       : {
         ...dadosDoFormulario,
         id: crypto.randomUUID(),
@@ -113,6 +117,7 @@ export function usarGerenciadorMateriais() {
       auditoria.evento("SALVAR_MATERIAL", { id: materialParaSalvar.id, eEdicao, nome: dadosDoFormulario.nome });
       toast.success(eEdicao ? "Material atualizado!" : "Material cadastrado com sucesso! 🚀");
       fecharModal();
+      definirModalHistoricoAberto(false);
     } catch (erro) {
       toast.error("Erro ao salvar material no banco de dados.");
     }
@@ -305,8 +310,16 @@ export function usarGerenciadorMateriais() {
     acoes: {
       // Abertores (A UI envia ID exceto em Editar)
       abrirEditar: (mat: Material) => {
-        definirMaterialSendoEditado(mat);
-        definirModalAberto(true);
+        if (!mat) {
+          // Caso seja um NOVO material (botão superior ou estado vazio)
+          definirMaterialSendoEditado(null);
+          definirModalAberto(true);
+        } else {
+          // Caso seja EDIÇÃO de um material existente (redireciona para modal unificado)
+          definirMaterialParaHistorico(mat);
+          definirAbaHistoricoInicial("cadastro");
+          definirModalHistoricoAberto(true);
+        }
       },
       abrirAbater: (id: string) => {
         const m = encontrarMaterial(id);
@@ -315,7 +328,7 @@ export function usarGerenciadorMateriais() {
           definirModalAbatimentoAberto(true);
         }
       },
-      abrirHistorico: (id: string, aba: "extrato" | "novo" = "extrato") => {
+      abrirHistorico: (id: string, aba: "extrato" | "novo" | "cadastro" = "extrato") => {
         const m = encontrarMaterial(id);
         if (m) {
           definirMaterialParaHistorico(m);

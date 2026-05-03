@@ -1,176 +1,209 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Check } from "lucide-react";
-import { RegistroUso } from "../tipos";
-import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
-
-const esquemaConsumo = z.object({
-  nomePeca: z.string().min(3, "Informe o motivo ou peça"),
-  quantidadeGastaGramas: z.coerce.number().positive("Quantidade deve ser maior que zero"),
-  status: z.enum(["SUCESSO", "FALHA", "CANCELADO", "MANUAL"]),
-});
-
-type ConsumoFormData = z.infer<typeof esquemaConsumo>;
+import { useState, useMemo } from "react";
+import { Scale, Check, Trash2, ArrowDownRight, MinusCircle, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PropriedadesFormularioConsumo {
-  aoSalvar: (dados: Omit<RegistroUso, "id" | "data">) => Promise<void>;
+  aoSalvar: (dados: { quantidade: number; motivo: string }) => Promise<void>;
   aoCancelar: () => void;
   pesoDisponivel: number;
   tipo?: "FDM" | "SLA";
+  corMaterial?: string;
 }
 
-const MOTIVOS_SUGERIDOS = [
-  "Falha na Impressão",
-  "Teste de Retração",
-  "Purga de Material",
-  "Ajuste de Fluxo",
-  "Peça de Teste",
-];
+type ModoAbatimento = "PERDA" | "BALANCA";
 
-export function FormularioConsumo({ aoSalvar, aoCancelar, pesoDisponivel, tipo }: PropriedadesFormularioConsumo) {
-  const termo = tipo === 'FDM' ? 'Filamento' : tipo === 'SLA' ? 'Resina' : 'Insumo';
-  const unidade = tipo === 'SLA' ? 'ml' : 'g';
+export function FormularioConsumo({ aoSalvar, aoCancelar, pesoDisponivel, tipo, corMaterial = "#6366f1" }: PropriedadesFormularioConsumo) {
+  const [modo, setModo] = useState<ModoAbatimento>("PERDA");
+  const [valorInput, setValorInput] = useState<string>("0");
+  const [motivo, setMotivo] = useState("");
   const [salvando, setSalvando] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<ConsumoFormData>({
-    resolver: zodResolver(esquemaConsumo) as any,
-    defaultValues: {
-      status: "MANUAL",
-      quantidadeGastaGramas: 0,
-    },
-  });
+  const unidade = tipo === "SLA" ? "ml" : "g";
+  
+  const quantidadeAbatida = useMemo(() => {
+    const num = parseFloat(valorInput.replace(",", ".")) || 0;
+    if (modo === "BALANCA") {
+      return Math.max(0, pesoDisponivel - num);
+    }
+    return num;
+  }, [valorInput, modo, pesoDisponivel]);
 
-  const quantidadeGasta = watch("quantidadeGastaGramas") || 0;
-  const excesso = quantidadeGasta > pesoDisponivel;
-  const pesoFinal = Math.max(0, pesoDisponivel - quantidadeGasta);
+  const saldoFinalReal = modo === "PERDA" ? pesoDisponivel - quantidadeAbatida : parseFloat(valorInput.replace(",", ".")) || 0;
+  const eAbatimentoTotal = quantidadeAbatida >= pesoDisponivel && pesoDisponivel > 0;
 
-  const aoSubmeter = async (dados: ConsumoFormData) => {
+  const lidarComEnvio = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (quantidadeAbatida <= 0 && modo === "PERDA") return;
+    
+    setSalvando(true);
     try {
-      setSalvando(true);
-      await aoSalvar(dados);
-      aoCancelar();
-    } catch (erro) {
-      // Erro tratado no hook
+      await aoSalvar({
+        quantidade: quantidadeAbatida,
+        motivo: motivo || "Abatimento manual"
+      });
     } finally {
       setSalvando(false);
     }
   };
 
+  const trocarModo = (novoModo: ModoAbatimento) => {
+    setModo(novoModo);
+    setValorInput(novoModo === "BALANCA" ? pesoDisponivel.toString() : "0");
+  };
+
+  const adicionarValor = (v: number) => {
+    const atual = parseFloat(valorInput) || 0;
+    setValorInput((atual + v).toString());
+  };
+
   return (
-    <form onSubmit={handleSubmit(aoSubmeter as any)} className="space-y-8">
-      {/* Resumo Simples */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-white/5">
-          <span className="text-[10px] font-black uppercase text-zinc-400 block mb-1">Saldo de {termo}</span>
-          <div className="text-xl font-black text-zinc-900 dark:text-white">{pesoDisponivel}{unidade}</div>
+    <form onSubmit={lidarComEnvio} className="flex flex-col gap-5 max-w-xl mx-auto">
+      
+      {/* 1. Painel de Resultado (Claro e Objetivo) */}
+      <div 
+        className="relative overflow-hidden rounded-[1.5rem] p-5 text-center border transition-all duration-300"
+        style={{ 
+          backgroundColor: eAbatimentoTotal ? 'rgba(244, 63, 94, 0.05)' : (corMaterial + '08'), 
+          borderColor: eAbatimentoTotal ? 'rgba(244, 63, 94, 0.2)' : (corMaterial + '15')
+        }}
+      >
+        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-1 block">Saldo que restará no rolo</span>
+        <div className="flex items-baseline justify-center gap-1.5">
+          <motion.span 
+            key={saldoFinalReal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-4xl font-black tracking-tighter tabular-nums" 
+            style={{ color: eAbatimentoTotal ? '#f43f5e' : corMaterial }}
+          >
+            {Math.max(0, saldoFinalReal).toFixed(0)}
+          </motion.span>
+          <span className="text-sm font-bold opacity-40 uppercase" style={{ color: eAbatimentoTotal ? '#f43f5e' : corMaterial }}>{unidade}</span>
         </div>
-        <div className={`p-4 rounded-2xl border ${excesso ? 'bg-rose-500/10 border-rose-500/20' : 'bg-emerald-500/10 border-emerald-500/20'}`}>
-          <span className="text-[10px] font-black uppercase text-zinc-400 block mb-1">Após Abatimento</span>
-          <div className={`text-xl font-black ${excesso ? 'text-rose-500' : 'text-emerald-500'}`}>{pesoFinal.toFixed(1)}{unidade}</div>
-        </div>
+        
+        <AnimatePresence>
+          {quantidadeAbatida > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-2 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase"
+              style={{ color: eAbatimentoTotal ? '#f43f5e' : '#94a3b8' }}
+            >
+              {eAbatimentoTotal ? <AlertCircle size={12} /> : <MinusCircle size={12} />}
+              {eAbatimentoTotal ? "O rolo será zerado" : `Removendo ${quantidadeAbatida.toFixed(1)}${unidade}`}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className="space-y-6">
-        {/* Campo de Peso */}
-        <div>
-          <label className="text-[10px] font-black uppercase text-zinc-500 mb-2 block">Quanto de {termo} foi gasto? ({unidade})</label>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {(() => {
-              // Lógica de sugestões inteligentes baseadas no saldo
-              const sugestoes = [];
-              if (pesoDisponivel > 500) {
-                sugestoes.push(10, 50, 100, 250);
-              } else if (pesoDisponivel > 100) {
-                sugestoes.push(5, 10, 25, 50);
-              } else {
-                sugestoes.push(1, 2, 5, 10);
-              }
-              
-              return (
-                <>
-                  {sugestoes.filter(v => v < pesoDisponivel).map((valor) => (
-                    <button
-                      key={valor}
-                      type="button"
-                      onClick={() => setValue("quantidadeGastaGramas", valor)}
-                      className="flex-1 min-w-[60px] py-2 rounded-lg bg-zinc-100 dark:bg-white/5 text-[10px] font-black hover:bg-indigo-500 hover:text-white transition-all border border-transparent"
-                    >
-                      +{valor}{unidade}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setValue("quantidadeGastaGramas", pesoDisponivel)}
-                    className="flex-1 min-w-[60px] py-2 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-500 text-[10px] font-black hover:bg-indigo-500 hover:text-white transition-all border border-indigo-500/20"
-                  >
-                    TUDO
-                  </button>
-                </>
-              );
-            })()}
+      {/* 2. Controle de Entrada com Nomes Claros */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex flex-col">
+             <label className="text-[10px] font-black uppercase text-zinc-900 dark:text-white tracking-widest">
+               {modo === "PERDA" ? "Quanto saiu?" : "Quanto tem agora?"}
+             </label>
+             <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter">
+               {modo === "PERDA" ? "Digite apenas o peso da perda/falha" : "Coloque o rolo na balança e digite o total"}
+             </span>
           </div>
-          <CampoTexto
-            type="number"
-            step="0.1"
-            placeholder="0.0"
-            erro={errors.quantidadeGastaGramas?.message}
-            {...register("quantidadeGastaGramas")}
-            className={`h-16 text-2xl font-black text-center rounded-2xl ${excesso ? 'border-rose-500 text-rose-500' : ''}`}
-          />
+          
+          <button 
+            type="button"
+            onClick={() => trocarModo(modo === "PERDA" ? "BALANCA" : "PERDA")}
+            className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest py-2 px-4 rounded-full border border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/5 transition-all shadow-sm"
+            style={{ color: corMaterial }}
+          >
+            {modo === "PERDA" ? <Scale size={10} /> : <MinusCircle size={10} />}
+            Mudar para Modo {modo === "PERDA" ? "Balança" : "Gasto"}
+          </button>
         </div>
 
-        {/* Motivo */}
-        <div>
-          <label className="text-[10px] font-black uppercase text-zinc-500 mb-2 block">Motivo do Abatimento</label>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {MOTIVOS_SUGERIDOS.map((motivo) => (
+        <div className="relative group">
+          <input
+            type="number"
+            step="0.1"
+            value={valorInput}
+            onChange={(e) => setValorInput(e.target.value)}
+            className="w-full bg-zinc-50 dark:bg-black/20 border-2 border-transparent rounded-2xl px-6 py-4 text-4xl font-black text-center focus:outline-none transition-all tabular-nums"
+            style={{ 
+              borderColor: (modo === "PERDA" && valorInput !== "0") || (modo === "BALANCA" && parseFloat(valorInput) !== pesoDisponivel) ? (corMaterial + '33') : undefined,
+              color: (modo === "PERDA" && valorInput !== "0") || (modo === "BALANCA" && parseFloat(valorInput) !== pesoDisponivel) ? corMaterial : undefined 
+            }}
+          />
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 opacity-10 group-focus-within:opacity-100 transition-opacity" style={{ color: corMaterial }}>
+            {modo === "PERDA" ? <MinusCircle size={24} /> : <Scale size={24} />}
+          </div>
+        </div>
+
+        {/* Atalhos */}
+        {modo === "PERDA" && (
+          <div className="grid grid-cols-4 gap-2">
+            {[10, 50, 100, 250].map(v => (
               <button
-                key={motivo}
+                key={v}
                 type="button"
-                onClick={() => setValue("nomePeca", motivo)}
-                className="px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-white/5 border border-transparent hover:border-indigo-500/50 text-[9px] font-black uppercase transition-all"
+                onClick={() => adicionarValor(v)}
+                className="py-2.5 rounded-xl bg-zinc-50 dark:bg-white/5 text-[10px] font-black uppercase text-zinc-500 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all"
               >
-                {motivo}
+                +{v}
               </button>
             ))}
           </div>
-          <CampoTexto
-            placeholder="Descreva o motivo ou peça..."
-            erro={errors.nomePeca?.message}
-            {...register("nomePeca")}
-            className="h-12 text-sm rounded-xl"
-          />
-        </div>
+        )}
       </div>
 
-      {/* Ações */}
-      <div className="flex items-center gap-3 pt-4 border-t border-zinc-100 dark:border-white/5">
+      {/* 3. Motivo Compacto */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-1.5 justify-center">
+          {["Falha", "Teste", "Purga", "Ajuste"].map(m => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMotivo(m)}
+              className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all border ${
+                motivo.includes(m) 
+                  ? "bg-zinc-900 dark:bg-white text-white dark:text-black border-zinc-900 dark:border-white" 
+                  : "bg-transparent text-zinc-400 border-zinc-100 dark:border-white/5"
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+        <input
+          type="text"
+          value={motivo}
+          onChange={(e) => setMotivo(e.target.value)}
+          placeholder="Opcional: Por que?"
+          className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-2 text-center text-xs focus:outline-none transition-all"
+          style={{ borderBottomColor: motivo ? corMaterial : undefined }}
+        />
+      </div>
+
+      {/* 4. Ação Final */}
+      <div className="flex items-center gap-3 mt-2">
         <button
           type="button"
           onClick={aoCancelar}
-          className="flex-1 py-4 text-[11px] font-black uppercase text-zinc-400 hover:text-zinc-600 transition-colors"
+          className="px-6 py-3 text-[9px] font-black uppercase text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all"
         >
           Cancelar
         </button>
         <button
           type="submit"
-          disabled={salvando || excesso}
-          className="flex-[2] py-4 rounded-xl bg-indigo-500 text-white text-[11px] font-black uppercase shadow-lg shadow-indigo-500/20 hover:bg-indigo-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          disabled={(quantidadeAbatida <= 0 && modo === "PERDA") || salvando}
+          className="flex-1 text-white py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-xl transition-all active:scale-[0.98] disabled:opacity-20"
+          style={{ backgroundColor: eAbatimentoTotal ? '#f43f5e' : corMaterial }}
         >
           {salvando ? (
-            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
-              <Check size={16} />
-              Confirmar Abatimento
+              <Check size={16} strokeWidth={3} />
+              <span className="text-[10px] font-black uppercase tracking-wider">
+                {eAbatimentoTotal ? "Zerar Insumo" : "Gravar Lançamento"}
+              </span>
             </>
           )}
         </button>

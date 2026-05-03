@@ -9,8 +9,8 @@ import { Dialogo } from "@/compartilhado/componentes/Dialogo";
 import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
 import { CampoMonetario } from "@/compartilhado/componentes/CampoMonetario";
 import { AcoesDescarte } from "@/compartilhado/componentes/AcoesDescarte";
-import { Material } from "@/funcionalidades/producao/materiais/tipos";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
+import { FABRICANTES, MATERIAIS_FDM, MATERIAIS_SLA, CORES_PREDEFINIDAS } from "../constantes";
 
 // --- ESQUEMA DE VALIDAÇÃO (ZOD) ---
 const esquemaMaterial = z.object({
@@ -25,66 +25,17 @@ const esquemaMaterial = z.object({
     .number({ message: "Estoque num. obrigatório." })
     .int("Deixe sem casas decimais.")
     .min(0, "O estoque não pode ser negativo."),
-  usarGramas: z.boolean(),
 });
 
 type FormValues = z.infer<typeof esquemaMaterial>;
-
-const FABRICANTES = [
-  { valor: "Voolt3D", rotulo: "Voolt3D" },
-  { valor: "3D Fila", rotulo: "3D Fila" },
-  { valor: "Creality", rotulo: "Creality" },
-  { valor: "Esun", rotulo: "Esun" },
-  { valor: "Sunlu", rotulo: "Sunlu" },
-  { valor: "Flashforge", rotulo: "Flashforge" },
-  { valor: "Prusa", rotulo: "Prusa Research" },
-  { valor: "GTMax", rotulo: "GTMax" },
-  { valor: "Nacional", rotulo: "Genérico Nacional" },
-  { valor: "Importado", rotulo: "Genérico Importado" },
-];
-
-const MATERIAIS_FDM = [
-  { valor: "PLA", rotulo: "PLA (Ácido Polilático)" },
-  { valor: "PLA Silk", rotulo: "PLA Silk (Acabamento Seda)" },
-  { valor: "PLA Matte", rotulo: "PLA Matte (Fosco)" },
-  { valor: "PETG", rotulo: "PETG (Polietileno Tereftalato Glicol)" },
-  { valor: "ABS", rotulo: "ABS (Acrilonitrila Butadieno Estireno)" },
-  { valor: "ASA", rotulo: "ASA (Resistente UV)" },
-  { valor: "TPU", rotulo: "TPU (Flexível)" },
-  { valor: "Nylon", rotulo: "Nylon (Poliamida - PA)" },
-  { valor: "PC", rotulo: "PC (Policarbonato)" },
-  { valor: "HIPS", rotulo: "HIPS (Suporte Solúvel em Limoneno)" },
-  { valor: "Wood", rotulo: "PLA Wood (Composto com Madeira)" },
-  { valor: "Carbon Fiber", rotulo: "Fibra de Carbono (PLA/PETG/Nylon CF)" },
-];
-
-const MATERIAIS_SLA = [
-  { valor: "Standard", rotulo: "Resina Padrão" },
-  { valor: "ABS-Like", rotulo: "Resina ABS-Like (Alta Resistência)" },
-  { valor: "Water Washable", rotulo: "Resina Lavável em Água" },
-  { valor: "Tough", rotulo: "Resina Tough (Alta Tenacidade)" },
-  { valor: "Flexible", rotulo: "Resina Flexível" },
-  { valor: "Castable", rotulo: "Resina Calcinável (Joias/Dental)" },
-  { valor: "Dental", rotulo: "Resina Dental" },
-  { valor: "High Temp", rotulo: "Resina Alta Temperatura" },
-];
-
-const CORES_PREDEFINIDAS = [
-  "#FFFFFF", "#F5DEB3", "#C0C0C0", "#FFFF00", "#FFD700", "#FFA500", "#FF4500", "#8B0000",
-  "#800080", "#4B0082", "#00FFFF", "#00BFFF", "#0000FF", "#000080", "#8B4513", "#5D4037",
-  "#808000", "#808080", "#708090", "#2F4F4F", "#000000", "#FA8072", "#FFC0CB", "#FF00FF",
-  "#FF0000", "#32CD32", "#008000", "#006400",
-];
 
 interface PropriedadesFormularioMaterial {
   aberto: boolean;
   aoSalvar: (dados: any) => Promise<any> | void;
   aoCancelar: () => void;
-  materialEditando?: Material | null;
 }
 
-export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEditando }: PropriedadesFormularioMaterial) {
-  const estaEditando = Boolean(materialEditando);
+export function FormularioMaterial({ aberto, aoSalvar, aoCancelar }: PropriedadesFormularioMaterial) {
   const [confirmarDescarte, definirConfirmarDescarte] = useState(false);
 
   const {
@@ -107,7 +58,6 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEdita
       preco: "" as unknown as number,
       peso: 1000,
       estoqueInicial: 1,
-      usarGramas: false,
     },
   });
 
@@ -116,29 +66,16 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEdita
   const tipoMaterialSelecionado = watch("tipoMaterial");
   const corSelecionada = watch("cor");
 
+  // Sempre reseta para valores vazios quando o modal de cadastro abre
   useEffect(() => {
     if (aberto) {
-      if (materialEditando) {
-        reset({
-          tipo: materialEditando.tipo,
-          fabricante: materialEditando.fabricante || "",
-          tipoMaterial: materialEditando.tipoMaterial || "",
-          nomePersonalizado: materialEditando.nome !== `${materialEditando.tipoMaterial} ${materialEditando.fabricante}` ? materialEditando.nome : "",
-          cor: materialEditando.cor || "",
-          preco: materialEditando.precoCentavos / 100,
-          peso: materialEditando.pesoGramas,
-          estoqueInicial: materialEditando.estoque,
-          usarGramas: false,
-        });
-      } else {
-        reset({
-          tipo: "FDM", fabricante: "", tipoMaterial: "", nomePersonalizado: "", cor: "",
-          preco: "" as unknown as number, peso: 1000, estoqueInicial: 1, usarGramas: false,
-        });
-      }
+      reset({
+        tipo: "FDM", fabricante: "", tipoMaterial: "", nomePersonalizado: "", cor: "",
+        preco: "" as unknown as number, peso: 1000, estoqueInicial: 1,
+      });
       definirConfirmarDescarte(false);
     }
-  }, [aberto, materialEditando, reset]);
+  }, [aberto, reset]);
 
   const opcoesMaterialAtual = useMemo(() => (tipoSelecionado === "FDM" ? MATERIAIS_FDM : MATERIAIS_SLA), [tipoSelecionado]);
 
@@ -148,7 +85,7 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEdita
       const nomeFinal = dados.nomePersonalizado || `${dados.tipoMaterial} ${dados.fabricante}`.trim();
 
       await aoSalvar({
-        id: materialEditando?.id || crypto.randomUUID(),
+        id: crypto.randomUUID(),
         tipo: dados.tipo,
         nome: nomeFinal,
         tipoMaterial: dados.tipoMaterial,
@@ -168,7 +105,7 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEdita
     const valores = control._formValues;
     const temConteudo = valores.fabricante || valores.tipoMaterial || valores.nomePersonalizado || (valores.preco > 0);
 
-    if (isDirty && (estaEditando || temConteudo)) {
+    if (isDirty && temConteudo) {
       definirConfirmarDescarte(true);
     } else {
       aoCancelar();
@@ -179,7 +116,7 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEdita
   const unidadeMedida = tipoSelecionado === "FDM" ? "G" : "ML";
 
   return (
-    <Dialogo aberto={aberto} aoFechar={lidarComTentativaFechamento} titulo={estaEditando ? `Refinar ${termoMaterial}` : "Novo Material Maker"} larguraMax="max-w-5xl">
+    <Dialogo aberto={aberto} aoFechar={lidarComTentativaFechamento} titulo="Novo Material Maker" larguraMax="max-w-5xl">
        <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] min-h-[500px] bg-white dark:bg-[#18181b]">
           <div className="bg-zinc-50 dark:bg-black/20 border-r border-zinc-100 dark:border-white/5 p-8 flex flex-col items-center justify-center relative overflow-hidden">
              <div className="absolute top-8 inset-x-8 flex bg-white/50 dark:bg-black/20 p-1.5 rounded-2xl border border-zinc-200 dark:border-white/5 z-20 backdrop-blur-md">
@@ -247,7 +184,7 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar, materialEdita
                       <button type="button" onClick={lidarComTentativaFechamento} className="px-6 py-2.5 text-[11px] font-black uppercase text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all">Cancelar</button>
                       <button type="submit" style={{ backgroundColor: "var(--cor-primaria)" }} className="px-8 py-3 flex-1 md:flex-none justify-center text-white text-[11px] font-black uppercase rounded-2xl shadow-xl transition-all active:scale-95 flex items-center gap-2">
                          <Save size={16} strokeWidth={3} />
-                         {estaEditando ? "Salvar Alterações" : `Cadastrar ${termoMaterial}`}
+                         Cadastrar {termoMaterial}
                       </button>
                    </div>
                 ) : (

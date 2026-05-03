@@ -2,23 +2,23 @@ import { FolderKanban, Plus } from "lucide-react";
 import { useState } from "react";
 import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalho";
 import { QuadroKanban } from "./componentes/QuadroKanban";
-import { FormularioPedido } from "./componentes/FormularioPedido";
 import { ModalArquivoProjetos } from "./componentes/ModalArquivoProjetos";
 import { ModalProjetosAtrasados } from "./componentes/ModalProjetosAtrasados";
 import { usarPedidos } from "./hooks/usarPedidos";
-import { usarArmazemPedidos } from "./estado/armazemPedidos";
 import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
-import { CriarPedidoInput, Pedido } from "./tipos";
 import { ResumoProjetos } from "./componentes/ResumoProjetos";
 import { motion, AnimatePresence } from "framer-motion";
 import { Carregamento } from "@/compartilhado/componentes/Carregamento";
 import { useNavigate } from "react-router-dom";
+import { FormularioPedido } from "./componentes/FormularioPedido";
+import { Pedido } from "./tipos";
 
 export function PaginaProjetos() {
   const navigate = useNavigate();
   const [modalArquivoAberto, setModalArquivoAberto] = useState(false);
   const [modalAtrasadosAberto, setModalAtrasadosAberto] = useState(false);
-  const { pedidos, pedidosFiltrados, moverPedido, pesquisar, carregando } = usarPedidos();
+  const [pedidoEdicao, setPedidoEdicao] = useState<Pedido | null>(null);
+  const { pedidos, pedidosFiltrados, moverPedido, pesquisar, carregando, atualizarPedido } = usarPedidos();
 
   usarDefinirCabecalho({
     titulo: "Fluxo de Produção",
@@ -35,7 +35,8 @@ export function PaginaProjetos() {
   });
 
   const abrirFormularioEdicao = (id: string) => {
-    navigate(`/calculadora?id=${id}`);
+    const pedido = pedidos.find(p => p.id === id);
+    if (pedido) setPedidoEdicao(pedido);
   };
 
   return (
@@ -100,6 +101,18 @@ export function PaginaProjetos() {
         aoFechar={() => setModalAtrasadosAberto(false)}
         pedidos={pedidos}
         abrirFormularioEdicao={abrirFormularioEdicao}
+      />
+
+      <FormularioPedido
+        aberto={!!pedidoEdicao}
+        pedidoEdicao={pedidoEdicao}
+        aoCancelar={() => setPedidoEdicao(null)}
+        aoSalvar={async (dados) => {
+          if (pedidoEdicao) {
+            await atualizarPedido({ ...dados, id: pedidoEdicao.id });
+            setPedidoEdicao(null);
+          }
+        }}
       />
     </div>
   );

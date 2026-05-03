@@ -50,7 +50,7 @@ export function ColunaKanban({ titulo, status, pedidos, aoMover, abrirFormulario
 
   return (
     <div
-      className="flex flex-col gap-4 min-w-[320px] w-full max-w-sm h-full"
+      className="flex flex-col gap-4 min-w-[320px] w-full max-w-sm h-full relative"
       onDragEnter={lidarComDragEnter}
       onDragOver={lidarComDragOver}
       onDragLeave={lidarComDragLeave}
@@ -70,10 +70,10 @@ export function ColunaKanban({ titulo, status, pedidos, aoMover, abrirFormulario
 
       <div
         className={`
-          flex-1 flex flex-col gap-3 p-3 rounded-2xl border transition-all duration-500 min-h-0 relative
+          flex-1 flex flex-col gap-3 p-3 rounded-2xl border transition-all duration-500 min-h-[400px] relative
           ${
             arrastandoSobre
-              ? "bg-white/[0.08] border-indigo-500/30 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]"
+              ? "bg-white/[0.05] border-white/10 shadow-[inset_0_0_40px_rgba(255,255,255,0.02)]"
               : "bg-black/20 border-white/[0.02]"
           }
         `}
@@ -100,6 +100,9 @@ export function ColunaKanban({ titulo, status, pedidos, aoMover, abrirFormulario
               {pedidos.map((pedido) => (
                 <CartaoPedido key={pedido.id} pedido={pedido} abrirFormularioEdicao={abrirFormularioEdicao} />
               ))}
+              
+              {/* Espaço extra no final para facilitar o drop em colunas vazias */}
+              <div className="h-20 shrink-0" />
             </motion.div>
           )}
         </AnimatePresence>

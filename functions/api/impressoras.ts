@@ -90,7 +90,9 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
                     marca = ?, modelo_base = ?, imagem_url = ?,
                     taxa_hora_centavos = ?, horimetro_total_minutos = ?,
                     intervalo_revisao_minutos = ?, valor_compra_centavos = ?,
-                    observacoes = ?, potencia_watts = ?, consumo_kw = ?, data_aposentadoria = ?
+                    observacoes = ?, potencia_watts = ?, consumo_kw = ?, data_aposentadoria = ?,
+                    total_projetos_concluidos = ?, receita_acumulada_centavos = ?,
+                    custo_energia_centavos = ?, roi_percentual = ?, historico_producao = ?
                 WHERE id = ? AND id_usuario = ?
             `).bind(
                 dados.nome ?? null, 
@@ -107,6 +109,13 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
                 dados.potenciaWatts ?? dados.potencia_watts ?? 0,
                 dados.consumoKw ?? dados.consumo_kw ?? 0,
                 dados.dataAposentadoria ?? dados.data_aposentadoria ?? null,
+                dados.totalProjetosConcluidos ?? dados.total_projetos_concluidos ?? 0,
+                dados.receitaAcumuladaCentavos ?? dados.receita_acumulada_centavos ?? 0,
+                dados.custoEnergiaCentavos ?? dados.custo_energia_centavos ?? 0,
+                dados.roiPercentual ?? dados.roi_percentual ?? 0,
+                dados.historicoProducao
+                    ? JSON.stringify(dados.historicoProducao)
+                    : (dados.historico_producao ?? null),
                 dados.id, 
                 usuarioId
             ).run();

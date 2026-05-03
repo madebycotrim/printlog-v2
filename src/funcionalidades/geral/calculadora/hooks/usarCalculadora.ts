@@ -514,7 +514,7 @@ export function usarCalculadora() {
   ].filter(d => d.value > 0), [calculo]);
 
   // --- FEATURE 1: EXPORTAÇÃO PDF ---
-  const gerarPdf = useCallback((nomeEstudioCustom?: string, sloganCustom?: string, nomeCliente?: string, nomeProjeto?: string) => {
+  const gerarPdf = useCallback((nomeEstudioCustom?: string, sloganCustom?: string, nomeCliente?: string, nomeProjeto?: string, idPedido?: string) => {
     const dataRef = new Date();
     const validade = new Date();
     validade.setDate(dataRef.getDate() + 7);
@@ -529,7 +529,9 @@ export function usarCalculadora() {
     const qtdPdf = Number(quantidade) || 1;
 
     // Número único do documento (usado no header e nos termos)
-    const numDocumento = '#' + Math.floor(1000 + Math.random() * 9000);
+    const numDocumento = idPedido 
+      ? '#' + idPedido.slice(0, 12).toUpperCase() 
+      : '#' + Math.floor(1000 + Math.random() * 9000);
 
     // Tempo formatado
     const tempoFormatado = tempo < 60
@@ -902,8 +904,8 @@ export function usarCalculadora() {
     win?.document.close();
   }, [calculo, materiaisSelecionados, materiais, estimativaPrazo, tempo, quantidade, itensPosProcesso]);
 
-  const limpar = useCallback(() => {
-    // Limpa apenas dados da peça/projeto
+  const limpar = useCallback((silencioso = false) => {
+    // 1. Limpa o Estado (Memória)
     setMateriaisSelecionados([]);
     setTempo(0);
     setModoEntrada('unitario');
@@ -914,9 +916,25 @@ export function usarCalculadora() {
     setInsumosFixos(0);
     setInsumosSelecionados([]);
     setItensPosProcesso([]);
-    
-    // Mantém as configurações operacionais da máquina e estúdio para não perder produtividade
-    toast.success("Orçamento resetado! Mantivemos seus dados operacionais.");
+
+    // 2. Limpa o Cache (Navegador)
+    const chavesParaLimpar = [
+      "printlog_materiais_selecionados",
+      "printlog_calculadora_tempo",
+      "printlog_calculadora_modo_entrada",
+      "printlog_quantidade",
+      "printlog_material_perdido",
+      "printlog_tempo_perdido",
+      "printlog_frete",
+      "printlog_insumos_fixos",
+      "printlog_insumos_selecionados",
+      "printlog_itens_pos_processo"
+    ];
+    chavesParaLimpar.forEach(chave => localStorage.removeItem(chave));
+
+    if (!silencioso) {
+      toast.success("Calculadora resetada!");
+    }
   }, []);
 
   return {

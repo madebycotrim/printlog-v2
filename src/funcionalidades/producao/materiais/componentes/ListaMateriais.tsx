@@ -57,6 +57,7 @@ export function ListaMateriais({ materiais, agrupadosPorTipo, aoEditar, aoHistor
                   aoHistorico={aoHistorico}
                   aoExcluir={aoExcluir}
                   aoAlternarFavorito={aoAlternarFavorito}
+                  esconderFavorito={true}
                 />
               ))}
             </div>

@@ -19,13 +19,47 @@ interface PropriedadesCartaoPedido {
   abrirFormularioEdicao?: (id: string) => void;
 }
 
+
+// 🎉 Mini-componente de Confetes Discretos
+function EfeitoConfeteDiscreto() {
+  const particulas = Array.from({ length: 15 });
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-visible z-[100]">
+      {particulas.map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ x: "50%", y: "50%", scale: 0, opacity: 1 }}
+          animate={{ 
+            x: `${Math.random() * 200 - 50}%`, 
+            y: `${Math.random() * -150 - 20}%`, 
+            scale: [0, 1, 0.5, 0],
+            opacity: [1, 1, 0],
+            rotate: Math.random() * 360 
+          }}
+          transition={{ 
+            duration: 1.2, 
+            ease: "easeOut",
+            delay: Math.random() * 0.1
+          }}
+          className="absolute w-1 h-1 rounded-sm"
+          style={{ 
+            backgroundColor: ['#0ea5e9', '#38bdf8', '#ffffff', '#7dd3fc'][Math.floor(Math.random() * 4)] 
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCartaoPedido) {
-  const { excluirPedido, moverPedido } = usarPedidos();
+  const { excluirPedido, moverPedido, idsBloqueados } = usarPedidos();
+  const bloqueado = idsBloqueados.includes(pedido.id);
   const { impressoras } = usarArmazemImpressoras();
   const [menuAberto, setMenuAberto] = useState(false);
   const [modalDetalhesAberto, setModalDetalhesAberto] = useState(false);
   const [modalFalhaAberto, setModalFalhaAberto] = useState(false);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
+  const [exibirConfete, setExibirConfete] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const estaAtrasado = useMemo(() => verificarSeEstaAtrasado(pedido), [pedido]);
@@ -58,9 +92,9 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
 
   return (
     <div
-      draggable={!menuAberto}
+      draggable={!menuAberto && !bloqueado}
       onDragStart={(e) => {
-        if (menuAberto) {
+        if (menuAberto || bloqueado) {
           e.preventDefault();
           return;
         }
@@ -68,11 +102,12 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
         e.dataTransfer.effectAllowed = "move";
       }}
       onClick={(e) => {
+        if (bloqueado) return;
         e.preventDefault();
         e.stopPropagation();
         if (!menuAberto) setModalDetalhesAberto(true);
       }}
-      className={`${menuAberto ? "cursor-default" : "cursor-grab active:cursor-grabbing"} group/card ${menuAberto ? "relative z-[100]" : "relative z-10"} active:scale-[0.98] transition-transform`}
+      className={`${menuAberto || bloqueado ? "cursor-default" : "cursor-grab active:cursor-grabbing"} group/card ${menuAberto ? "relative z-[100]" : "relative z-10"} active:scale-[0.98] transition-all duration-300 ${bloqueado ? "opacity-50 grayscale-[0.5]" : ""}`}
     >
       <div
         className={`
@@ -82,6 +117,23 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
           ${menuAberto ? "z-[100]" : "z-10"}
         `}
       >
+        <AnimatePresence>
+          {exibirConfete && <EfeitoConfeteDiscreto />}
+          {bloqueado && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[120] flex items-center justify-center bg-[#121214]/40 rounded-xl backdrop-blur-[1px]"
+            >
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                <span className="text-[8px] font-black uppercase tracking-widest text-amber-500">Gravando...</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Glow de Status Lateral */}
         <div className={`absolute left-0 top-3 bottom-3 w-[1px] rounded-r-full bg-${configStatus.cor}-500/60 shadow-[0_0_8px_rgba(var(--${configStatus.cor}-rgb),0.4)]`} />
 
@@ -231,13 +283,15 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
                 </button>
               </div>
             ) : pedido.status === StatusPedido.ACABAMENTO ? (
-              <div className="flex items-center gap-2 w-full">
+              <div className="flex items-center gap-2 w-full relative">
                 <button
                   onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    setExibirConfete(true);
                     moverPedido(pedido.id, StatusPedido.CONCLUIDO);
+                    setTimeout(() => setExibirConfete(false), 1500);
                   }}
                   className="flex-1 bg-sky-500/10 hover:bg-sky-500 text-sky-500 hover:text-white py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border border-sky-500/20"
                 >

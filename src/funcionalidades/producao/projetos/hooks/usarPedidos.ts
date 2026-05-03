@@ -18,6 +18,9 @@ export function usarPedidos() {
   const adicionarPedido = usarArmazemPedidos((s) => s.adicionarPedido);
   const atualizarPedidoNoEstado = usarArmazemPedidos((s) => s.atualizarPedidoNoEstado);
   const removerPedido = usarArmazemPedidos((s) => s.removerPedido);
+  const idsBloqueados = usarArmazemPedidos((s) => s.idsBloqueados);
+  const bloquearId = usarArmazemPedidos((s) => s.bloquearId);
+  const desbloquearId = usarArmazemPedidos((s) => s.desbloquearId);
 
   const jaCarregou = usarArmazemPedidos((s) => s.jaCarregou);
   const definirJaCarregou = usarArmazemPedidos((s) => s.definirJaCarregou);
@@ -77,22 +80,31 @@ export function usarPedidos() {
 
     if (!pedidoEncontrado) return;
     if (pedidoEncontrado.status === novoStatus) return;
+    
+    // Proteção: Se o pedido já estiver em movimentação, ignora novos comandos
+    if (idsBloqueados.includes(id)) {
+      registrar.warn({ rastreioId: id, servico: "Projetos" }, "Tentativa de mover pedido já em processamento");
+      return;
+    }
 
     const pedidoOriginal = { ...pedidoEncontrado };
 
     atualizarPedidoNoEstado(id, { status: novoStatus });
 
     try {
+      bloquearId(id); // Trava o cartão
       await servicoPedidos.atualizarStatus(id, novoStatus, usuarioId);
 
-      // Regra Manutenção v9.0: Ao concluir um job, abater tempo no horímetro da máquina
+      // Regra Manutenção v9.0: Ao concluir um job, abater tempo no horímetro da máquina e persistir no banco
       if (novoStatus === StatusPedido.CONCLUIDO && pedidoEncontrado.idImpressora && pedidoEncontrado.tempoMinutos) {
-        servicoManutencao.registrarUsoMaquina(pedidoEncontrado.idImpressora, pedidoEncontrado.tempoMinutos);
+        await servicoManutencao.registrarUsoMaquina(pedidoEncontrado.idImpressora, pedidoEncontrado.tempoMinutos, usuarioId);
       }
     } catch (erro: any) {
       atualizarPedidoNoEstado(id, pedidoOriginal);
       registrar.error({ rastreioId: id, servico: "Projetos", novoStatus }, "Erro ao mover pedido", erro);
       toast.error(erro.mensagem || "Movimentação não permitida.");
+    } finally {
+      desbloquearId(id); // Libera o cartão
     }
   };
 
@@ -145,5 +157,6 @@ export function usarPedidos() {
     excluirPedido,
     pesquisar,
     recarregar: carregarPedidos,
+    idsBloqueados,
   };
 }

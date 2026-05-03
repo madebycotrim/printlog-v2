@@ -68,9 +68,9 @@ export function Dialogo({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
               className={`
-                                w-full pointer-events-auto flex flex-col overflow-hidden bg-[var(--bg-card)] border-[var(--border-subtle)] shadow-2xl
-                                ${telaCheia ? "h-full w-full border-none rounded-none" : `${larguraMax} rounded-2xl border max-h-[90vh]`}
-                            `}
+                w-full pointer-events-auto flex flex-col overflow-hidden bg-[#121214] border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)]
+                ${telaCheia ? "h-full w-full border-none rounded-none" : `${larguraMax} rounded-[2rem] border max-h-[90vh]`}
+              `}
               onClick={(e) => e.stopPropagation()}
             >
               {/* CabeÃ§alho */}

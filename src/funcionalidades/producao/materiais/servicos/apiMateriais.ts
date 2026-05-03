@@ -40,20 +40,26 @@ export const apiMateriais = {
    * Salva um novo material ou atualiza um existente com validação de segurança
    */
   async salvar(material: Material, _usuarioId: string): Promise<void> {
+    const metodo = material.id ? "PATCH" : "POST";
+
     // Validação de segurança no cliente
     const dadosValidados = materialSchema.parse(material);
 
-    // Mapeamento inverso para o banco
+    // Mapeamento inverso para o banco (camelCase -> snake_case)
     const payload = {
       ...dadosValidados,
       tipo_material: material.tipoMaterial,
       preco_centavos: material.precoCentavos,
       peso_gramas: material.pesoGramas,
       estoque_unidades: material.estoque,
-      peso_restante_gramas: material.pesoRestanteGramas
+      peso_restante_gramas: material.pesoRestanteGramas,
+      arquivado: material.arquivado ? 1 : 0
     };
 
-    await servicoBaseApi.post("/api/materiais", payload);
+    await servicoBaseApi.requisicao("/api/materiais", {
+      method: metodo,
+      body: JSON.stringify(payload)
+    });
   },
 
   /**

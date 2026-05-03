@@ -28,6 +28,17 @@ export const CardProducao = memo(function CardProducao({
   impressoras = [], idImpressoraSelecionada, quantidade, setQuantidade
 }: CardProducaoProps) {
   const impressoraAtiva = impressoras.find(i => i.id === idImpressoraSelecionada);
+  
+  // Estados de foco
+  const [focoPos, setFocoPos] = useState<Record<string, boolean>>({});
+
+  // Buffers de digitação para garantir que o campo fique vazio ao focar
+  const [tempQuantidade, setTempQuantidade] = useState<string | undefined>(undefined);
+  const [tempHora, setTempHora] = useState<string | undefined>(undefined);
+  const [tempMinuto, setTempMinuto] = useState<string | undefined>(undefined);
+  const [tempPotencia, setTempPotencia] = useState<string | undefined>(undefined);
+  const [tempKwh, setTempKwh] = useState<string | undefined>(undefined);
+  const [tempPos, setTempPos] = useState<Record<string, string>>({});
 
   return (
     <div className="p-6 rounded-3xl bg-[#121214] border border-white/5 relative flex flex-col gap-3 shadow-2xl backdrop-blur-3xl group transition-all duration-500">
@@ -79,8 +90,14 @@ export const CardProducao = memo(function CardProducao({
                   type="number" 
                   placeholder="1" 
                   min="1" 
-                  value={quantidade ?? ""} 
-                  onChange={(e) => setQuantidade(Number(e.target.value))} 
+                  value={tempQuantidade !== undefined ? tempQuantidade : (quantidade === 0 ? "" : quantidade)} 
+                  onFocus={() => {}}
+                  onBlur={() => setTempQuantidade(undefined)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setTempQuantidade(v);
+                    setQuantidade(v === "" ? 0 : Number(v));
+                  }} 
                   className="w-full h-full bg-transparent outline-none font-black text-sm text-center text-zinc-900 dark:text-white" 
                 />
                 <button 
@@ -100,8 +117,14 @@ export const CardProducao = memo(function CardProducao({
                   <input 
                     type="number" 
                     placeholder="0" 
-                    value={Math.floor(tempo / 60) === 0 ? "" : Math.floor(tempo / 60)} 
-                    onChange={(e) => setTempo(Number(e.target.value) * 60 + (tempo % 60))} 
+                    value={tempHora !== undefined ? tempHora : (Math.floor(tempo / 60) === 0 ? "" : Math.floor(tempo / 60))} 
+                    onFocus={() => {}}
+                    onBlur={() => setTempHora(undefined)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setTempHora(v);
+                      setTempo((v === "" ? 0 : Number(v)) * 60 + (tempo % 60));
+                    }} 
                     className="w-full h-11 pl-4 pr-10 bg-transparent outline-none font-black text-sm text-center text-zinc-900 dark:text-white" 
                   />
                   <span className="absolute right-3 font-black text-[10px] text-zinc-400 uppercase tracking-wider select-none">h</span>
@@ -111,8 +134,14 @@ export const CardProducao = memo(function CardProducao({
                   <input 
                     type="number" 
                     placeholder="0" 
-                    value={tempo % 60 === 0 ? "" : tempo % 60} 
-                    onChange={(e) => setTempo(Math.floor(tempo / 60) * 60 + Number(e.target.value))} 
+                    value={tempMinuto !== undefined ? tempMinuto : (tempo % 60 === 0 ? "" : tempo % 60)} 
+                    onFocus={() => {}}
+                    onBlur={() => setTempMinuto(undefined)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setTempMinuto(v);
+                      setTempo(Math.floor(tempo / 60) * 60 + (v === "" ? 0 : Number(v)));
+                    }} 
                     className="w-full h-11 pl-4 pr-12 bg-transparent outline-none font-black text-sm text-left text-zinc-900 dark:text-white" 
                   />
                   <span className="absolute right-3 font-black text-[10px] text-zinc-400 uppercase tracking-wider select-none">min</span>
@@ -137,8 +166,14 @@ export const CardProducao = memo(function CardProducao({
                 >
                   <input
                     type="number"
-                    value={potencia === 0 ? "" : potencia}
-                    onChange={(e) => setPotencia(Number(e.target.value))}
+                    value={tempPotencia !== undefined ? tempPotencia : (potencia === 0 ? "" : potencia)}
+                    onFocus={() => {}}
+                    onBlur={() => setTempPotencia(undefined)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setTempPotencia(v);
+                      setPotencia(v === "" ? 0 : Number(v));
+                    }}
                     onClick={(e) => e.stopPropagation()}
                     className="bg-transparent outline-none text-right placeholder:current-color leading-none"
                     style={{ width: `${Math.max(1, (potencia || 0).toString().length)}ch` }}
@@ -166,8 +201,14 @@ export const CardProducao = memo(function CardProducao({
                 type="number" 
                 step="0.01" 
                 placeholder="0" 
-                value={precoKwh === 0 ? "" : precoKwh} 
-                onChange={(e) => setPrecoKwh(Number(e.target.value))} 
+                value={tempKwh !== undefined ? tempKwh : (precoKwh === 0 ? "" : precoKwh)} 
+                onFocus={() => {}}
+                onBlur={() => setTempKwh(undefined)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setTempKwh(v);
+                  setPrecoKwh(v === "" ? 0 : Number(v));
+                }} 
                 className="w-full h-11 px-4 rounded-xl bg-zinc-100/50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-white/5 focus-within:border-amber-500/40 outline-none font-black text-sm text-zinc-900 dark:text-white transition-all shadow-inner text-center" 
               />
             </div>
@@ -226,11 +267,22 @@ export const CardProducao = memo(function CardProducao({
                       <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">R$</span>
                       <input
                         type="number"
+                        step="0.01"
                         placeholder="0,00"
-                        value={item.valor === 0 ? "" : (item.valor / 100)}
+                        value={tempPos[item.id] !== undefined ? tempPos[item.id] : (item.valor === 0 ? "" : item.valor / 100)}
+                        onFocus={() => {}}
+                        onBlur={() => {
+                          setTempPos(prev => {
+                            const n = { ...prev };
+                            delete n[item.id];
+                            return n;
+                          });
+                        }}
                         onChange={(e) => {
+                          const v = e.target.value;
+                          setTempPos(prev => ({ ...prev, [item.id]: v }));
                           const novaLista = [...posProcesso];
-                          novaLista[index].valor = Math.round(Number(e.target.value) * 100);
+                          novaLista[index].valor = v === "" ? 0 : Math.round(Number(v) * 100);
                           setPosProcesso(novaLista);
                         }}
                         className="w-full bg-transparent border-0 border-b border-zinc-200 dark:border-white/10 text-[11px] font-black text-center text-zinc-900 dark:text-white outline-none focus:border-amber-500 py-1 transition-colors"

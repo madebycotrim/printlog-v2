@@ -22,7 +22,15 @@ export const apiImpressoras = {
             potenciaWatts: i.potencia_watts,
             dataAposentadoria: i.data_aposentadoria,
             dataCriacao: i.data_criacao ? new Date(i.data_criacao) : new Date(),
-            dataAtualizacao: new Date()
+            dataAtualizacao: new Date(),
+            // Métricas de desempenho
+            totalProjetosConcluidos: i.total_projetos_concluidos ?? 0,
+            receitaAcumuladaCentavos: i.receita_acumulada_centavos ?? 0,
+            custoEnergiaCentavos: i.custo_energia_centavos ?? 0,
+            roiPercentual: i.roi_percentual ?? 0,
+            historicoProducao: typeof i.historico_producao === 'string'
+                ? JSON.parse(i.historico_producao)
+                : (i.historico_producao || []),
         }));
     },
 
@@ -42,7 +50,15 @@ export const apiImpressoras = {
             intervalo_revisao_minutos: dados.intervaloRevisaoMinutos,
             valor_compra_centavos: dados.valorCompraCentavos,
             potencia_watts: dados.potenciaWatts,
-            data_aposentadoria: dados.dataAposentadoria
+            data_aposentadoria: dados.dataAposentadoria,
+            // Métricas de desempenho
+            total_projetos_concluidos: dados.totalProjetosConcluidos,
+            receita_acumulada_centavos: dados.receitaAcumuladaCentavos,
+            custo_energia_centavos: dados.custoEnergiaCentavos,
+            roi_percentual: dados.roiPercentual,
+            historico_producao: dados.historicoProducao
+                ? JSON.stringify(dados.historicoProducao)
+                : undefined,
         };
 
         return servicoBaseApi.requisicao<Impressora>("/api/impressoras", {

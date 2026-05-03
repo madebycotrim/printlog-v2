@@ -58,7 +58,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
       larguraMax="max-w-6xl"
       semScroll={true}
     >
-      <div className="flex flex-col md:flex-row bg-[#080809] min-h-[70vh] max-h-[85vh] overflow-hidden rounded-b-3xl">
+      <div className="flex flex-col md:flex-row bg-[#080809] min-h-[70vh] max-h-[85vh] overflow-hidden rounded-b-2xl">
         {/* 📑 Sidebar de Identidade */}
         <aside className="w-full md:w-80 bg-zinc-900/30 border-r border-white/5 p-8 flex flex-col gap-12 overflow-y-auto scrollbar-none">
           <div className="space-y-8">
@@ -90,7 +90,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                 <span className="text-lg font-black text-zinc-200 uppercase truncate tracking-tight">{nomeExibicaoCliente}</span>
               </div>
 
-              <div className="flex flex-col gap-2 p-6 rounded-[2.5rem] bg-emerald-500/[0.03] border border-emerald-500/10 shadow-[0_10px_30px_rgba(16,185,129,0.05)]">
+              <div className="flex flex-col gap-2 p-6 rounded-2xl bg-emerald-500/[0.03] border border-emerald-500/10 shadow-[0_10px_30px_rgba(16,185,129,0.05)]">
                 <span className="text-[9px] font-black text-emerald-500/60 uppercase tracking-[0.2em]">Investimento Final</span>
                 <div className="flex flex-col">
                   <div className="flex items-baseline gap-2">
@@ -144,7 +144,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
           </div>
 
           <div className="mt-auto pt-8 border-t border-white/5">
-             <div className="flex items-center gap-4 p-5 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group">
+             <div className="flex items-center gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group">
                 <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
                    <Settings size={24} />
                 </div>
@@ -176,7 +176,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                          <TrendingUp size={12} className="text-indigo-400" />
                          <span className="text-[8px] font-black text-white uppercase tracking-widest">Composição de Materiais</span>
                       </div>
-                      <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 flex flex-col gap-6">
+                      <div className="p-8 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-6">
                          <div className="flex items-center justify-between">
                             <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Materiais Ativos</span>
                             {pedido.materiais && pedido.materiais.length > 1 && (
@@ -228,13 +228,13 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                       </div>
                       <div className="flex flex-col gap-4">
                          {/* Massa Total */}
-                         <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 flex flex-col gap-3 group hover:bg-white/[0.05] transition-all">
+                         <div className="p-8 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-3 group hover:bg-white/[0.05] transition-all">
                             <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest group-hover:text-indigo-400/60 transition-colors">Massa Consolidada</span>
                             <span className="text-2xl font-black text-zinc-200 tabular-nums tracking-tighter">{pedido.pesoGramas || 0}g</span>
                          </div>
                          
                          {/* Tempo */}
-                         <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 flex flex-col gap-3 group hover:bg-white/[0.05] transition-all">
+                         <div className="p-8 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-3 group hover:bg-white/[0.05] transition-all">
                             <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest group-hover:text-indigo-400/60 transition-colors">Tempo de Máquina</span>
                             <div className="flex items-baseline gap-1">
                               <span className="text-2xl font-black text-zinc-200 tabular-nums tracking-tighter">{Math.floor((pedido.tempoMinutos ?? 0) / 60)}h</span>
@@ -266,7 +266,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                        {pedido.insumosSecundarios && pedido.insumosSecundarios.length > 0 ? (
                          <div className="space-y-3">
                            {pedido.insumosSecundarios.map((i, idx) => (
-                             <div key={`ins-${idx}`} className="flex items-center justify-between p-5 rounded-[1.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-all group">
+                             <div key={`ins-${idx}`} className="flex items-center justify-between p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-all group">
                                 <div className="flex items-center gap-4">
                                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-700 group-hover:bg-sky-500 transition-all shadow-[0_0_8px_transparent] group-hover:shadow-sky-500/40" />
                                    <span className="text-xs font-black text-zinc-400 uppercase tracking-tight">{i.nome}</span>
@@ -283,7 +283,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                            ))}
                          </div>
                        ) : (
-                         <div className="p-10 border border-dashed border-white/5 rounded-[2rem] flex items-center justify-center opacity-30">
+                         <div className="p-10 border border-dashed border-white/5 rounded-2xl flex items-center justify-center opacity-30">
                             <span className="text-[8px] font-black text-zinc-600 uppercase">Sem insumos físicos</span>
                          </div>
                        )}
@@ -305,7 +305,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                            return (
                              <div className="space-y-3">
                                {itensPos.map((p: ItemPosProcesso, idx: number) => (
-                                 <div key={`pos-${idx}`} className="flex items-center justify-between p-5 rounded-[1.5rem] bg-emerald-500/[0.03] border border-emerald-500/10 hover:bg-emerald-500/5 transition-all group">
+                                 <div key={`pos-${idx}`} className="flex items-center justify-between p-5 rounded-2xl bg-emerald-500/[0.03] border border-emerald-500/10 hover:bg-emerald-500/5 transition-all group">
                                     <div className="flex items-center gap-4">
                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/30 group-hover:bg-emerald-500 transition-all shadow-[0_0_8px_transparent] group-hover:shadow-emerald-500/40" />
                                        <span className="text-xs font-black text-emerald-500/80 uppercase tracking-tight">{p.nome}</span>
@@ -323,7 +323,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                          }
 
                          return (
-                           <div className="p-10 border border-dashed border-white/5 rounded-[2rem] flex items-center justify-center opacity-30">
+                           <div className="p-10 border border-dashed border-white/5 rounded-2xl flex items-center justify-center opacity-30">
                               <span className="text-[8px] font-black text-zinc-600 uppercase">Sem acabamentos</span>
                            </div>
                          );
@@ -345,7 +345,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                      {/* Energia */}
                      {pedido.configuracoes.cobrarEnergia && (
-                       <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
+                       <div className="p-8 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
                           <div className="flex items-center gap-2 opacity-30 group-hover:opacity-60 transition-opacity">
                              <Zap size={12} className="text-rose-400" />
                              <span className="text-[9px] font-black text-white uppercase tracking-widest">Energia</span>
@@ -359,7 +359,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
 
                      {/* Mão de Obra */}
                      {pedido.configuracoes.cobrarMaoDeObra && (
-                       <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
+                       <div className="p-8 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
                           <div className="flex items-center gap-2 opacity-30 group-hover:opacity-60 transition-opacity">
                              <Hammer size={12} className="text-rose-400" />
                              <span className="text-[9px] font-black text-white uppercase tracking-widest">Mão de Obra</span>
@@ -373,7 +373,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
 
                      {/* Hora Máquina */}
                      {pedido.configuracoes.cobrarDesgaste && (
-                       <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
+                       <div className="p-8 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
                           <div className="flex items-center gap-2 opacity-30 group-hover:opacity-60 transition-opacity">
                              <Settings size={12} className="text-rose-400" />
                              <span className="text-[9px] font-black text-white uppercase tracking-widest">Hardware</span>
@@ -399,7 +399,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                      )}
 
                      {/* Margem */}
-                     <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
+                     <div className="p-8 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
                         <div className="flex items-center gap-2 opacity-30 group-hover:opacity-60 transition-opacity">
                            <Percent size={12} className="text-rose-400" />
                            <span className="text-[9px] font-black text-white uppercase tracking-widest">Margem</span>
@@ -411,7 +411,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                      </div>
 
                      {/* Lote */}
-                     <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
+                     <div className="p-8 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
                         <div className="flex items-center gap-2 opacity-30 group-hover:opacity-60 transition-opacity">
                            <Box size={12} className="text-rose-400" />
                            <span className="text-[9px] font-black text-white uppercase tracking-widest">Produção</span>
@@ -423,7 +423,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                      </div>
 
                      {/* Falha */}
-                     <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
+                     <div className="p-8 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-4 group hover:bg-white/[0.05] transition-all">
                         <div className="flex items-center gap-2 opacity-30 group-hover:opacity-60 transition-opacity">
                            <Activity size={12} className="text-rose-400" />
                            <span className="text-[9px] font-black text-white uppercase tracking-widest">Segurança</span>
@@ -497,7 +497,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
 
                      {/* Fiscal */}
                      {pedido.configuracoes.cobrarImpostos && (
-                       <div className="p-6 rounded-3xl bg-indigo-500/[0.02] border border-indigo-500/10 flex flex-col gap-6">
+                       <div className="p-6 rounded-2xl bg-indigo-500/[0.02] border border-indigo-500/10 flex flex-col gap-6">
                           <div className="flex items-center justify-between">
                              <div className="flex items-center gap-3">
                                 <Receipt size={16} className="text-indigo-400" />
@@ -534,7 +534,7 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
 
             {/* Notas Técnicas (se houver) */}
             {pedido.observacoes && (
-              <div className="mt-12 p-8 rounded-[2.5rem] bg-indigo-500/[0.02] border border-indigo-500/10 flex items-start gap-6">
+              <div className="mt-12 p-8 rounded-2xl bg-indigo-500/[0.02] border border-indigo-500/10 flex items-start gap-6">
                  <div className="shrink-0 w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                     <MessageSquare size={24} />
                  </div>

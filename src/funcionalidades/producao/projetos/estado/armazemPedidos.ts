@@ -6,6 +6,7 @@ interface EstadoPedidos {
     carregando: boolean;
     termoBusca: string;
     jaCarregou: boolean;
+    idsBloqueados: string[]; // IDs de pedidos que estão sendo atualizados no momento
 
     definirPedidos: (pedidos: Pedido[]) => void;
     definirCarregando: (status: boolean) => void;
@@ -14,6 +15,8 @@ interface EstadoPedidos {
     adicionarPedido: (novo: Pedido) => void;
     atualizarPedidoNoEstado: (id: string, dados: Partial<Pedido>) => void;
     removerPedido: (id: string) => void;
+    bloquearId: (id: string) => void;
+    desbloquearId: (id: string) => void;
 }
 
 export const usarArmazemPedidos = create<EstadoPedidos>((set) => ({
@@ -21,6 +24,7 @@ export const usarArmazemPedidos = create<EstadoPedidos>((set) => ({
     carregando: true,
     termoBusca: "",
     jaCarregou: false,
+    idsBloqueados: [],
 
     definirPedidos: (pedidos) => set({ pedidos }),
     definirCarregando: (status) => set({ carregando: status }),
@@ -37,5 +41,13 @@ export const usarArmazemPedidos = create<EstadoPedidos>((set) => ({
 
     removerPedido: (id) => set((state) => ({
         pedidos: state.pedidos.filter((p) => p.id !== id)
+    })),
+
+    bloquearId: (id) => set((state) => ({
+        idsBloqueados: [...state.idsBloqueados, id]
+    })),
+
+    desbloquearId: (id) => set((state) => ({
+        idsBloqueados: state.idsBloqueados.filter((item) => item !== id)
     })),
 }));

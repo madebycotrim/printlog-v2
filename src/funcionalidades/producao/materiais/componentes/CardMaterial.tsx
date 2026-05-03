@@ -9,11 +9,12 @@ interface PropriedadesCardMaterial {
   material: Material;
   aoEditar: (material: Material) => void;
   aoExcluir: (material: Material) => void;
-  aoHistorico: (material: Material, abaInicial?: "extrato" | "novo") => void;
+  aoHistorico: (material: Material, abaInicial?: "extrato" | "novo" | "cadastro") => void;
   aoAlternarFavorito: (id: string) => void;
+  esconderFavorito?: boolean;
 }
 
-export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico, aoAlternarFavorito }: PropriedadesCardMaterial) {
+export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico, aoAlternarFavorito, esconderFavorito = false }: PropriedadesCardMaterial) {
   const referenciaCard = useRef<HTMLDivElement>(null);
   const referenciaMenu = useRef<HTMLDivElement>(null);
   const [estaVisivel, definirEstaVisivel] = useState(false);
@@ -100,20 +101,22 @@ export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico, aoAlt
 
       {/* Ações Rápidas (Sempre visíveis) */}
       <div className="absolute top-4 right-4 z-30 flex items-center gap-1.5" ref={referenciaMenu}>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            aoAlternarFavorito(material.id);
-          }}
-          title={material.favorito ? "Remover dos favoritos" : "Marcar como favorito"}
-          className={`p-2 rounded-xl transition-all border ${
-            material.favorito 
-              ? "text-amber-500 bg-amber-500/10 border-amber-500/20" 
-              : "text-zinc-400 hover:bg-amber-500/10 hover:text-amber-500 border-transparent hover:border-amber-500/20"
-          }`}
-        >
-          <Star size={18} fill={material.favorito ? "currentColor" : "none"} />
-        </button>
+        {!esconderFavorito && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              aoAlternarFavorito(material.id);
+            }}
+            title={material.favorito ? "Remover dos favoritos" : "Marcar como favorito"}
+            className={`p-2 rounded-xl transition-all border ${
+              material.favorito 
+                ? "text-amber-500 bg-amber-500/10 border-amber-500/20" 
+                : "text-zinc-400 hover:bg-amber-500/10 hover:text-amber-500 border-transparent hover:border-amber-500/20"
+            }`}
+          >
+            <Star size={18} fill={material.favorito ? "currentColor" : "none"} />
+          </button>
+        )}
 
         <button
           onClick={(e) => {
@@ -160,7 +163,7 @@ export function CardMaterial({ material, aoEditar, aoExcluir, aoHistorico, aoAlt
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    aoEditar(material);
+                    aoHistorico(material, "cadastro");
                     definirMenuAberto(false);
                   }}
                   className="w-full flex items-center gap-3 px-3 py-2 text-[10px] font-black text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white rounded-xl transition-all uppercase tracking-widest"
