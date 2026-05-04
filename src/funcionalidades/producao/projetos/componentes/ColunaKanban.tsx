@@ -3,6 +3,7 @@ import { StatusPedido } from "@/compartilhado/tipos/modelos";
 import { CartaoPedido } from "./CartaoPedido";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { FolderKanban } from "lucide-react";
 
 interface PropriedadesColunaKanban {
   titulo: string;
@@ -48,49 +49,67 @@ export function ColunaKanban({ titulo, status, pedidos, aoMover, abrirFormulario
     }
   };
 
+  // Mapeamento de cores para o Glass Pill
+  const configCor = {
+    'bg-zinc-500': { bg: 'bg-zinc-500/10', border: 'border-zinc-500/20', text: 'text-zinc-500', dot: 'bg-zinc-500' },
+    'bg-amber-500': { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-500', dot: 'bg-amber-500' },
+    'bg-emerald-500': { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-500', dot: 'bg-emerald-500' },
+    'bg-indigo-500': { bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', text: 'text-indigo-500', dot: 'bg-indigo-500' },
+    'bg-fuchsia-500': { bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/20', text: 'text-fuchsia-500', dot: 'bg-fuchsia-500' },
+    'bg-sky-500': { bg: 'bg-sky-500/10', border: 'border-sky-500/20', text: 'text-sky-500', dot: 'bg-sky-500' },
+  }[cor] || { bg: 'bg-zinc-500/10', border: 'border-zinc-500/20', text: 'text-zinc-500', dot: 'bg-zinc-500' };
+
   return (
     <div
-      className="flex flex-col gap-4 min-w-[320px] w-full max-w-sm h-full relative"
+      className="flex flex-col gap-5 min-w-[320px] w-full max-w-sm h-full relative"
       onDragEnter={lidarComDragEnter}
       onDragOver={lidarComDragOver}
       onDragLeave={lidarComDragLeave}
       onDrop={lidarComDrop}
     >
-      <div className="flex items-center justify-between px-3 shrink-0 mb-1">
-        <div className="flex items-center gap-3">
-          <div className={`w-2 h-2 rounded-full shadow-[0_0_12px_rgba(0,0,0,1)] ${cor.replace('bg-', 'bg-')}`} />
-          <h3 className="font-bold text-[10px] tracking-[0.3em] uppercase text-zinc-500">
+      <div className="flex items-center justify-between px-1 shrink-0">
+        <div className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full ${configCor.bg} border ${configCor.border} backdrop-blur-md shadow-lg shadow-black/20`}>
+          <div className={`w-1.5 h-1.5 rounded-full ${configCor.dot} shadow-[0_0_8px_rgba(0,0,0,0.5)]`} />
+          <h3 className={`font-black text-[9px] tracking-[0.2em] uppercase ${configCor.text}`}>
             {titulo}
           </h3>
         </div>
-        <div className="flex items-center justify-center min-w-[20px] h-5 px-2 rounded-md bg-white/5 border border-white/5">
-          <span className="text-[10px] font-bold text-zinc-400">{pedidos.length}</span>
+        <div className="flex items-center justify-center min-w-[24px] h-6 px-2 rounded-lg bg-white/[0.03] border border-white/5">
+          <span className="text-[10px] font-black text-zinc-500 tabular-nums">{pedidos.length}</span>
         </div>
       </div>
 
       <div
         className={`
-          flex-1 flex flex-col gap-3 p-3 rounded-2xl border transition-all duration-500 min-h-[400px] relative
+          flex-1 flex flex-col gap-3 p-3 rounded-[24px] border transition-all duration-500 min-h-[450px] relative overflow-hidden
           ${
             arrastandoSobre
-              ? "bg-white/[0.05] border-white/10 shadow-[inset_0_0_40px_rgba(255,255,255,0.02)]"
-              : "bg-black/20 border-white/[0.02]"
+              ? "bg-white/[0.04] border-white/10 shadow-[inset_0_0_40px_rgba(255,255,255,0.01)]"
+              : "bg-zinc-900/10 border-white/[0.02]"
           }
         `}
       >
+        {/* Background Decorative Icon para Empty State */}
+        {pedidos.length === 0 && !arrastandoSobre && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02] dark:opacity-[0.03]">
+             <FolderKanban size={200} strokeWidth={0.5} className={configCor.text} />
+          </div>
+        )}
+
         <AnimatePresence mode="popLayout">
           {pedidos.length === 0 && !arrastandoSobre ? (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex-1 flex flex-col items-center justify-center py-12 px-6 text-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex-1 flex flex-col items-center justify-center py-12 px-6 text-center relative z-10"
             >
-              <div className="w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center mb-4 opacity-20">
-                <div className={`w-2 h-2 rounded-full ${cor}`} />
+              <div className={`w-10 h-10 rounded-2xl ${configCor.bg} border ${configCor.border} flex items-center justify-center mb-4`}>
+                 <FolderKanban size={16} className={configCor.text} />
               </div>
-              <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-[0.3em]">
+              <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-1">
                 Fluxo Limpo
               </p>
+              <span className="text-[8px] font-medium text-zinc-800 uppercase tracking-widest">Aguardando novos projetos</span>
             </motion.div>
           ) : (
             <motion.div

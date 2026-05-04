@@ -33,7 +33,7 @@ export function QuadroKanban({ pedidosInjetados, abrirFormularioEdicao, aoMover 
     {
       titulo: "Acabamento",
       status: StatusPedido.ACABAMENTO,
-      cor: "bg-fuchsia-500",
+      cor: "bg-sky-500",
     },
     {
       titulo: "Concluído",

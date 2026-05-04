@@ -118,34 +118,78 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
         // PATCH / PUT - Atualizar
         if (metodo === "PATCH" || metodo === "PUT") {
             const dados = await request.json() as any;
+
+            const limparId = (val: any) => {
+                if (!val || val === "" || val === "null" || val === "undefined") return null;
+                return String(val);
+            };
             
-            const id_cliente = dados.id_cliente ?? dados.idCliente ?? null;
-            const id_impressora = dados.id_impressora ?? dados.idImpressora ?? null;
-            const valor_centavos = dados.valor_centavos ?? dados.valorCentavos ?? 0;
+            const id_cliente = limparId(dados.id_cliente ?? dados.idCliente);
+            const id_impressora = limparId(dados.id_impressora ?? dados.idImpressora);
+            const valor_centavos = dados.valor_centavos ?? dados.valorCentavos;
             const data_conclusao = dados.data_conclusao ?? dados.dataConclusao ?? null;
 
-            const dadosExtras = dados.dados_extras ? JSON.stringify(dados.dados_extras) : null;
+            // Resolve dados_extras: usa o que veio do front, ou preserva o existente no banco
+            let dadosExtrasFinais: string | null = null;
+            if (dados.dados_extras) {
+                dadosExtrasFinais = typeof dados.dados_extras === 'string'
+                    ? dados.dados_extras
+                    : JSON.stringify(dados.dados_extras);
+            }
 
-            await env.DB.prepare(`
-                UPDATE pedidos_impressao SET 
-                    status = ?, descricao = ?, valor_centavos = ?,
-                    data_conclusao = ?, id_cliente = ?, id_impressora = ?,
-                    dados_extras = ?
-                WHERE id = ? AND id_usuario = ?
-            `).bind(
-                dados.status ?? 'pendente', 
-                dados.descricao ?? '', 
-                Number(valor_centavos) || 0,
-                data_conclusao, 
-                id_cliente, 
-                id_impressora,
-                dadosExtras,
-                dados.id, 
-                usuarioId
-            ).run();
-            return new Response(JSON.stringify({ sucesso: true }), {
-                headers: { "Content-Type": "application/json" }
-            });
+            try {
+                // Se dados_extras não veio no payload, NÃO sobrescreve o que já existe
+                if (dadosExtrasFinais) {
+                    await env.DB.prepare(`
+                        UPDATE pedidos_impressao SET 
+                            status = ?, 
+                            descricao = CASE WHEN ? IS NOT NULL AND ? != '' THEN ? ELSE descricao END,
+                            valor_centavos = CASE WHEN ? IS NOT NULL THEN ? ELSE valor_centavos END,
+                            data_conclusao = COALESCE(?, data_conclusao), 
+                            id_cliente = COALESCE(?, id_cliente), 
+                            id_impressora = COALESCE(?, id_impressora),
+                            dados_extras = ?
+                        WHERE id = ? AND id_usuario = ?
+                    `).bind(
+                        dados.status ?? 'pendente', 
+                        dados.descricao ?? null, dados.descricao ?? null, dados.descricao ?? null,
+                        valor_centavos ?? null, valor_centavos ?? null,
+                        data_conclusao,
+                        id_cliente,
+                        id_impressora,
+                        dadosExtrasFinais,
+                        dados.id, 
+                        usuarioId
+                    ).run();
+                } else {
+                    // Atualização leve (só status, sem tocar em dados_extras ou outros campos)
+                    await env.DB.prepare(`
+                        UPDATE pedidos_impressao SET 
+                            status = ?, 
+                            data_conclusao = COALESCE(?, data_conclusao)
+                        WHERE id = ? AND id_usuario = ?
+                    `).bind(
+                        dados.status ?? 'pendente',
+                        data_conclusao,
+                        dados.id, 
+                        usuarioId
+                    ).run();
+                }
+
+                return new Response(JSON.stringify({ sucesso: true }), {
+                    headers: { "Content-Type": "application/json" }
+                });
+            } catch (erroD1: any) {
+                console.error("[pedidos] Erro PATCH D1:", erroD1);
+                return new Response(
+                    JSON.stringify({ 
+                        sucesso: false, 
+                        mensagem: `Erro no Banco (D1): ${erroD1.message}`,
+                        detalhes: erroD1.cause?.message || erroD1.stack
+                    }),
+                    { status: 500, headers: { "Content-Type": "application/json" } }
+                );
+            }
         }
 
         // DELETE - Soft Delete

@@ -108,21 +108,48 @@ class ServicoPedidos {
     const pedido = todos.find(p => p.id === id);
     const statusAtual = (pedido?.status as StatusPedido) || StatusPedido.A_FAZER;
 
-    // Normaliza o pedido com campos camelCase
-    const pedidoNorm = pedido ? {
-      ...pedido,
-      idImpressora: pedido.id_impressora || pedido.idImpressora,
-      pesoGramas: pedido.peso_gramas ?? pedido.pesoGramas,
-      tempoMinutos: pedido.tempo_minutos ?? pedido.tempoMinutos,
-      valorCentavos: pedido.valor_centavos ?? pedido.valorCentavos,
-      idCliente: pedido.id_cliente || pedido.idCliente,
-      insumosSecundarios: typeof pedido.insumos_secundarios === 'string'
-        ? JSON.parse(pedido.insumos_secundarios)
-        : (pedido.insumos_secundarios || pedido.insumosSecundarios || []),
-      materiais: typeof pedido.materiais === 'string'
-        ? JSON.parse(pedido.materiais)
-        : (pedido.materiais || []),
-    } : null;
+    // Normaliza o pedido com campos camelCase — busca em TODAS as fontes possíveis
+    const pedidoNorm = pedido ? (() => {
+      const p = pedido as any; // Cast para acessar campos snake_case do banco
+
+      // Desempacota dados_extras se existir (pode vir como string ou objeto)
+      let extras: any = {};
+      if (p.dados_extras) {
+        try { extras = typeof p.dados_extras === 'string' ? JSON.parse(p.dados_extras) : p.dados_extras; } catch { extras = {}; }
+      }
+
+      // Função auxiliar para buscar array em múltiplas fontes
+      const buscarArray = (...fontes: any[]): any[] => {
+        for (const f of fontes) {
+          if (!f) continue;
+          if (typeof f === 'string') { try { const parsed = JSON.parse(f); if (Array.isArray(parsed)) return parsed; } catch { continue; } }
+          if (Array.isArray(f) && f.length > 0) return f;
+        }
+        return [];
+      };
+
+      return {
+        ...p,
+        ...extras,
+        idImpressora: p.id_impressora || p.idImpressora || extras.idImpressora,
+        pesoGramas: p.peso_gramas ?? p.pesoGramas ?? extras.peso_gramas,
+        tempoMinutos: p.tempo_minutos ?? p.tempoMinutos ?? extras.tempo_minutos,
+        valorCentavos: p.valor_centavos ?? p.valorCentavos,
+        idCliente: p.id_cliente || p.idCliente,
+        insumosSecundarios: buscarArray(
+          extras.insumosSecundarios, extras.insumos_secundarios,
+          p.insumosSecundarios, p.insumos_secundarios
+        ),
+        materiais: buscarArray(
+          extras.materiais, p.materiais
+        ),
+        posProcesso: buscarArray(
+          extras.posProcesso, extras.pos_processo,
+          p.posProcesso, p.pos_processo
+        ),
+        configuracoes: extras.configuracoes || p.configuracoes || {},
+      };
+    })() : null;
 
     const rastreioId = `pedido-${id}`;
 
@@ -161,6 +188,19 @@ class ServicoPedidos {
   // ───────────────────────────────────────────────────────────────────────────
   private async liquidarConclusao(pedido: any, usuarioId: string, rastreioId: string): Promise<void> {
     const erros: string[] = [];
+
+    // Log de diagnóstico: mostra exatamente quais dados estão disponíveis para liquidação
+    registrar.info({ 
+      rastreioId, 
+      servico: "Pedidos",
+      materiais: pedido.materiais?.length ?? 0,
+      insumosSecundarios: pedido.insumosSecundarios?.length ?? 0,
+      idImpressora: pedido.idImpressora ?? "NENHUMA",
+      tempoMinutos: pedido.tempoMinutos ?? 0,
+      valorCentavos: pedido.valorCentavos ?? 0,
+      idCliente: pedido.idCliente ?? "NENHUM",
+      temConfiguracoes: pedido.configuracoes ? "SIM" : "NÃO",
+    }, "Dados do pedido para liquidação");
 
     // 1. Desconto de Materiais (filamentos, resinas)
     if (pedido.materiais && pedido.materiais.length > 0) {
@@ -335,11 +375,11 @@ class ServicoPedidos {
   private async reverterConclusao(pedido: any, usuarioId: string, rastreioId: string): Promise<void> {
     const erros: string[] = [];
 
-    // 1. Estornar lançamento financeiro (busca pelo idReferencia = id do pedido)
+    // 1. Estornar lançamento financeiro (busca pelo id_pedido = id do pedido)
     try {
       const lancamentos = await servicoFinanceiro.buscarLancamentos(usuarioId, rastreioId);
       const lancamentoPedido = lancamentos.find(
-        l => (l as any).idReferencia === pedido.id || (l as any).id_referencia === pedido.id
+        l => (l as any).idPedido === pedido.id || (l as any).id_pedido === pedido.id
       );
 
       if (lancamentoPedido) {

@@ -5,7 +5,6 @@ import { StatusPedido } from "@/compartilhado/tipos/modelos";
 import { toast } from "react-hot-toast";
 import { registrar } from "@/compartilhado/utilitarios/registrador";
 import { usarArmazemPedidos } from "../estado/armazemPedidos";
-import { servicoManutencao } from "@/compartilhado/servicos/servicoManutencao";
 import { usarAutenticacao } from "@/funcionalidades/autenticacao/contextos/ContextoAutenticacao";
 
 export function usarPedidos() {
@@ -89,22 +88,23 @@ export function usarPedidos() {
 
     const pedidoOriginal = { ...pedidoEncontrado };
 
+    // Atualiza o estado local imediatamente (otimista)
     atualizarPedidoNoEstado(id, { status: novoStatus });
 
     try {
-      bloquearId(id); // Trava o cartão
+      bloquearId(id);
       await servicoPedidos.atualizarStatus(id, novoStatus, usuarioId);
 
-      // Regra Manutenção v9.0: Ao concluir um job, abater tempo no horímetro da máquina e persistir no banco
-      if (novoStatus === StatusPedido.CONCLUIDO && pedidoEncontrado.idImpressora && pedidoEncontrado.tempoMinutos) {
-        await servicoManutencao.registrarUsoMaquina(pedidoEncontrado.idImpressora, pedidoEncontrado.tempoMinutos, usuarioId);
+      // Feedback positivo específico para conclusão
+      if (novoStatus === StatusPedido.CONCLUIDO) {
+        toast.success("Projeto concluído! Estoque, financeiro e métricas atualizados. 🎉");
       }
     } catch (erro: any) {
       atualizarPedidoNoEstado(id, pedidoOriginal);
       registrar.error({ rastreioId: id, servico: "Projetos", novoStatus }, "Erro ao mover pedido", erro);
       toast.error(erro.mensagem || "Movimentação não permitida.");
     } finally {
-      desbloquearId(id); // Libera o cartão
+      desbloquearId(id);
     }
   };
 

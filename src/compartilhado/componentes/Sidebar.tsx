@@ -111,7 +111,7 @@ export function BarraLateral({ abertaMobile = false, aoFechar }: PropriedadesBar
   const classesContainer = `
         fixed inset-y-0 left-0 z-50 flex flex-col
         bg-white dark:bg-[var(--bg-sidebar)]
-        border-r border-gray-100 dark:border-[var(--border-subtle)]
+        border-r border-gray-100 dark:border-white/[0.08]
         transition-all duration-300 ease-in-out md:translate-x-0
         ${abertaMobile ? "translate-x-0 shadow-2xl" : "-translate-x-full"}
         md:static md:shadow-none

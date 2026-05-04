@@ -297,9 +297,15 @@ export function ModalDetalhesPedido({ aberto, aoFechar, pedido }: PropriedadesMo
                        </div>
 
                        {(() => {
-                         const itensPos = (pedido.posProcesso && pedido.posProcesso.length > 0) 
-                           ? pedido.posProcesso 
-                           : (pedido.configuracoes?.posProcesso || []);
+                         // Blindagem: posProcesso pode vir como string JSON do banco
+                         const parsear = (v: any): any[] => {
+                           if (!v) return [];
+                           if (typeof v === 'string') { try { const p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch { return []; } }
+                           return Array.isArray(v) ? v : [];
+                         };
+                         const itensPos = parsear(pedido.posProcesso).length > 0 
+                           ? parsear(pedido.posProcesso) 
+                           : parsear(pedido.configuracoes?.posProcesso);
                          
                          if (itensPos.length > 0) {
                            return (

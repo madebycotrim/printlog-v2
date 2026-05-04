@@ -38,7 +38,7 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
                     valor_centavos, descricao, categoria, arquivado, data_criacao
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
             `).bind(
-                novoId, usuarioId, dados.idPedido || null, dados.idCliente || null,
+                novoId, usuarioId, dados.idPedido || dados.idReferencia || null, dados.idCliente || null,
                 dados.tipo, Math.abs(dados.valorCentavos), 
                 dados.descricao, dados.categoria || 'Geral',
                 dados.data || new Date().toISOString()

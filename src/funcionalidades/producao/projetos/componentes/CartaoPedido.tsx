@@ -52,7 +52,7 @@ function EfeitoConfeteDiscreto() {
   );
 }
 
-export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCartaoPedido) {
+export function CartaoPedido({ pedido }: PropriedadesCartaoPedido) {
   const navegar = useNavigate();
   const { excluirPedido, moverPedido, idsBloqueados } = usarPedidos();
   const bloqueado = idsBloqueados.includes(pedido.id);
@@ -76,17 +76,17 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
     return () => document.removeEventListener("mousedown", clicarFora);
   }, []);
 
-  // Configuração Visual do Status
+  // Configuração Visual do Status sincronizada com o QuadroKanban
   const configStatus = useMemo(() => {
     switch (pedido.status) {
       case StatusPedido.A_FAZER:
-        return { cor: "zinc", label: "A Fazer" };
+        return { cor: "amber", label: "A Fazer" };
       case StatusPedido.EM_PRODUCAO:
-        return { cor: "emerald", label: "Produzindo" };
+        return { cor: "indigo", label: "Produzindo" };
       case StatusPedido.ACABAMENTO:
-        return { cor: "amber", label: "Acabamento" };
+        return { cor: "sky", label: "Acabamento" };
       case StatusPedido.CONCLUIDO:
-        return { cor: "sky", label: "Concluído" };
+        return { cor: "emerald", label: "Concluído" };
       default:
         return { cor: "zinc", label: "Pendente" };
     }
@@ -113,9 +113,10 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
     >
       <div
         className={`
-          relative p-3 rounded-xl border transition-all duration-300
-          bg-[#121214] border-white/5 group-hover/card:border-white/10
-          ${estaAtrasado ? "border-rose-500/30 ring-1 ring-rose-500/10 shadow-[0_0_15px_rgba(244,63,94,0.1)]" : "hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)]"}
+          relative p-3 rounded-2xl border transition-all duration-500
+          bg-[#121216] border-white/[0.04] group-hover/card:border-white/[0.08]
+          group-hover/card:bg-[#16161c]
+          ${estaAtrasado ? "border-rose-500/30 ring-1 ring-rose-500/10 shadow-[0_0_15px_rgba(244,63,94,0.1)]" : "hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)]"}
           ${menuAberto ? "z-[100]" : "z-10"}
         `}
       >
@@ -136,19 +137,25 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
           )}
         </AnimatePresence>
 
-        {/* Glow de Status Lateral */}
-        <div className={`absolute left-0 top-3 bottom-3 w-[1px] rounded-r-full bg-${configStatus.cor}-500/60 shadow-[0_0_8px_rgba(var(--${configStatus.cor}-rgb),0.4)]`} />
+        {/* Glow de Status Lateral - Blindagem de Cor */}
+        <div 
+          className={`absolute left-0 top-3 bottom-3 w-[2px] rounded-r-full transition-all duration-500 group-hover/card:top-2 group-hover/card:bottom-2 group-hover/card:w-[3px]`} 
+          style={{ 
+            backgroundColor: `var(--cor-status-${configStatus.cor}, currentColor)`,
+            boxShadow: `0 0 12px var(--cor-status-${configStatus.cor}, transparent)`
+          }}
+        />
 
         {/* Cabeçalho do Card */}
         <div className="flex items-start justify-between mb-2 relative pl-2">
           <div className="flex-1 min-w-0 mr-2">
-            <div className="flex items-center gap-1 mb-1 opacity-40 group-hover/card:opacity-70 transition-opacity">
+            <div className="flex items-center gap-1 mb-1 opacity-30 group-hover/card:opacity-60 transition-opacity">
               <User size={8} className="text-zinc-500" />
               <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500 truncate">
                 {pedido.nomeCliente || "Cliente avulso"}
               </span>
             </div>
-            <h4 className="text-[11px] font-bold text-white/90 group-hover/card:text-white leading-tight tracking-tight line-clamp-1 uppercase">
+            <h4 className="text-[11px] font-black text-zinc-300 group-hover/card:text-white leading-tight tracking-tight line-clamp-1 uppercase transition-colors">
               {pedido.descricao}
             </h4>
           </div>
@@ -161,7 +168,7 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
                 e.stopPropagation();
                 setMenuAberto(!menuAberto);
               }}
-              className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all ${menuAberto ? "bg-white/10 text-white" : "text-zinc-700 hover:text-white group-hover/card:opacity-100"}`}
+              className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all ${menuAberto ? "bg-white/10 text-white" : "text-zinc-800 hover:text-white hover:bg-white/5 opacity-0 group-hover/card:opacity-100"}`}
             >
               <MoreVertical size={14} />
             </button>
@@ -218,9 +225,18 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
         {/* Métricas e Status */}
         <div className="space-y-3 relative pl-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <DollarSign size={10} className="text-indigo-400" />
-              <span className="text-[11px] font-black text-zinc-100/90 group-hover/card:text-white">
+            <div 
+              className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md transition-all border border-white/[0.05] bg-white/[0.02] shadow-sm group-hover/card:border-white/[0.08] group-hover/card:bg-white/[0.04]`}
+            >
+              <DollarSign 
+                size={10} 
+                style={{ color: `var(--cor-status-${configStatus.cor}, currentColor)` }}
+                className="opacity-80"
+              />
+              <span 
+                className="text-[11px] font-black tabular-nums tracking-tight"
+                style={{ color: `var(--cor-status-${configStatus.cor}, currentColor)` }}
+              >
                 {centavosParaReais(pedido.valorCentavos)}
               </span>
             </div>

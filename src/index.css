@@ -53,11 +53,12 @@
 }
 
 .dark {
-  /* Paleta Zinc Profundo Unificada */
-  --bg-page: #09090b; /* Zinc 950 - Padrão de apps profissionais */
-  --bg-sidebar: #09090b; /* Unificado com o fundo para maior coesão */
-  --bg-card: #121215; /* Elevação sutil do Zinc 900+ */
-  --border-subtle: rgba(255, 255, 255, 0.05);
+  /* Paleta de Profundidade — 3 camadas distintas para hierarquia visual */
+  --bg-page: #0a0a0d;    /* Main content — tom intermediário */
+  --bg-sidebar: #060609; /* Sidebar — mais escura, a "parede" de fundo */
+  --bg-header: #0c0c10;  /* Header — leve elevação acima do main */
+  --bg-card: #121216;    /* Cards — elevação sutil sobre o main */
+  --border-subtle: rgba(255, 255, 255, 0.06);
   
   /* Sistema de Cores de Texto */
   --text-primary: #f8fafc; /* Slate 50 */
@@ -75,6 +76,15 @@
   --sombra-media: 0 4px 12px -2px rgba(0, 0, 0, 0.9);
   --sombra-forte: 0 25px 50px -12px rgba(0, 0, 0, 0.98);
   --sombra-primaria: 0 8px 30px -4px rgba(14, 165, 233, 0.12);
+
+  /* Variáveis de Status para Glows e Pills */
+  --cor-status-zinc: #71717a;
+  --cor-status-amber: #f59e0b;
+  --cor-status-emerald: #10b981;
+  --cor-status-indigo: #6366f1;
+  --cor-status-fuchsia: #d946ef;
+  --cor-status-sky: #0ea5e9;
+  --cor-status-rose: #f43f5e;
 
   color-scheme: dark;
 }

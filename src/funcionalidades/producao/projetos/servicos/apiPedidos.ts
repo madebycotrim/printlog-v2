@@ -123,17 +123,28 @@ export const apiPedidos = {
             mapeado.prazoEntrega = mapeado.prazo_entrega;
         }
 
-        // Empacota tudo no baú JSON (dados_extras) para garantir persistência total
-        const dadosExtras = {
-            insumosSecundarios: dados.insumosSecundarios,
-            materiais: dados.materiais,
-            posProcesso: dados.posProcesso,
-            configuracoes: dados.configuracoes,
-            idImpressora: mapeado.id_impressora,
-            prazoEntrega: mapeado.prazo_entrega,
-            observacoes: mapeado.observacoes
-        };
-        mapeado.dados_extras = JSON.stringify(dadosExtras);
+        // Empacota tudo no baú JSON (dados_extras) apenas se houver metadados presentes.
+        // Se for uma atualização parcial (ex: Kanban movendo status), não mandamos dados_extras
+        // para evitar que o back-end sobrescreva o baú existente com um vazio.
+        const temMetadados = 
+            dados.insumosSecundarios !== undefined || 
+            dados.materiais !== undefined || 
+            dados.posProcesso !== undefined || 
+            dados.configuracoes !== undefined ||
+            dados.observacoes !== undefined;
+
+        if (temMetadados) {
+            const dadosExtras = {
+                insumosSecundarios: dados.insumosSecundarios,
+                materiais: dados.materiais,
+                posProcesso: dados.posProcesso,
+                configuracoes: dados.configuracoes,
+                idImpressora: mapeado.id_impressora,
+                prazoEntrega: mapeado.prazo_entrega,
+                observacoes: mapeado.observacoes
+            };
+            mapeado.dados_extras = JSON.stringify(dadosExtras);
+        }
 
         // Mantém compatibilidade com colunas específicas se elas existirem
         if (dados.insumosSecundarios) {
