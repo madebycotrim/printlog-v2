@@ -53,7 +53,7 @@ export function usarCalculadora() {
   const [quantidade, setQuantidade] = useState<number>(() => Number(localStorage.getItem("printlog_quantidade")) || 1);
   const [modoEntrada, setModoEntrada] = useState<'unitario' | 'lote'>(() => {
     const salvo = localStorage.getItem("printlog_calculadora_modo_entrada");
-    return (salvo as 'unitario' | 'lote') || "unitario";
+    return (salvo as 'unitario' | 'lote') || "lote";
   });
   const [tempoSetup, setTempoSetup] = useState<number>(() => {
     const salvo = localStorage.getItem("printlog_tempo_setup");
@@ -908,7 +908,7 @@ export function usarCalculadora() {
     // 1. Limpa o Estado (Memória)
     setMateriaisSelecionados([]);
     setTempo(0);
-    setModoEntrada('unitario');
+    setModoEntrada('lote');
     setQuantidade(1);
     setMaterialPerdido(0);
     setTempoPerdido(0);

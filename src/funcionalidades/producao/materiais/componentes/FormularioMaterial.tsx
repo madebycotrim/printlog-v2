@@ -19,10 +19,10 @@ const esquemaMaterial = z.object({
   tipoMaterial: z.string().min(1, "O tipo de material é obrigatório."),
   nomePersonalizado: z.string().optional(),
   cor: z.string().optional(),
-  preco: z.number({ invalid_type_error: "Valor numérico obrigatório.", required_error: "Obrigatório" }).positive("O valor deve ser maior que zero."),
-  peso: z.number({ invalid_type_error: "Quantidade num. obrigatória." }).positive("A quantidade deve ser maior que zero."),
+  preco: z.number().positive("O valor deve ser maior que zero."),
+  peso: z.number().positive("A quantidade deve ser maior que zero."),
   estoqueInicial: z
-    .number({ invalid_type_error: "Estoque num. obrigatório." })
+    .number()
     .int("Deixe sem casas decimais.")
     .min(0, "O estoque não pode ser negativo."),
 });
@@ -179,7 +179,7 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar }: Propriedade
                             ref={ref}
                             rotulo={`Preço ${tipoSelecionado === "FDM" ? "do Rolo" : "da Garrafa"}`} 
                             erro={errors.preco?.message}
-                            value={value}
+                            value={value ?? ""}
                             onChange={(e) => {
                               const v = e.target.value.replace(",", ".");
                               const num = parseFloat(v);

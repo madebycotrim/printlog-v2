@@ -46,8 +46,9 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
             const novoId = dados.id || crypto.randomUUID();
             
             // Flexibilidade para aceitar camelCase (antigo) ou snake_case (novo)
-            const id_cliente = dados.id_cliente ?? dados.idCliente ?? null;
-            const id_impressora = dados.id_impressora ?? dados.idImpressora ?? null;
+            // Normaliza strings vazias para null para evitar erro de chave estrangeira
+            const id_cliente = (dados.id_cliente ?? dados.idCliente) || null;
+            const id_impressora = (dados.id_impressora ?? dados.idImpressora) || null;
             const valor_centavos = dados.valor_centavos ?? dados.valorCentavos ?? 0;
             const data_criacao = dados.data_criacao ?? dados.dataCriacao ?? new Date().toISOString();
             const descricao = dados.descricao ?? '';
@@ -58,7 +59,9 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
                 peso_gramas: dados.peso_gramas ?? dados.pesoGramas,
                 tempo_minutos: dados.tempo_minutos ?? dados.tempoMinutos,
                 observacoes: dados.observacoes,
-                insumos_secundarios: dados.insumos_secundarios ? (typeof dados.insumos_secundarios === 'string' ? JSON.parse(dados.insumos_secundarios) : dados.insumos_secundarios) : []
+                insumos_secundarios: dados.insumos_secundarios ?? dados.insumosSecundarios ?? [],
+                pos_processo: dados.pos_processo ?? dados.posProcesso ?? [],
+                configuracoes: dados.configuracoes ?? {}
             };
 
             await env.DB.prepare(`
@@ -130,9 +133,14 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
 
         return new Response("Método não permitido", { status: 405 });
     } catch (erro: any) {
-        return new Response(JSON.stringify({ erro: erro.message }), { 
-            status: 500, 
-            headers: { "Content-Type": "application/json" } 
-        });
+        console.error("[pedidos] Erro:", erro);
+        return new Response(
+            JSON.stringify({ 
+                sucesso: false, 
+                mensagem: erro.message || "Erro inesperado no servidor.",
+                codigo: erro.code
+            }),
+            { status: 500, headers: { "Content-Type": "application/json" } }
+        );
     }
 };

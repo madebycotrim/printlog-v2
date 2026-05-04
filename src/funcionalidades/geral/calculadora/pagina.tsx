@@ -181,9 +181,9 @@ export function PaginaCalculadora() {
     if (idEdicao && pedidos.length > 0) {
       const p = pedidos.find((item: any) => item.id === idEdicao);
       if (p) {
-        setNomeProjeto(p.descricao);
+        setNomeProjeto(p.descricao || "");
         setDescricaoProjeto(p.observacoes || "");
-        setClienteProjetoId(p.idCliente);
+        setClienteProjetoId(p.idCliente || "");
         
         // Carregar cliente no seletor
         const cli = (estadoClientes.clientes || []).find(c => c.id === p.idCliente);
@@ -428,7 +428,13 @@ export function PaginaCalculadora() {
   const alternarInsumo = useCallback((insumo: any) => {
     const existe = hook.insumosSelecionados.find(i => i.id === insumo.id);
     if (existe) hook.setInsumosSelecionados(prev => prev.filter(i => i.id !== insumo.id));
-    else hook.setInsumosSelecionados(prev => [...prev, { id: insumo.id, nome: insumo.nome, quantidade: 1, custoCentavos: Math.round(insumo.custoMedioUnidade || 0) }]);
+    else hook.setInsumosSelecionados(prev => [...prev, { 
+      id: insumo.id, 
+      nome: insumo.nome, 
+      quantidade: 1, 
+      custoCentavos: Math.round(insumo.custoMedioUnidade || 0),
+      porLote: true 
+    }]);
   }, [hook.insumosSelecionados, hook.setInsumosSelecionados]);
 
   const atualizarQtdInsumo = useCallback((id: string, qtd: number) => {
@@ -550,7 +556,6 @@ export function PaginaCalculadora() {
               atualizarQtd={atualizarQtdMaterial}
               atualizarPreco={atualizarPrecoMaterial}
               remover={removerMaterial}
-              modoEntrada={hook.modoEntrada}
               abrirArmazem={abrirModalArmazem}
               abrirCriar={abrirCriarMaterial}
               alternarFavorito={acoesMateriais.alternarFavorito}
@@ -612,7 +617,8 @@ export function PaginaCalculadora() {
               anosVidaUtil={anosVidaUtil} setAnosVidaUtil={setAnosVidaUtil}
               tempo={hook.tempo}
               quantidade={hook.quantidade}
-              tempoSetup={hook.tempoSetup} setTempoSetup={hook.setTempoSetup}
+              tempoSetup={hook.tempoSetup} 
+              setTempoSetup={hook.setTempoSetup}
             />
 
             <CardLogistica

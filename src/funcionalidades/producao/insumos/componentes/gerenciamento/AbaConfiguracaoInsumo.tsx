@@ -24,7 +24,7 @@ export function AbaConfiguracaoInsumo({
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     errors,
     onSubmit,
     categoriaAtiva,
