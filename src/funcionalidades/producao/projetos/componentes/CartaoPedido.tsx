@@ -1,4 +1,5 @@
 import { DollarSign, User, MoreVertical, Trash2, Edit3, Clock, Package } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { Pedido } from "../tipos";
 import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
@@ -52,6 +53,7 @@ function EfeitoConfeteDiscreto() {
 }
 
 export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCartaoPedido) {
+  const navegar = useNavigate();
   const { excluirPedido, moverPedido, idsBloqueados } = usarPedidos();
   const bloqueado = idsBloqueados.includes(pedido.id);
   const { impressoras } = usarArmazemImpressoras();
@@ -178,7 +180,7 @@ export function CartaoPedido({ pedido, abrirFormularioEdicao }: PropriedadesCart
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      abrirFormularioEdicao?.(pedido.id);
+                      navegar(`/calculadora?edicao=${pedido.id}`);
                       setMenuAberto(false);
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:bg-white/5 hover:text-white transition-colors"

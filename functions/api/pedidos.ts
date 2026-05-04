@@ -45,21 +45,39 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
             const dados = await request.json() as any;
             const novoId = dados.id || crypto.randomUUID();
             
-            const id_cliente = (dados.id_cliente ?? dados.idCliente) || null;
-            const id_impressora = (dados.id_impressora ?? dados.idImpressora) || null;
+            // Função auxiliar para limpar IDs e evitar erros de Foreign Key
+            const limparId = (id: any) => {
+                if (!id || id === "" || id === "null" || id === "undefined" || id === "0") return null;
+                return String(id);
+            };
+
+            const id_cliente = limparId(dados.id_cliente ?? dados.idCliente);
+            const id_impressora = limparId(dados.id_impressora ?? dados.idImpressora);
             const valor_centavos = dados.valor_centavos ?? dados.valorCentavos ?? 0;
             const data_criacao = dados.data_criacao ?? dados.dataCriacao ?? new Date().toISOString();
             const descricao = dados.descricao ?? '';
-
-            const dadosExtras = {
-                material: dados.material ?? dados.material_base,
-                peso_gramas: dados.peso_gramas ?? dados.pesoGramas,
-                tempo_minutos: dados.tempo_minutos ?? dados.tempoMinutos,
-                observacoes: dados.observacoes,
-                insumos_secundarios: dados.insumos_secundarios ?? dados.insumosSecundarios ?? [],
-                pos_processo: dados.pos_processo ?? dados.posProcesso ?? [],
-                configuracoes: dados.configuracoes ?? {}
-            };
+            // Se o front-end já mandou dados_extras pré-montados (via apiPedidos.mapearParaBanco),
+            // use-os diretamente. Só monta manualmente se não vier.
+            let dadosExtrasStr: string;
+            if (dados.dados_extras) {
+                // Front-end já serializou — usa direto
+                dadosExtrasStr = typeof dados.dados_extras === 'string' 
+                    ? dados.dados_extras 
+                    : JSON.stringify(dados.dados_extras);
+            } else {
+                // Fallback: monta a partir dos campos individuais
+                const dadosExtras = {
+                    material: dados.material ?? dados.material_base,
+                    materiais: dados.materiais ?? [],
+                    peso_gramas: dados.peso_gramas ?? dados.pesoGramas,
+                    tempo_minutos: dados.tempo_minutos ?? dados.tempoMinutos,
+                    observacoes: dados.observacoes,
+                    insumos_secundarios: dados.insumos_secundarios ?? dados.insumosSecundarios ?? [],
+                    pos_processo: dados.pos_processo ?? dados.posProcesso ?? [],
+                    configuracoes: dados.configuracoes ?? {}
+                };
+                dadosExtrasStr = JSON.stringify(dadosExtras);
+            }
 
             try {
                 await env.DB.prepare(`
@@ -76,7 +94,7 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
                     dados.status ?? 'pendente', 
                     Number(valor_centavos) || 0, 
                     data_criacao,
-                    JSON.stringify(dadosExtras)
+                    dadosExtrasStr
                 ).run();
 
                 return new Response(JSON.stringify({ id: novoId, sucesso: true }), { 
