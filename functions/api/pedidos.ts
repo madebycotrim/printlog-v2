@@ -45,15 +45,12 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
             const dados = await request.json() as any;
             const novoId = dados.id || crypto.randomUUID();
             
-            // Flexibilidade para aceitar camelCase (antigo) ou snake_case (novo)
-            // Normaliza strings vazias para null para evitar erro de chave estrangeira
             const id_cliente = (dados.id_cliente ?? dados.idCliente) || null;
             const id_impressora = (dados.id_impressora ?? dados.idImpressora) || null;
             const valor_centavos = dados.valor_centavos ?? dados.valorCentavos ?? 0;
             const data_criacao = dados.data_criacao ?? dados.dataCriacao ?? new Date().toISOString();
             const descricao = dados.descricao ?? '';
 
-            // Preparar objeto de dados extras para não sujar a descrição
             const dadosExtras = {
                 material: dados.material ?? dados.material_base,
                 peso_gramas: dados.peso_gramas ?? dados.pesoGramas,
@@ -64,27 +61,40 @@ export const onRequest: PagesFunction<Env, any, { uid: string }> = async (contex
                 configuracoes: dados.configuracoes ?? {}
             };
 
-            await env.DB.prepare(`
-                INSERT INTO pedidos_impressao (
-                    id, id_usuario, id_cliente, id_impressora, descricao, 
-                    status, valor_centavos, data_criacao, dados_extras, arquivado
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
-            `).bind(
-                novoId, 
-                usuarioId, 
-                id_cliente, 
-                id_impressora, 
-                descricao, 
-                dados.status ?? 'pendente', 
-                Number(valor_centavos) || 0, 
-                data_criacao,
-                JSON.stringify(dadosExtras)
-            ).run();
+            try {
+                await env.DB.prepare(`
+                    INSERT INTO pedidos_impressao (
+                        id, id_usuario, id_cliente, id_impressora, descricao, 
+                        status, valor_centavos, data_criacao, dados_extras, arquivado
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+                `).bind(
+                    novoId, 
+                    usuarioId, 
+                    id_cliente, 
+                    id_impressora, 
+                    descricao, 
+                    dados.status ?? 'pendente', 
+                    Number(valor_centavos) || 0, 
+                    data_criacao,
+                    JSON.stringify(dadosExtras)
+                ).run();
 
-            return new Response(JSON.stringify({ id: novoId, sucesso: true }), { 
-                status: 201, 
-                headers: { "Content-Type": "application/json" } 
-            });
+                return new Response(JSON.stringify({ id: novoId, sucesso: true }), { 
+                    status: 201, 
+                    headers: { "Content-Type": "application/json" } 
+                });
+            } catch (erroD1: any) {
+                console.error("[pedidos] Erro D1:", erroD1);
+                return new Response(
+                    JSON.stringify({ 
+                        sucesso: false, 
+                        mensagem: `Erro no Banco (D1): ${erroD1.message}`,
+                        detalhes: erroD1.cause?.message || erroD1.stack,
+                        dadosEnviados: { novoId, usuarioId, id_cliente, id_impressora }
+                    }),
+                    { status: 500, headers: { "Content-Type": "application/json" } }
+                );
+            }
         }
 
         // PATCH / PUT - Atualizar
