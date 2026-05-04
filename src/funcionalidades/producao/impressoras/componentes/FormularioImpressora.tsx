@@ -30,6 +30,7 @@ export function FormularioImpressora({
     definirConfirmarDescarte,
     register,
     handleSubmit,
+    control,
     setValue,
     errors,
     isDirty,
@@ -69,6 +70,7 @@ export function FormularioImpressora({
 
             <EspecificacoesTecnicas 
               register={register}
+              control={control}
               errors={errors}
             />
 

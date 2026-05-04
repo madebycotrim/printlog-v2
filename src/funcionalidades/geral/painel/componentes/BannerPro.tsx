@@ -40,12 +40,12 @@ export function BannerPro({ plano, aoRealizarUpgrade, carregandoUpgrade }: Propr
             <Sparkles size={14} className="text-sky-200 animate-pulse" />
           </div>
           <h3 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase leading-tight">
-            Seja um Maker Fundador <br />
-            <span className="text-sky-200">100% Grátis para Sempre.</span>
+            Dê adeus ao chutômetro. <br />
+            <span className="text-sky-200">Para fortalecer a comunidade.</span>
           </h3>
           <p className="text-sky-50/70 text-sm font-medium max-w-xl">
-            Libere a Inteligência Artificial, Branding de Estúdio e suporte prioritário. 
-            Sem cartões, sem pegadinhas. Uma vaga de fundador é sua!
+            O PrintLog nasceu para ajudar cada estúdio a crescer com precisão e dignidade. 
+            Seja um Fundador e ajude a manter este sistema online para todos os makers.
           </p>
         </div>
 
@@ -54,8 +54,8 @@ export function BannerPro({ plano, aoRealizarUpgrade, carregandoUpgrade }: Propr
           disabled={carregandoUpgrade}
           className="px-10 py-5 bg-white text-zinc-950 font-black uppercase text-xs tracking-[0.2em] rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-3 shrink-0"
         >
-          {carregandoUpgrade ? "Ativando..." : "Garantir minha vaga PRO"}
-          <Crown size={16} className="text-sky-500" />
+          {carregandoUpgrade ? "Unindo-se..." : "Ser um Maker Fundador"}
+          <Sparkles size={16} className="text-sky-500" />
         </button>
       </div>
     </motion.div>

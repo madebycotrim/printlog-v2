@@ -15,18 +15,12 @@ interface ArmazemImpressorasState {
     // Modais e Controle de UI
     modalAberto: boolean;
     modalAposentarAberto: boolean;
-    modalDetalhesAberto: boolean;
-    modalHistoricoAberto: boolean;
-    modalManutencaoAberto: boolean;
-    modalPecasAberto: boolean;
-    modalProducaoAberto: boolean;
+    modalGerenciamentoAberto: boolean;
+    abaGerenciamentoInicial: "producao" | "manutencao" | "config";
+    
     impressoraSendoEditada: Impressora | null;
     impressoraParaAposentar: Impressora | null;
-    impressoraEmDetalhes: Impressora | null;
-    impressoraHistorico: Impressora | null; // (Esse já existia para Manutencao?) -> Reutilizando ou mantendo.
-    impressoraManutencao: Impressora | null;
-    impressoraPecas: Impressora | null;
-    impressoraProducao: Impressora | null;
+    impressoraGerenciamento: Impressora | null;
 
     // Ações Base
     definirImpressoras: (impressoras: Impressora[]) => void;
@@ -44,16 +38,8 @@ interface ArmazemImpressorasState {
     fecharEditar: () => void;
     abrirAposentar: (impressora: Impressora) => void;
     fecharAposentar: () => void;
-    abrirDetalhes: (impressora: Impressora) => void;
-    fecharDetalhes: () => void;
-    abrirHistorico: (impressora: Impressora) => void;
-    fecharHistorico: () => void;
-    abrirManutencao: (impressora: Impressora) => void;
-    fecharManutencao: () => void;
-    abrirPecas: (impressora: Impressora) => void;
-    fecharPecas: () => void;
-    abrirProducao: (impressora: Impressora) => void;
-    fecharProducao: () => void;
+    abrirGerenciamento: (impressora: Impressora, aba?: "producao" | "manutencao" | "config") => void;
+    fecharGerenciamento: () => void;
 }
 
 export const usarArmazemImpressoras = create<ArmazemImpressorasState>()(
@@ -68,18 +54,13 @@ export const usarArmazemImpressoras = create<ArmazemImpressorasState>()(
             ordemInvertida: false,
 
             modalAberto: false,
-            modalAposentarAberto: false, // This line was removed in the snippet, but it should remain.
-            modalDetalhesAberto: false,
-            modalHistoricoAberto: false, // Esse é manutencao history ?
-            modalManutencaoAberto: false,
-            modalPecasAberto: false,
-            modalProducaoAberto: false,
+            modalAposentarAberto: false,
+            modalGerenciamentoAberto: false,
+            abaGerenciamentoInicial: "producao",
+            
             impressoraSendoEditada: null,
             impressoraParaAposentar: null,
-            impressoraEmDetalhes: null,
-            impressoraHistorico: null,
-            impressoraManutencao: null,
-            impressoraProducao: null,
+            impressoraGerenciamento: null,
 
             definirImpressoras: (impressoras) => set({ impressoras }, false, "definirImpressoras"),
             definirCarregando: (status) => set({ carregando: status }, false, "definirCarregando"),
@@ -100,30 +81,17 @@ export const usarArmazemImpressoras = create<ArmazemImpressorasState>()(
             fecharAposentar: () =>
                 set({ modalAposentarAberto: false, impressoraParaAposentar: null }, false, "impressoras/fecharAposentar"),
 
-            abrirDetalhes: (impressora) =>
-                set({ modalDetalhesAberto: true, impressoraEmDetalhes: impressora }, false, "impressoras/abrirDetalhes"),
-            fecharDetalhes: () =>
-                set({ modalDetalhesAberto: false, impressoraEmDetalhes: null }, false, "impressoras/fecharDetalhes"),
-
-            abrirHistorico: (impressora) =>
-                set({ modalHistoricoAberto: true, impressoraHistorico: impressora }, false, "impressoras/abrirHistorico"),
-            fecharHistorico: () =>
-                set({ modalHistoricoAberto: false, impressoraHistorico: null }, false, "impressoras/fecharHistorico"),
-
-            abrirManutencao: (impressora) =>
-                set({ modalManutencaoAberto: true, impressoraManutencao: impressora }, false, "impressoras/abrirManutencao"),
-            fecharManutencao: () =>
-                set({ modalManutencaoAberto: false, impressoraManutencao: null }, false, "impressoras/fecharManutencao"),
-
-            abrirPecas: (impressora) =>
-                set({ modalPecasAberto: true, impressoraPecas: impressora }, false, "impressoras/abrirPecas"),
-            fecharPecas: () =>
-                set({ modalPecasAberto: false, impressoraPecas: null }, false, "impressoras/fecharPecas"),
-
-            abrirProducao: (impressora) =>
-                set({ modalProducaoAberto: true, impressoraProducao: impressora }, false, "impressoras/abrirProducao"),
-            fecharProducao: () =>
-                set({ modalProducaoAberto: false, impressoraProducao: null }, false, "impressoras/fecharProducao"),
+            abrirGerenciamento: (impressora, aba = "producao") =>
+                set({ 
+                    modalGerenciamentoAberto: true, 
+                    impressoraGerenciamento: impressora,
+                    abaGerenciamentoInicial: aba 
+                }, false, "impressoras/abrirGerenciamento"),
+            fecharGerenciamento: () =>
+                set({ 
+                    modalGerenciamentoAberto: false, 
+                    impressoraGerenciamento: null 
+                }, false, "impressoras/fecharGerenciamento"),
         }),
         { name: "ArmazemImpressoras" }
     )

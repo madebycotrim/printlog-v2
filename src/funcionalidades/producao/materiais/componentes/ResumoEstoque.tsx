@@ -38,22 +38,24 @@ export function ResumoEstoque({
     trintaDiasAtras.setDate(hoje.getDate() - 30);
 
     const registros30d = materiais.flatMap((m) => 
-      (m.historicoUso || []).map(r => ({ ...r, dataReal: new Date(Number(r.id)) }))
-    ).filter(r => r.dataReal >= trintaDiasAtras);
+      (m.historicoUso || []).map(r => ({ ...r, dataReal: new Date(r.data) }))
+    ).filter(r => !isNaN(r.dataReal.getTime()) && r.dataReal >= trintaDiasAtras);
 
     let totalGasto = registros30d.reduce((acc, curr) => acc + curr.quantidadeGastaGramas, 0);
     let diasParaMedia = 30;
 
     // Fallback: Se não há consumo nos últimos 30 dias, olhamos o histórico total
     if (totalGasto === 0) {
-      const todosRegistros = materiais.flatMap((m) => (m.historicoUso || []));
+      const todosRegistros = materiais.flatMap((m) => (m.historicoUso || []))
+        .map(r => ({ ...r, dataReal: new Date(r.data) }))
+        .filter(r => !isNaN(r.dataReal.getTime()));
+
       if (todosRegistros.length === 0) return "Aguardando Uso";
       
       totalGasto = todosRegistros.reduce((acc, curr) => acc + curr.quantidadeGastaGramas, 0);
-      // Estimamos os dias com base no primeiro registro
-      const timestamps = todosRegistros.map(r => Number(r.id));
-      const primeiroRegistro = Math.min(...timestamps);
-      diasParaMedia = Math.max(1, (hoje.getTime() - primeiroRegistro) / (1000 * 60 * 60 * 24));
+      
+      const primeiraData = new Date(Math.min(...todosRegistros.map(r => r.dataReal.getTime())));
+      diasParaMedia = Math.max(1, (hoje.getTime() - primeiraData.getTime()) / (1000 * 60 * 60 * 24));
     }
 
     const mediaDiaria = totalGasto / diasParaMedia;

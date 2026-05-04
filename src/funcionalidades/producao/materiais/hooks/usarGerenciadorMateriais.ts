@@ -105,7 +105,7 @@ export function usarGerenciadorMateriais() {
 
     try {
       // Persiste no Banco de Dados Real (D1)
-      await apiMateriais.salvar(materialParaSalvar, usuario.uid);
+      await apiMateriais.salvar(materialParaSalvar, usuario.uid, eEdicao);
       
       // Atualiza o estado local (Zustand) para resposta instantânea
       if (eEdicao) {

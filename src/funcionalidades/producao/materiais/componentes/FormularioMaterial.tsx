@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Carretel, GarrafaResina } from "@/compartilhado/componentes/Icones3D";
@@ -19,10 +19,10 @@ const esquemaMaterial = z.object({
   tipoMaterial: z.string().min(1, "O tipo de material é obrigatório."),
   nomePersonalizado: z.string().optional(),
   cor: z.string().optional(),
-  preco: z.number({ message: "Valor numérico obrigatório." }).positive("O valor deve ser maior que zero."),
-  peso: z.number({ message: "Quantidade num. obrigatória." }).positive("A quantidade deve ser maior que zero."),
+  preco: z.number({ invalid_type_error: "Valor numérico obrigatório.", required_error: "Obrigatório" }).positive("O valor deve ser maior que zero."),
+  peso: z.number({ invalid_type_error: "Quantidade num. obrigatória." }).positive("A quantidade deve ser maior que zero."),
   estoqueInicial: z
-    .number({ message: "Estoque num. obrigatório." })
+    .number({ invalid_type_error: "Estoque num. obrigatório." })
     .int("Deixe sem casas decimais.")
     .min(0, "O estoque não pode ser negativo."),
 });
@@ -171,9 +171,26 @@ export function FormularioMaterial({ aberto, aoSalvar, aoCancelar }: Propriedade
                 <section className="space-y-6">
                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Preço e Quantidade</h4>
                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <CampoMonetario rotulo={`Preço ${tipoSelecionado === "FDM" ? "do Rolo" : "da Garrafa"}`} erro={errors.preco?.message} {...register("preco", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })} />
-                      <CampoTexto rotulo={`${tipoSelecionado === "FDM" ? "Peso" : "Volume"} (${unidadeMedida})`} type="number" icone={Weight} {...register("peso", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })} />
-                      <CampoTexto rotulo="Qtd. em Estoque" type="number" icone={BoxSelect} {...register("estoqueInicial", { setValueAs: (v: string) => parseFloat(String(v).replace(",", ".")) || 0 })} />
+                      <Controller
+                        control={control}
+                        name="preco"
+                        render={({ field: { onChange, value, onBlur, ref } }) => (
+                          <CampoMonetario 
+                            ref={ref}
+                            rotulo={`Preço ${tipoSelecionado === "FDM" ? "do Rolo" : "da Garrafa"}`} 
+                            erro={errors.preco?.message}
+                            value={value}
+                            onChange={(e) => {
+                              const v = e.target.value.replace(",", ".");
+                              const num = parseFloat(v);
+                              onChange(isNaN(num) ? "" : num);
+                            }}
+                            onBlur={onBlur}
+                          />
+                        )}
+                      />
+                      <CampoTexto rotulo={`${tipoSelecionado === "FDM" ? "Peso" : "Volume"} (${unidadeMedida})`} type="number" icone={Weight} {...register("peso", { valueAsNumber: true })} />
+                      <CampoTexto rotulo="Qtd. em Estoque" type="number" icone={BoxSelect} {...register("estoqueInicial", { valueAsNumber: true })} />
                    </div>
                 </section>
              </div>

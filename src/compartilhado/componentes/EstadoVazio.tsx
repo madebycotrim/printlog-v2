@@ -1,5 +1,6 @@
 import { LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 
 interface EstadoVazioProps {
   titulo: string;
@@ -11,40 +12,83 @@ interface EstadoVazioProps {
 
 /**
  * Componente compartilhado para estados vazios (Empty States).
- * Segue o padrão visual premium do PrintLog v9.0.
+ * Design premium com grade de pontos, anel de glow animado e hierarquia tipográfica.
  */
 export function EstadoVazio({ titulo, descricao, icone: Icone, textoBotao, aoClicarBotao }: EstadoVazioProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="flex flex-col items-center justify-center py-6 px-4 text-center h-full min-h-[400px] relative overflow-hidden"
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="flex flex-col items-center justify-center py-24 px-4 text-center relative overflow-hidden min-h-[480px]"
     >
-      {/* Ícone de fundo (Marca d'água) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.02] dark:opacity-[0.03] pointer-events-none">
-        <Icone size={400} strokeWidth={0.5} />
-      </div>
+      {/* Fundo: grade de pontos decorativa */}
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.06] pointer-events-none"
+        style={{
+          backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
 
-      <div className="relative z-10 flex flex-col items-center">
-        {/* Ícone principal */}
-        <div className="text-zinc-300 dark:text-zinc-700 mb-6 drop-shadow-sm">
-          <Icone size={64} strokeWidth={1.5} />
+      {/* Gradiente de fade nas bordas */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-[#09090b] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white dark:to-[#09090b] pointer-events-none" />
+
+      {/* Conteúdo central */}
+      <div className="relative z-10 flex flex-col items-center max-w-md">
+
+        {/* Anel de glow animado + ícone */}
+        <div className="relative mb-10">
+          {/* Anel externo pulsante */}
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.08, 0.15, 0.08] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute inset-0 rounded-full bg-zinc-400 dark:bg-zinc-500 blur-2xl"
+          />
+
+          {/* Anel médio */}
+          <div className="absolute inset-2 rounded-full border border-zinc-200 dark:border-white/5" />
+
+          {/* Container do ícone */}
+          <div className="relative w-28 h-28 rounded-full bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/[0.06] flex items-center justify-center shadow-2xl">
+            <Icone
+              size={40}
+              strokeWidth={1.25}
+              className="text-zinc-400 dark:text-zinc-600"
+            />
+          </div>
         </div>
 
-        <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-3 tracking-tight">{titulo}</h3>
+        {/* Texto */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="space-y-3 mb-10"
+        >
+          <h3 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">
+            {titulo}
+          </h3>
+          <p className="text-sm text-zinc-500 dark:text-zinc-500 leading-relaxed font-medium max-w-xs mx-auto">
+            {descricao}
+          </p>
+        </motion.div>
 
-        <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto mb-10 text-sm leading-relaxed font-medium">
-          {descricao}
-        </p>
-
+        {/* Botão de ação */}
         {textoBotao && aoClicarBotao && (
-          <button
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.35 }}
+            whileHover={{ scale: 1.04, y: -2 }}
+            whileTap={{ scale: 0.97 }}
             onClick={aoClicarBotao}
-            className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black py-3.5 px-10 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 uppercase tracking-widest text-[11px]"
+            className="flex items-center gap-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black py-4 px-10 rounded-2xl shadow-2xl hover:shadow-zinc-900/30 dark:hover:shadow-white/10 transition-shadow uppercase tracking-widest text-[11px]"
           >
+            <Plus size={14} strokeWidth={3} />
             {textoBotao}
-          </button>
+          </motion.button>
         )}
       </div>
     </motion.div>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { AlertTriangle, Zap, OctagonAlert, Hourglass, Sparkles, Crown } from "lucide-react";
+import { AlertTriangle, Zap, OctagonAlert, Hourglass, Wrench, Recycle, Crown, LayoutGrid } from "lucide-react";
 
 type Beneficio = {
   Icone: React.ElementType;
@@ -38,18 +38,32 @@ const beneficios: Beneficio[] = [
     atraso: "300ms",
   },
   {
-    Icone: Sparkles,
-    titulo: "Inteligência Artificial",
+    Icone: Wrench,
+    titulo: "Manutenção Reativa",
     descricao:
-      "Sugestões de preço baseadas em dados reais com o modelo Llama 3 da Meta.",
+      "Esperar a máquina quebrar custa caro. Organize revisões e evite o downtime.",
     atraso: "400ms",
+  },
+  {
+    Icone: Recycle,
+    titulo: "Desperdício Oculto",
+    descricao:
+      "Suportes e sobras de filamento são lucro indo para o lixo. Controle cada grama.",
+    atraso: "500ms",
   },
   {
     Icone: Crown,
     titulo: "Branding de Estúdio",
     descricao:
       "Transforme cálculos em propostas profissionais com a identidade do seu estúdio.",
-    atraso: "500ms",
+    atraso: "600ms",
+  },
+  {
+    Icone: LayoutGrid,
+    titulo: "Gestão Manual",
+    descricao:
+      "Planilhas e cadernos perdem dados. Centralize sua produção e ganhe tempo.",
+    atraso: "700ms",
   },
 ];
 

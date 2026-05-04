@@ -1,3 +1,4 @@
+import { Controller } from "react-hook-form";
 import { Package, Ruler, AlertCircle, Link as LinkIcon } from "lucide-react";
 import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
 import { CampoMonetario } from "@/compartilhado/componentes/CampoMonetario";
@@ -8,33 +9,46 @@ import { extrairValorNumerico } from "@/compartilhado/utilitarios/formatadores";
 
 interface PropriedadesSecaoEstoque {
   register: any;
+  control: any;
   errors: any;
   setValue: any;
   unidadeMedidaAtiva: UnidadeInsumo;
 }
 
-export function SecaoEstoquePreco({ register, errors, setValue, unidadeMedidaAtiva }: PropriedadesSecaoEstoque) {
+export function SecaoEstoquePreco({ register, control, errors, setValue, unidadeMedidaAtiva }: PropriedadesSecaoEstoque) {
   return (
-    <div className="space-y-6">
-      <h4 className="text-[11px] font-black uppercase tracking-[0.2em] border-b border-gray-100 dark:border-white/5 pb-2 text-gray-400 dark:text-zinc-500">
-        PRECIFICAÇÃO & ESTOQUE
-      </h4>
+    <div className="space-y-8">
+      <div className="flex flex-col gap-1">
+        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-600 flex items-center gap-3">
+          Precificação & Estoque
+          <div className="flex-1 h-px bg-gradient-to-r from-zinc-100 to-transparent dark:from-white/5 dark:to-transparent" />
+        </h4>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <CampoMonetario
-          rotulo="Valor Unitário"
-          placeholder="0,00"
-          erro={errors.custoMedioUnidade?.message}
-          {...register("custoMedioUnidade", { 
-            required: "Obrigatório", 
-            setValueAs: (v: any) => Math.round(extrairValorNumerico(v) * 100) || 0 
-          })}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <Controller
+          name="custoMedioUnidade"
+          control={control}
+          rules={{ required: "Obrigatório" }}
+          render={({ field: { onChange, value, ref } }) => (
+            <CampoMonetario
+              ref={ref}
+              rotulo="Valor Unitário"
+              placeholder="0,00"
+              erro={errors.custoMedioUnidade?.message}
+              value={value ? (value / 100).toString().replace(".", ",") : ""}
+              onChange={(e) => {
+                const val = extrairValorNumerico(e.target.value);
+                onChange(Math.round(val * 100));
+              }}
+            />
+          )}
         />
 
         <CampoTexto
           rotulo="Estoque Atual"
           icone={Package}
-          type="text" // Mudado para text para aceitar vírgula e ser processado pelo extrairValorNumerico
+          type="text"
           inputMode="decimal"
           placeholder="0"
           erro={errors.quantidadeAtual?.message}
@@ -55,7 +69,7 @@ export function SecaoEstoquePreco({ register, errors, setValue, unidadeMedidaAti
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <CampoTexto
           rotulo="Estoque Mínimo (Alerta)"
           icone={AlertCircle}

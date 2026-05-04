@@ -25,18 +25,11 @@ export function usarGerenciadorImpressoras() {
       ordemInvertida: s.ordemInvertida,
       modalAberto: s.modalAberto,
       modalAposentarAberto: s.modalAposentarAberto,
-      modalDetalhesAberto: s.modalDetalhesAberto,
-      modalHistoricoAberto: s.modalHistoricoAberto,
-      modalManutencaoAberto: s.modalManutencaoAberto,
-      modalPecasAberto: s.modalPecasAberto,
-      modalProducaoAberto: s.modalProducaoAberto,
+      modalGerenciamentoAberto: s.modalGerenciamentoAberto,
+      abaGerenciamentoInicial: s.abaGerenciamentoInicial,
       impressoraSendoEditada: s.impressoraSendoEditada,
       impressoraParaAposentar: s.impressoraParaAposentar,
-      impressoraEmDetalhes: s.impressoraEmDetalhes,
-      impressoraHistorico: s.impressoraHistorico,
-      impressoraManutencao: s.impressoraManutencao,
-      impressoraPecas: s.impressoraPecas,
-      impressoraProducao: s.impressoraProducao,
+      impressoraGerenciamento: s.impressoraGerenciamento,
     })),
   );
 
@@ -53,16 +46,8 @@ export function usarGerenciadorImpressoras() {
       fecharEditar: s.fecharEditar,
       abrirAposentar: s.abrirAposentar,
       fecharAposentar: s.fecharAposentar,
-      abrirDetalhes: s.abrirDetalhes,
-      fecharDetalhes: s.fecharDetalhes,
-      abrirHistorico: s.abrirHistorico,
-      fecharHistorico: s.fecharHistorico,
-      abrirManutencao: s.abrirManutencao,
-      fecharManutencao: s.fecharManutencao,
-      abrirPecas: s.abrirPecas,
-      fecharPecas: s.fecharPecas,
-      abrirProducao: s.abrirProducao,
-      fecharProducao: s.fecharProducao,
+      abrirGerenciamento: s.abrirGerenciamento,
+      fecharGerenciamento: s.fecharGerenciamento,
     })),
   );
 
@@ -156,7 +141,7 @@ export function usarGerenciadorImpressoras() {
 
       auditoria.evento("REGISTRAR_MANUTENCAO", { id, tipo: registro.tipo });
       toast.success("Manutenção registrada!");
-      acoesArmazem.fecharManutencao();
+      acoesArmazem.fecharGerenciamento();
     } catch (e) {
       auditoria.erro("Erro ao registrar manutenção", e);
       toast.error("Erro ao registrar manutenção.");
@@ -172,7 +157,7 @@ export function usarGerenciadorImpressoras() {
       await carregarImpressoras();
       auditoria.evento("SALVAR_PECAS_DESGASTE", { id });
       toast.success("Rastreamento de peças atualizado!");
-      acoesArmazem.fecharPecas();
+      acoesArmazem.fecharGerenciamento();
     } catch (e) {
       auditoria.erro("Erro ao salvar peças de desgaste", e);
       toast.error("Erro ao atualizar rastreamento de peças.");

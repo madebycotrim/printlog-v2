@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
 import { CalculoResultado, MaterialSelecionado, InsumoSelecionado, ItemPosProcesso } from "../tipos";
-import { servicoIA, SugestaoPrecoIA } from "../servicos/servicoIA";
 import { useState, memo } from "react";
 import { ContadorAnimado } from "@/componentes/ui";
 import { toast } from "react-hot-toast";
@@ -38,8 +37,6 @@ export const PainelResultados = memo(function PainelResultados({
   const { usuario } = usarAutenticacao();
   const { betaOrcamentosMagicos, templateOrcamento } = usarBeta();
   const { estudioAtivo } = usarEstudio();
-  const [sugestaoIA, setSugestaoIA] = useState<SugestaoPrecoIA | null>(null);
-  const [carregandoIA, setCarregandoIA] = useState(false);
 
   const compartilharWhatsApp = () => {
     const nomeEstudio = estudioAtivo?.nome || "Meu Estúdio 3D";
@@ -55,42 +52,7 @@ export const PainelResultados = memo(function PainelResultados({
     window.open(url, '_blank');
   };
 
-  const obterSugestaoIA = async () => {
-    // Bloqueio de Plano PRO / FUNDADOR
-    const temPermissaoIA = usuario?.plano === 'PRO' || usuario?.plano === 'FUNDADOR';
-    
-    if (!temPermissaoIA) {
-      toast.error("Recurso exclusivo do Plano PRO ou Fundador 👑", {
-        icon: '🔒',
-        duration: 4000
-      });
-      return;
-    }
 
-    try {
-      setCarregandoIA(true);
-      const pesoTotalGramas = materiais.reduce((acc, m) => acc + (m.quantidade || 0), 0) * quantidade;
-
-      const resultado = await servicoIA.obterSugestaoPreco({
-        nomePeca: "Impressão 3D", 
-        pesoGramas: pesoTotalGramas, 
-        tempoMinutos: 0, 
-        custoMaterial: calculo.custoMaterial / 100,
-        custoEnergia: calculo.custoEnergia / 100,
-        custoTrabalho: calculo.custoMaoDeObra / 100,
-        custoDepreciacao: calculo.custoDepreciacao / 100,
-        lucroDesejadoPercentual: 100 
-      });
-      setSugestaoIA(resultado);
-      toast.success("Sugestão gerada pela IA!");
-    } catch (erro) {
-      toast.error("Erro ao consultar a IA.");
-    } finally {
-      setCarregandoIA(false);
-    }
-  };
-
-  const temPermissaoIA = usuario?.plano === 'PRO' || usuario?.plano === 'FUNDADOR';
 
   return (
     <div className="pt-4 pb-6 px-6 rounded-2xl bg-zinc-900/70 border border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] flex flex-col items-center text-center overflow-hidden relative h-fit w-full mx-auto animate-in fade-in duration-1000 backdrop-blur-3xl">
@@ -98,77 +60,17 @@ export const PainelResultados = memo(function PainelResultados({
       <div className="relative z-10 w-full">
         <div className="flex items-center justify-center gap-2 mb-1">
           <span className="text-[10px] font-black uppercase tracking-[0.4em] text-sky-400 opacity-60">Preço Sugerido</span>
-          <button 
-            onClick={obterSugestaoIA}
-            disabled={carregandoIA || calculo.precoSugerido <= 0}
-            title={temPermissaoIA ? "Sugerir com IA" : "Exclusivo PRO / Fundador"}
-            className={`p-1.5 rounded-lg transition-all relative ${
-              carregandoIA ? "text-violet-400 animate-pulse" : "text-zinc-600 hover:text-violet-400 hover:bg-violet-500/10"
-            }`}
-          >
-            <Sparkles size={14} />
-            {!temPermissaoIA && (
-                <div className="absolute -top-1 -right-1">
-                    <Crown size={8} className="text-sky-400 fill-sky-400" />
-                </div>
-            )}
-          </button>
+          {(usuario?.plano === 'PRO' || usuario?.plano === 'FUNDADOR') && (
+            <div className="p-1.5 rounded-lg text-sky-400">
+              <Crown size={14} />
+            </div>
+          )}
         </div>
 
         <div className="mt-2 mb-4">
           <h2 className="text-4xl font-black text-white tracking-tighter leading-none mb-4 text-center">
             <ContadorAnimado valor={calculo.precoSugerido / 100} />
           </h2>
-          
-          {/* Resultados da IA compactos - Só aparecem se houver sugestão */}
-          <AnimatePresence>
-            {sugestaoIA && (() => {
-              const precoBase = calculo.precoSugerido / 100;
-
-              let piso = sugestaoIA.piso.valor;
-              let recomendado = sugestaoIA.recomendado.valor;
-              let premium = sugestaoIA.premium.valor;
-
-              // Protocolo de Segurança: Se a IA delirar (valores acima de 3x o preço calculado do app)
-              if (piso > precoBase * 3 || piso <= 0) {
-                piso = precoBase * 1.35;
-                recomendado = precoBase * 1.70;
-                premium = precoBase * 2.20;
-              }
-
-              return (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="my-4 p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10 text-left relative group/ia"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 text-violet-400/60">
-                          <BrainCircuit size={12} />
-                          <span className="text-[9px] font-black uppercase tracking-widest">IA Insight</span>
-                      </div>
-                      <button onClick={() => setSugestaoIA(null)} className="text-[8px] font-black text-zinc-700 hover:text-zinc-500 uppercase">Ocultar</button>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-2">
-                      {[
-                          { label: 'Piso', valor: piso, cor: 'rose' },
-                          { label: 'Ideal', valor: recomendado, cor: 'sky' },
-                          { label: 'Premium', valor: premium, cor: 'emerald' }
-                      ].map(f => (
-                          <div key={f.label} className="flex flex-col">
-                              <span className="text-[7px] font-black uppercase tracking-widest text-zinc-600 mb-0.5">{f.label}</span>
-                              <span className="text-[10px] font-black text-zinc-300">
-                                <ContadorAnimado valor={f.valor} />
-                              </span>
-                          </div>
-                      ))}
-                  </div>
-                </motion.div>
-              );
-            })()}
-          </AnimatePresence>
           <div className="flex flex-col gap-2 items-center">
             <div className="flex gap-2 justify-center">
               <div className={`

@@ -1,14 +1,16 @@
 import { Zap } from "lucide-react";
+import { Controller } from "react-hook-form";
 import { SecaoFormulario, GradeCampos } from "@/compartilhado/componentes/FormularioLayout";
 import { CampoTexto } from "@/compartilhado/componentes/CampoTexto";
 import { CampoMonetario } from "@/compartilhado/componentes/CampoMonetario";
 
 interface PropriedadesEspecificacoes {
   register: any;
+  control: any;
   errors: any;
 }
 
-export function EspecificacoesTecnicas({ register, errors }: PropriedadesEspecificacoes) {
+export function EspecificacoesTecnicas({ register, control, errors }: PropriedadesEspecificacoes) {
   return (
     <SecaoFormulario titulo="Especificações Técnicas">
       <GradeCampos colunas={3}>
@@ -29,10 +31,16 @@ export function EspecificacoesTecnicas({ register, errors }: PropriedadesEspecif
           <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
             Aquisição
           </label>
-          <CampoMonetario
-            placeholder="0,00"
-            erro={errors.valorCompraCentavos?.message}
-            {...register("valorCompraCentavos")}
+          <Controller
+            name="valorCompraCentavos"
+            control={control}
+            render={({ field }) => (
+              <CampoMonetario
+                placeholder="0,00"
+                erro={errors.valorCompraCentavos?.message}
+                {...field}
+              />
+            )}
           />
         </div>
 
@@ -40,10 +48,16 @@ export function EspecificacoesTecnicas({ register, errors }: PropriedadesEspecif
           <label className="block text-[11px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
             Taxa Hora (BRL/h)
           </label>
-          <CampoMonetario
-            placeholder="15,00"
-            erro={errors.taxaHoraCentavos?.message}
-            {...register("taxaHoraCentavos")}
+          <Controller
+            name="taxaHoraCentavos"
+            control={control}
+            render={({ field }) => (
+              <CampoMonetario
+                placeholder="15,00"
+                erro={errors.taxaHoraCentavos?.message}
+                {...field}
+              />
+            )}
           />
         </div>
       </GradeCampos>

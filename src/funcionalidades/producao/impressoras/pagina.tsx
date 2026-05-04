@@ -5,10 +5,8 @@ import { FormularioImpressora } from "./componentes/FormularioImpressora";
 import { CardImpressora } from "./componentes/CardImpressora";
 import { ResumoImpressoras } from "./componentes/ResumoImpressoras";
 import { FiltrosImpressora } from "./componentes/FiltrosImpressora";
-import { ModalDetalhesImpressora } from "./componentes/ModalDetalhesImpressora";
+import { ModalGerenciamentoImpressora } from "./componentes/ModalGerenciamentoImpressora";
 import { ModalAposentarImpressora } from "./componentes/ModalAposentarImpressora";
-import { ModalManutencao } from "./manutencao/componentes/ModalManutencao";
-import { ModalHistoricoProducao } from "./componentes/ModalHistoricoProducao";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { EstadoVazio } from "@/compartilhado/componentes/EstadoVazio";
@@ -151,8 +149,7 @@ export function PaginaImpressoras() {
                             impressora={impressora}
                             aoEditar={acoes.abrirEditar}
                             aoAposentar={acoes.abrirAposentar}
-                            aoDetalhes={acoes.abrirDetalhes}
-                            aoManutencoes={acoes.abrirManutencao}
+                            aoGerenciamento={acoes.abrirGerenciamento}
                           />
                         ))}
                       </div>
@@ -174,11 +171,12 @@ export function PaginaImpressoras() {
         aoSalvar={acoes.salvarImpressora}
       />
 
-      <ModalDetalhesImpressora
-        aberto={estado.modalDetalhesAberto}
-        impressora={estado.impressoraEmDetalhes}
-        aoFechar={acoes.fecharDetalhes}
-        aoSalvarObservacoes={acoes.salvarObservacoes}
+      <ModalGerenciamentoImpressora
+        aberto={estado.modalGerenciamentoAberto}
+        impressora={estado.impressoraGerenciamento}
+        abaInicial={estado.abaGerenciamentoInicial}
+        aoFechar={acoes.fecharGerenciamento}
+        aoSalvarCadastro={acoes.salvarImpressora}
       />
 
       <ModalAposentarImpressora
@@ -186,20 +184,6 @@ export function PaginaImpressoras() {
         impressora={estado.impressoraParaAposentar}
         aoFechar={acoes.fecharAposentar}
         aoConfirmar={acoes.confirmarAposentadoria}
-      />
-
-      {estado.modalManutencaoAberto && estado.impressoraManutencao && (
-        <ModalManutencao
-          aberto={estado.modalManutencaoAberto}
-          impressora={estado.impressoraManutencao}
-          aoFechar={acoes.fecharManutencao}
-        />
-      )}
-
-      <ModalHistoricoProducao
-        aberto={estado.modalProducaoAberto}
-        impressora={estado.impressoraProducao}
-        aoFechar={acoes.fecharProducao}
       />
     </div>
   );

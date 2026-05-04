@@ -16,13 +16,12 @@ interface CardMateriaisProps {
   atualizarPreco: (id: string, preco: number) => void;
   remover: (id: string) => void;
   abrirArmazem: () => void;
-  modoEntrada: 'unitario' | 'lote';
   abrirCriar: () => void;
   alternarFavorito: (id: string) => void;
 }
 
 export const CardMateriais = memo(function CardMateriais({
-  materiais, selecionados, alertas, busca, setBusca, alternar, atualizarQtd, atualizarPreco, remover, abrirArmazem, abrirCriar, modoEntrada, alternarFavorito
+  materiais, selecionados, alertas, busca, setBusca, alternar, atualizarQtd, atualizarPreco, remover, abrirArmazem, abrirCriar, alternarFavorito
 }: CardMateriaisProps) {
   const [pagina, setPagina] = useState(0);
   const [tipoOrdenacao, setTipoOrdenacao] = useState<'favoritos' | 'uso'>('favoritos');
@@ -146,10 +145,11 @@ export const CardMateriais = memo(function CardMateriais({
       </div>
 
       <div className="flex gap-3 overflow-x-hidden pb-4 -mx-2 px-2 min-h-[110px] items-stretch">
-        {materiaisExibidos.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-4 border border-dashed border-white/5 rounded-2xl opacity-40">
-             <Box className="w-6 h-6 mb-2" />
-             <span className="text-[10px] font-black uppercase">Nenhum material encontrado</span>
+        {materiaisExibidos.length === 0 && materiais.length > 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-6 border border-dashed border-white/5 rounded-2xl bg-white/[0.01] relative overflow-hidden">
+             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+             <Search className="w-4 h-4 mb-1.5 text-zinc-700 relative z-10" />
+             <span className="text-[8px] font-black uppercase tracking-widest text-zinc-600 relative z-10">Sem resultados</span>
           </div>
         ) : materiaisExibidos.map((m) => {
           const selecionado = selecionados.some(s => s.id === m.id);
@@ -216,21 +216,21 @@ export const CardMateriais = memo(function CardMateriais({
         })}
         
         {materiais.length === 0 && (
-          <div className="w-full flex items-center justify-between p-4 rounded-2xl bg-gray-50/50 dark:bg-white/[0.02] border border-dashed border-gray-200 dark:border-white/10">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-sky-500/10 flex items-center justify-center text-sky-500">
-                <Box size={14} />
+          <div className="w-full flex items-center justify-between p-4 px-5 rounded-2xl bg-zinc-950/20 border border-dashed border-white/5 relative overflow-hidden group/empty">
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-zinc-600">
+                <Box size={16} />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-black uppercase tracking-widest text-zinc-400">Sem Materiais</span>
-                <span className="text-[10px] font-bold text-zinc-500 uppercase">Seu catálogo está vazio no momento</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Estoque Vazio</span>
+                <span className="text-[9px] font-bold text-zinc-600 uppercase leading-tight">Cadastre materiais para começar</span>
               </div>
             </div>
             <button 
               onClick={abrirCriar}
-              className="px-4 h-9 bg-sky-500 hover:bg-sky-400 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 flex items-center gap-2"
+              className="relative z-10 px-4 h-8 bg-sky-500/80 hover:bg-sky-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95"
             >
-              <Plus size={12} /> Cadastrar
+              <Plus size={12} strokeWidth={3} /> Cadastrar
             </button>
           </div>
         )}
@@ -241,10 +241,13 @@ export const CardMateriais = memo(function CardMateriais({
           {selecionados.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="py-12 border-2 border-dashed border-gray-100 dark:border-white/5 bg-gray-50/30 dark:bg-transparent rounded-2xl flex flex-col items-center justify-center gap-3"
+              className="py-16 border-2 border-dashed border-white/5 bg-zinc-950/20 rounded-2xl flex flex-col items-center justify-center gap-4 relative overflow-hidden"
             >
-              <Box size={24} className="text-gray-400 dark:text-zinc-600 opacity-40" />
-              <p className="text-[10px] font-medium text-zinc-500/60 dark:text-zinc-500/40 tracking-wider">Selecione os materiais acima para calcular</p>
+              <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+              <div className="w-14 h-14 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-800 shadow-inner">
+                <Box size={24} />
+              </div>
+              <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] relative z-10">Selecione itens para calcular</p>
             </motion.div>
           ) : (
             selecionados.map((item) => {

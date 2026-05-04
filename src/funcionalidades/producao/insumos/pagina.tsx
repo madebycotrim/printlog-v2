@@ -3,11 +3,10 @@ import { usarDefinirCabecalho } from "@/compartilhado/contextos/ContextoCabecalh
 import { usarGerenciadorInsumos } from "./hooks/usarGerenciadorInsumos";
 import { ResumoInsumos } from "./componentes/ResumoInsumos";
 import { CardInsumo } from "./componentes/CardInsumo";
-import { FormularioInsumo } from "./componentes/FormularioInsumo";
+import { ModalGerenciamentoInsumo } from "./componentes/ModalGerenciamentoInsumo";
 import { ModalBaixaInsumo } from "./componentes/ModalBaixaInsumo";
 import { ModalReposicaoInsumo } from "./componentes/ModalReposicaoInsumo";
 import { ModalArquivamentoInsumo } from "./componentes/ModalArquivamentoInsumo";
-import { ModalHistoricoInsumo } from "./componentes/ModalHistoricoInsumo";
 import { FiltrosInsumo } from "./componentes/FiltrosInsumo";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -153,23 +152,40 @@ export function PaginaInsumos() {
         )}
       </AnimatePresence>
 
-      {/* MODAIS DE APOIO */}
-      <FormularioInsumo
-        aberto={estado.modalCricaoAberto}
-        insumoEditando={estado.insumoEditando}
-        aoCancelar={acoes.fecharEditar}
+      <ModalGerenciamentoInsumo 
+        aberto={estado.modalCricaoAberto || estado.modalHistoricoAberto || estado.modalBaixaAberto || estado.modalReposicaoAberto}
+        insumo={estado.insumoEditando || estado.insumoHistorico || estado.insumoBaixa || estado.insumoReposicao}
+        abaInicial={
+          estado.modalHistoricoAberto ? "historico" : 
+          estado.modalCricaoAberto ? "config" : 
+          "estoque"
+        }
+        aoFechar={() => {
+          acoes.fecharEditar();
+          acoes.fecharHistorico();
+          acoes.fecharBaixa();
+          acoes.fecharReposicao();
+        }}
         aoSalvar={acoes.salvarInsumo}
+        aoBaixar={(ins) => {
+          // Mantemos o modal de confirmação de baixa específico por ser um processo crítico
+          acoes.abrirBaixa(ins);
+        }}
+        aoRepor={(ins) => {
+          // Mantemos o modal de confirmação de reposição específico
+          acoes.abrirReposicao(ins);
+        }}
       />
 
       <ModalBaixaInsumo
-        aberto={estado.modalBaixaAberto}
+        aberto={estado.modalBaixaAberto && !estado.modalHistoricoAberto && !estado.modalCricaoAberto}
         insumo={estado.insumoBaixa}
         aoFechar={acoes.fecharBaixa}
         aoConfirmar={acoes.confirmarBaixaInsumo}
       />
 
       <ModalReposicaoInsumo
-        aberto={estado.modalReposicaoAberto}
+        aberto={estado.modalReposicaoAberto && !estado.modalHistoricoAberto && !estado.modalCricaoAberto}
         insumo={estado.insumoReposicao}
         aoFechar={acoes.fecharReposicao}
         aoConfirmar={acoes.confirmarReposicaoInsumo}
@@ -180,12 +196,6 @@ export function PaginaInsumos() {
         insumo={estado.insumoArquivamento}
         aoFechar={acoes.fecharArquivamento}
         aoConfirmar={acoes.confirmarArquivamento}
-      />
-
-      <ModalHistoricoInsumo
-        aberto={estado.modalHistoricoAberto}
-        aoFechar={acoes.fecharHistorico}
-        insumo={estado.insumoHistorico}
       />
     </div>
   );

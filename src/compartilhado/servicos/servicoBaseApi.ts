@@ -101,16 +101,22 @@ export const servicoBaseApi = {
         } as ErroApi;
       }
 
-      const contentType = resposta.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw {
-          status: resposta.status,
-          mensagem: `Resposta inválida do servidor (esperado JSON, recebido ${contentType || 'nada'}). Verifique se a VITE_URL_API está correta.`
-        } as ErroApi;
-      }
+      const contentType = resposta.headers.get("content-type") || "";
+      const ehJson = contentType.includes("application/json");
 
       if (resposta.status === 204) return {} as T;
-      return await resposta.json();
+
+      if (ehJson) {
+        return await resposta.json();
+      }
+
+      // Se não for JSON mas for sucesso, retornamos o texto ou objeto vazio
+      const texto = await resposta.text();
+      try {
+        return JSON.parse(texto);
+      } catch {
+        return (texto || {}) as T;
+      }
     } catch (erro: any) {
       // Evita logar erros de cancelamento ou aborto que são normais em React
       if (erro.name !== "AbortError") {

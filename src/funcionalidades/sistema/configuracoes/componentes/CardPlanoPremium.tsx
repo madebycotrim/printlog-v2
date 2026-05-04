@@ -43,20 +43,22 @@ export function CardPlanoPremium({
 
             {/* Coluna Esquerda: Badge e Destaque do Plano */}
             <div className="flex flex-col items-center md:items-start text-center md:text-left gap-4 z-10 w-full md:w-1/3 shrink-0">
-                <div className={`p-4 rounded-2xl ${ehFundador ? 'bg-gradient-to-tr from-sky-500/20 to-blue-500/10 text-sky-500 shadow-[0_12px_24px_rgba(14,165,233,0.15)]' : 'bg-gradient-to-tr from-indigo-500/20 to-purple-500/10 text-indigo-500 shadow-[0_12px_24px_rgba(99,102,241,0.15)]'} border border-white/10`}>
-                    {ehFundador ? <Crown size={32} className="animate-bounce fill-sky-500" /> : <Zap size={32} className="animate-pulse fill-indigo-500" />}
+                <div className="flex items-center gap-4">
+                    <div className={`p-2.5 rounded-xl ${ehFundador ? 'bg-sky-500/10 text-sky-500/80 border border-sky-500/20' : 'bg-indigo-500/10 text-indigo-500/80 border border-indigo-500/20'}`}>
+                        {ehFundador ? <Crown size={20} className="fill-current" /> : <Zap size={20} className="fill-current" />}
+                    </div>
+                    <div>
+                        <span className="text-[9px] font-black tracking-[0.2em] uppercase text-zinc-500">
+                            Nível de Acesso
+                        </span>
+                        <h3 className={`text-xl font-black tracking-tight mt-0.5 ${ehFundador ? 'text-zinc-100' : 'text-zinc-100'}`}>
+                            {ehFundador ? 'Maker Fundador' : 'Maker Pro'}
+                        </h3>
+                    </div>
                 </div>
-                <div>
-                    <span className="text-[10px] font-black tracking-[0.2em] uppercase text-gray-400 dark:text-zinc-500">
-                        Nível de Acesso
-                    </span>
-                    <h3 className={`text-4xl font-black tracking-tighter mt-1 bg-clip-text text-transparent bg-gradient-to-r ${ehFundador ? 'from-sky-500 via-blue-400 to-cyan-500' : 'from-indigo-500 via-purple-500 to-pink-500'}`}>
-                        {ehFundador ? 'Maker Fundador' : 'Maker Pro'}
-                    </h3>
-                </div>
-                <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase ${ehFundador ? 'bg-sky-500/10 text-sky-500 border border-sky-500/20' : 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20'}`}>
-                    <Shield size={12} />
-                    CONTA VERIFICADA
+                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black tracking-widest uppercase ${ehFundador ? 'bg-sky-500/5 text-sky-600/70 border border-sky-500/10' : 'bg-indigo-500/5 text-indigo-600/70 border border-indigo-500/10'}`}>
+                    <Shield size={10} />
+                    Conta Verificada
                 </div>
             </div>
 

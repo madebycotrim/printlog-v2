@@ -67,6 +67,7 @@ export function PaginaMateriais() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
+            className="flex-1 flex flex-col w-full"
           >
             <EstadoVazio
               titulo="Nenhum material encontrado"
@@ -154,6 +155,7 @@ export function PaginaMateriais() {
           aberto={estado.modalHistoricoAberto}
           material={estado.materialParaHistorico}
           abaInicial={estado.abaHistoricoInicial}
+          aoAbater={acoes.confirmarAbatimentoPeso}
           aoSalvarCadastro={acoes.salvarMaterial}
           aoFechar={acoes.fecharHistorico}
         />

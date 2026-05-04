@@ -83,7 +83,6 @@ export function usarFormularioInsumo({ aberto, insumoEditando, aoSalvar, aoCance
         reset({
           ...valoresPadrao,
           ...insumoEditando,
-          custoMedioUnidade: (insumoEditando.custoMedioUnidade || 0) / 100,
           linkCompra: insumoEditando.linkCompra || "",
           marca: insumoEditando.marca || "",
           unidadeConsumo: insumoEditando.unidadeConsumo || "",

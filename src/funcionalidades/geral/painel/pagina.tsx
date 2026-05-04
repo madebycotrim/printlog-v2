@@ -22,6 +22,7 @@ import { StatusPedido } from "@/compartilhado/tipos/modelos";
 // Componentes do Painel
 import { BannerPro } from "./componentes/BannerPro";
 import { SecaoKPIs } from "./componentes/SecaoKPIs";
+import { SecaoAnalytics } from "./componentes/SecaoAnalytics";
 import { SecaoOperacional } from "./componentes/SecaoOperacional";
 import { ModalPatrimonio } from "./componentes/ModalPatrimonio";
 import { ModalSelecaoMaterial } from "./componentes/ModalSelecaoMaterial";
@@ -119,7 +120,7 @@ export function PaginaInicial() {
 
   usarDefinirCabecalho({
     titulo: `Olá, ${usuario?.nome?.split(" ")[0] || "Maker"}! 👋`,
-    subtitulo: "Seu centro de comando PrintLog está pronto para operar.",
+    subtitulo: "Seu centro de comando para custos reais e gestão profissional.",
     placeholderBusca: "PESQUISAR EM TODA A PLATAFORMA...",
   });
 
@@ -131,12 +132,11 @@ export function PaginaInicial() {
         carregandoUpgrade={carregandoUpgrade} 
       />
 
-      <SecaoKPIs 
+      <SecaoAnalytics 
+        pedidos={pedidos} 
+        impressoras={impressoras} 
         pedidosAtivos={pedidosAtivos}
-        maquinasAtivas={maquinasAtivas}
         metricasInventario={metricasInventario}
-        aoNavegar={navegar}
-        aoAbrirModalPatrimonio={() => definirModalPatrimonioAberto(true)}
       />
 
       <SecaoOperacional />

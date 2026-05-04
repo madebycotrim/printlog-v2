@@ -8,16 +8,14 @@ interface PropriedadesCardImpressora {
   impressora: Impressora;
   aoEditar: (impressora: Impressora) => void;
   aoAposentar: (impressora: Impressora) => void;
-  aoDetalhes?: (impressora: Impressora) => void;
-  aoManutencoes?: (impressora: Impressora) => void;
+  aoGerenciamento: (impressora: Impressora, aba?: "producao" | "manutencao" | "config") => void;
 }
 
 export function CardImpressora({
   impressora,
   aoEditar,
   aoAposentar,
-  aoDetalhes,
-  aoManutencoes,
+  aoGerenciamento,
 }: PropriedadesCardImpressora) {
   const [menuAberto, definirMenuAberto] = useState(false);
   const referenciaMenu = useRef<HTMLDivElement>(null);
@@ -57,7 +55,7 @@ export function CardImpressora({
   return (
     <motion.div
       layout
-      onClick={() => aoDetalhes?.(impressora)}
+      onClick={() => aoGerenciamento(impressora, "producao")}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
       className="group relative flex flex-col h-full rounded-2xl bg-white dark:bg-[#121214] border border-gray-100 dark:border-white/[0.04] overflow-hidden transition-all duration-300 hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.2)] cursor-pointer"
     >
@@ -91,10 +89,10 @@ export function CardImpressora({
                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
                 className="absolute right-0 top-12 w-52 bg-white dark:bg-[#18181b] border border-zinc-100 dark:border-white/10 rounded-xl shadow-2xl z-50 p-1.5"
               >
-                <button onClick={(e) => { e.stopPropagation(); aoManutencoes?.(impressora); fecharMenu(); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-black hover:bg-zinc-50 dark:hover:bg-white/5 rounded-lg transition-all uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                <button onClick={(e) => { e.stopPropagation(); aoGerenciamento(impressora, "manutencao"); fecharMenu(); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-black hover:bg-zinc-50 dark:hover:bg-white/5 rounded-lg transition-all uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                   <Wrench size={14} /> Manutenções
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); aoEditar(impressora); fecharMenu(); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-black hover:bg-zinc-50 dark:hover:bg-white/5 rounded-lg transition-all uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                <button onClick={(e) => { e.stopPropagation(); aoGerenciamento(impressora, "config"); fecharMenu(); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-black hover:bg-zinc-50 dark:hover:bg-white/5 rounded-lg transition-all uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                   <Edit2 size={14} /> Editar Setup
                 </button>
                 <div className="h-px bg-zinc-100 dark:bg-white/5 my-1" />

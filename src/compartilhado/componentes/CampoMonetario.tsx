@@ -22,28 +22,22 @@ export const CampoMonetario = forwardRef<HTMLInputElement, CampoMonetarioProps>(
      * Intercepta o onChange para normalizar vírgula → ponto.
      */
     const lidarComMudanca = (e: ChangeEvent<HTMLInputElement>) => {
-      const v = e.target.value;
+      const v = e.target.value.replace(",", ".");
+      e.target.value = v; // Atualiza o valor no evento para o register capturar o ponto
       setValorTemporario(v);
-      
-      const valorNormalizado = v.replace(",", ".");
-      if (valorNormalizado === ".") {
-        e.target.value = "0.";
-        setValorTemporario("0.");
-      }
-      
       onChange?.(e);
     };
 
     const lidarComBlur = (e: any) => {
       setFocado(false);
-      setValorTemporario(undefined);
+      // NÃO limpamos o valorTemporario aqui para evitar o reset visual no uncontrolled mode
       onBlur?.(e);
     };
 
-    // Só mostra o valor do buffer (digitação atual) ou o valor real se for diferente de zero
+    // Prioridade: Valor que está sendo digitado > Valor controlado externo > Vazio
     const valorParaExibir = valorTemporario !== undefined 
       ? valorTemporario 
-      : (value === 0 || value === "0" || value === undefined ? "" : value);
+      : (value === undefined || value === null ? "" : value);
 
     return (
       <div className={`space-y-1.5 ${className}`}>

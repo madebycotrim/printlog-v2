@@ -7,7 +7,7 @@ interface ListaMateriaisProps {
   materiais: Material[];
   agrupadosPorTipo: [string, Material[]][];
   aoEditar: (m: Material) => void;
-  aoHistorico: (m: Material, aba?: "extrato" | "novo") => void;
+  aoHistorico: (m: Material, aba?: "extrato" | "novo" | "cadastro") => void;
   aoExcluir: (m: Material) => void;
   aoAlternarFavorito: (id: string) => void;
 }
@@ -15,10 +15,24 @@ interface ListaMateriaisProps {
 export function ListaMateriais({ materiais, agrupadosPorTipo, aoEditar, aoHistorico, aoExcluir, aoAlternarFavorito }: ListaMateriaisProps) {
   if (materiais.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <Search size={36} strokeWidth={1.5} className="text-gray-300 dark:text-zinc-700 mb-4" />
-        <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Nenhum resultado encontrado</h3>
-        <p className="text-sm text-gray-500 dark:text-zinc-400">Tente buscar com termos diferentes.</p>
+      <div className="flex flex-col items-center justify-center py-24 text-center min-h-[400px] relative overflow-hidden">
+        {/* Grade de pontos */}
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+        <div className="relative z-10 flex flex-col items-center gap-4">
+          <div className="w-20 h-20 rounded-2xl bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/[0.06] flex items-center justify-center">
+            <Search size={28} strokeWidth={1.5} className="text-zinc-300 dark:text-zinc-700" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-base font-black text-zinc-900 dark:text-white uppercase tracking-tight">Nenhum resultado encontrado</h3>
+            <p className="text-sm text-zinc-400 dark:text-zinc-600">Tente buscar com termos diferentes.</p>
+          </div>
+        </div>
       </div>
     );
   }

@@ -137,7 +137,7 @@ export function Apresentacao() {
       });
     }
 
-    // Emblema 3 — Sugestão IA (lado direito, cima) → borda direita do cartão
+    // Emblema 3 — Otimização Automática (lado direito, cima) → borda direita do cartão
     if (emb3) {
       const b = rectRel(emb3, env);
       const x1 = b.left;
@@ -416,10 +416,8 @@ export function Apresentacao() {
                 opacity: 0,
               }}
             >
-              Pare de precificar no{" "}
-              <span className="text-white font-semibold">"chutômetro"</span>.
-              Gestão profissional para makers com **IA Llama 3** — 
-              calcule custos reais, defina o branding do seu estúdio e garanta seu lucro.
+              Dê adeus ao <span className="text-white font-semibold">"chutômetro"</span>. 
+              Uma ferramenta feita por makers para ajudar a comunidade 3D a crescer com precisão e dignidade.
             </p>
 
             {/* Chamadas para Ação (CTAs) */}
@@ -807,7 +805,7 @@ export function Apresentacao() {
               </div>
             </EmblemaFlutuante>
 
-            {/* ── Emblema: Sugestão IA (direita-cima) ── */}
+            {/* ── Emblema: Otimização Automática (direita-cima) ── */}
             <EmblemaFlutuante
               ref={refEmblema3}
               atraso="1s"

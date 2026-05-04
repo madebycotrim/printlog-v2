@@ -49,7 +49,7 @@ export function ChamadaAcao() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
             </span>
             <span className="text-blue-400 text-xs font-bold uppercase tracking-widest">
-              Oportunidade Limitada — Plano PRO Liberado
+              Feito por Makers, Para Makers — Junte-se à Missão
             </span>
           </motion.div>
 
@@ -59,11 +59,11 @@ export function ChamadaAcao() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight"
+            className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight uppercase"
           >
-            TRANSFORME SEU <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400">
-              HOBBY EM NEGÓCIO
+            MAIS QUE UM SOFTWARE, <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500 italic">
+              UMA MISSÃO.
             </span>
           </motion.h2>
 
@@ -73,10 +73,11 @@ export function ChamadaAcao() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg md:text-xl text-zinc-400 mb-10 max-w-2xl mx-auto leading-relaxed"
+            className="text-lg md:text-xl text-zinc-400 mb-10 max-w-3xl mx-auto leading-relaxed"
           >
-            Junte-se a centenas de makers que já profissionalizaram seus estúdios com 
-            inteligência artificial e orçamentos personalizados.
+            O PrintLog nasceu da vontade de ver a comunidade 3D brasileira crescer com dignidade. 
+            Não estamos aqui pelo lucro, mas para manter este sistema vivo e ajudar você a eliminar o chutômetro.
+            Junte-se a nós para manter este projeto online e evoluindo para todos.
           </motion.p>
 
           {/* Botão de Ação */}
@@ -92,13 +93,13 @@ export function ChamadaAcao() {
               className="group relative px-10 py-5 bg-sky-600 text-white rounded-xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-sky-500/20 hover:bg-sky-500 hover:-translate-y-1 transition-all duration-300"
             >
               <span className="flex items-center gap-2">
-                Garantir Vaga Fundador PRO
+                Ser um Maker Fundador
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
             </button>
 
             <p className="text-sm text-sky-500 font-black uppercase tracking-[0.1em]">
-              Plano PRO 100% OFF por tempo limitado
+              Acesso total gratuito para quem apoia o início do projeto
             </p>
           </motion.div>
         </div>

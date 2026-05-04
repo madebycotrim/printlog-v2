@@ -39,8 +39,8 @@ export const apiMateriais = {
   /**
    * Salva um novo material ou atualiza um existente com validação de segurança
    */
-  async salvar(material: Material, _usuarioId: string): Promise<void> {
-    const metodo = material.id ? "PATCH" : "POST";
+  async salvar(material: Material, _usuarioId: string, eEdicao?: boolean): Promise<void> {
+    const metodo = eEdicao === undefined ? (material.id ? "PATCH" : "POST") : (eEdicao ? "PATCH" : "POST");
 
     // Validação de segurança no cliente
     const dadosValidados = materialSchema.parse(material);

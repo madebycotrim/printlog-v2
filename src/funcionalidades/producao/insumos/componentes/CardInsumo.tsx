@@ -4,7 +4,6 @@ import {
   ArrowUpCircle,
   Trash2,
   History,
-  Star,
 } from "lucide-react";
 import { Insumo, CategoriaInsumo } from "@/funcionalidades/producao/insumos/tipos";
 import { Dica } from "@/compartilhado/componentes/Dica";
@@ -42,108 +41,121 @@ export function CardInsumo({
 }: PropriedadesCardInsumo) {
   const estaComEstoqueBaixo = insumo.quantidadeAtual <= insumo.quantidadeMinima;
   const corDaCategoria = CORES_CATEGORIA[insumo.categoria] || "bg-gray-400 dark:bg-zinc-500";
+  
+  const CORES_AURA: Record<CategoriaInsumo, string> = {
+    Limpeza: "#0ea5e9",
+    Embalagem: "#f59e0b",
+    Fixação: "#f97316",
+    Eletrônica: "#8b5cf6",
+    Acabamento: "#10b981",
+    Geral: "#71717a",
+    Outros: "#71717a",
+  };
+  const corAura = CORES_AURA[insumo.categoria] || "#71717a";
 
   return (
-    <div
-      className="group relative flex flex-wrap items-center justify-between gap-x-6 gap-y-4 py-5 px-6 border-b border-gray-100 dark:border-white/[0.03] transition-all hover:bg-gray-50/50 dark:hover:bg-white/[0.02]"
-    >
-      {/* 1. ACENTO E NOME (Sempre expande o máximo possível) */}
-      <div className="flex items-center gap-4 flex-1 min-w-[200px]">
-        <div className={`h-10 w-1.5 rounded-full ${corDaCategoria} shadow-sm transition-all group-hover:scale-y-110`} />
-        <div className="flex flex-col">
-          <h3 className="text-[15px] font-black text-gray-900 dark:text-white uppercase tracking-tight leading-none mb-1.5 pt-1">
-            {insumo.nome}
-          </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] px-2 py-0.5 rounded-md bg-zinc-200/50 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 font-black uppercase tracking-[0.1em] border border-zinc-300/20 dark:border-white/5 whitespace-nowrap">
-              {insumo.categoria}
-            </span>
-            {insumo.marca && (
-              <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest truncate max-w-[100px]">
-                {insumo.marca}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+    <div className="group relative bg-[#0a0a0a] rounded-xl border border-white/[0.03] p-4 transition-all duration-300 hover:bg-white/[0.01] overflow-hidden">
+      {/* Aura de fundo dinâmica */}
+      <div 
+        className="absolute -right-20 -top-20 w-48 h-48 blur-[80px] opacity-[0.04] pointer-events-none transition-colors duration-1000"
+        style={{ backgroundColor: corAura }}
+      />
 
-      {/* BLOCO DE DADOS (Preço e Estoque) */}
-      <div className="flex items-center gap-6 flex-wrap md:flex-nowrap">
-        {/* 2. CUSTO E VALORIZAÇÃO */}
-        <div className="flex flex-col items-start md:items-end min-w-[120px]">
-          <div className="flex items-baseline gap-1">
-            <span className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase">UN:</span>
-            <span className="text-[14px] font-black text-gray-700 dark:text-zinc-300 tabular-nums">
-              {centavosParaReais(insumo.custoMedioUnidade)}
-            </span>
-          </div>
-          <div className="flex items-center gap-1 leading-none mt-1">
-            <span className="text-[8px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">VALOR:</span>
-            <span className="text-[9px] font-bold text-zinc-500 dark:text-zinc-500 tabular-nums uppercase underline decoration-zinc-800/20 underline-offset-2">
-              {centavosParaReais(insumo.quantidadeAtual * insumo.custoMedioUnidade)}
-            </span>
-          </div>
-        </div>
-
-        {/* 3. ESTOQUE CENTRAL */}
-        <div className="flex flex-col items-center min-w-[80px]">
-          <div className="flex items-baseline gap-1.5 leading-none">
-            <span className={`text-4xl font-black tabular-nums tracking-tighter ${estaComEstoqueBaixo ? 'text-rose-500 shadow-rose-500/20' : 'text-gray-900 dark:text-white'}`}>
-              {insumo.quantidadeAtual}
-            </span>
-            <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase italic">{insumo.unidadeMedida}</span>
-          </div>
-          <div className={`mt-0.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-[0.2em] border ${estaComEstoqueBaixo ? 'border-rose-200 bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 animate-pulse' : 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-[#34d399] dark:border-emerald-500/20 opacity-60'}`}>
-            {estaComEstoqueBaixo ? 'RE-SUPRIR' : 'ESTOQUE'}
-          </div>
-        </div>
-      </div>
-
-      {/* 4. BOTÕES DE AÇÃO E FERRAMENTAS */}
-      <div className="flex items-center gap-3 ml-auto md:ml-0">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => aoBaixar(insumo)}
-            className="group/btn h-11 px-4 sm:px-6 bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 border border-amber-500/20 hover:border-amber-500"
-          >
-            <ArrowDownCircle size={16} strokeWidth={3} className="transition-transform group-hover/btn:scale-110" />
-            <span className="hidden sm:inline">Baixar</span>
-          </button>
+      <div className="relative z-10 flex flex-col gap-4">
+        {/* LINHA SUPERIOR: INFO + DADOS + ESTOQUE */}
+        <div className="flex items-start justify-between gap-4">
           
-          <button
-            onClick={() => aoRepor(insumo)}
-            className="group/btn h-11 px-4 sm:px-6 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 border border-emerald-500/20 hover:border-emerald-500"
-          >
-            <ArrowUpCircle size={16} strokeWidth={3} className="transition-transform group-hover/btn:scale-110" />
-            <span className="hidden sm:inline">Repor</span>
-          </button>
+          {/* IDENTIDADE */}
+          <div className="flex items-start gap-3 flex-1">
+            <div className={`h-8 w-1 rounded-full ${corDaCategoria} shadow-sm shrink-0 mt-1`} />
+            <div className="flex flex-col">
+              <h3 className="text-lg font-black text-white uppercase tracking-tight leading-none mb-2">
+                {insumo.nome}
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-400 font-black uppercase tracking-[0.1em] border border-white/5">
+                  {insumo.categoria}
+                </span>
+                {insumo.marca && (
+                  <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest truncate max-w-[100px]">
+                    {insumo.marca}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* DADOS FINANCEIROS */}
+          <div className="flex flex-col items-end gap-0.5 mt-1">
+             <div className="flex items-baseline gap-1">
+                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">UN:</span>
+                <span className="text-[13px] font-black text-white tabular-nums">
+                  {centavosParaReais(insumo.custoMedioUnidade)}
+                </span>
+             </div>
+             <div className="flex items-baseline gap-1">
+                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">VALOR:</span>
+                <span className="text-[9px] font-bold text-zinc-500 tabular-nums">
+                  {centavosParaReais(insumo.quantidadeAtual * insumo.custoMedioUnidade)}
+                </span>
+             </div>
+          </div>
+
+          {/* ESTOQUE MONITOR */}
+          <div className="flex flex-col items-center ml-2">
+            <div className="flex items-baseline gap-1 leading-none">
+              <span className={`text-3xl font-black tabular-nums tracking-tighter ${estaComEstoqueBaixo ? 'text-rose-500' : 'text-white'}`}>
+                {insumo.quantidadeAtual}
+              </span>
+              <span className="text-[9px] font-black text-zinc-600 uppercase italic">{insumo.unidadeMedida}</span>
+            </div>
+            <div className={`mt-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-[0.1em] border ${
+              estaComEstoqueBaixo 
+                ? 'border-rose-500/20 bg-rose-500/10 text-rose-500 animate-pulse' 
+                : 'border-emerald-500/20 bg-emerald-500/5 text-emerald-500/80'
+            }`}>
+              {estaComEstoqueBaixo ? 'RE-SUPRIR' : 'ESTOQUE'}
+            </div>
+          </div>
         </div>
 
-        {/* Ferramentas Secundárias */}
-        <div className="flex items-center gap-0.5 opacity-40 group-hover:opacity-100 transition-opacity ml-2 border-l border-zinc-200 dark:border-white/5 pl-2">
-          <Dica texto={insumo.favorito ? "Remover favorito" : "Marcar favorito"}>
-            <button 
-              onClick={() => aoAlternarFavorito(insumo.id)} 
-              className={`p-2 transition-colors ${insumo.favorito ? "text-amber-500" : "text-zinc-400 hover:text-amber-500"}`}
-            >
-              <Star size={16} fill={insumo.favorito ? "currentColor" : "none"} />
-            </button>
-          </Dica>
-          <Dica texto="Histórico">
-            <button onClick={() => aoVerHistorico(insumo)} className="p-2 text-zinc-400 hover:text-sky-500 transition-colors">
-              <History size={16} />
-            </button>
-          </Dica>
-          <Dica texto="Editar">
-            <button onClick={() => aoEditar(insumo)} className="p-2 text-zinc-400 hover:text-indigo-500 transition-colors">
-              <Edit2 size={16} />
-            </button>
-          </Dica>
-          <Dica texto="Arquivar">
-            <button onClick={() => aoExcluir(insumo)} className="p-2 text-zinc-400 hover:text-rose-500 transition-colors">
-              <Trash2 size={16} />
-            </button>
-          </Dica>
+        {/* LINHA INFERIOR: BOTÕES + FERRAMENTAS */}
+        <div className="flex items-center gap-4">
+           <div className="flex items-center gap-2">
+              <button
+                onClick={() => aoBaixar(insumo)}
+                className="h-10 px-5 bg-amber-500/5 hover:bg-amber-500/10 text-amber-500 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all active:scale-95 border border-amber-500/20"
+              >
+                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <ArrowDownCircle size={12} strokeWidth={3} />
+                </div>
+                Baixar
+              </button>
+              
+              <button
+                onClick={() => aoRepor(insumo)}
+                className="h-10 px-5 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all active:scale-95 border border-emerald-500/20"
+              >
+                <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                  <ArrowUpCircle size={12} strokeWidth={3} />
+                </div>
+                Repor
+              </button>
+           </div>
+
+           <div className="h-5 w-px bg-white/5" />
+
+           <div className="flex items-center gap-1">
+             <button onClick={() => aoVerHistorico(insumo)} className="p-1.5 text-zinc-600 hover:text-sky-500 transition-all">
+               <History size={16} />
+             </button>
+             <button onClick={() => aoEditar(insumo)} className="p-1.5 text-zinc-600 hover:text-indigo-500 transition-all">
+               <Edit2 size={16} />
+             </button>
+             <button onClick={() => aoExcluir(insumo)} className="p-1.5 text-zinc-600 hover:text-rose-500 transition-all">
+               <Trash2 size={16} />
+             </button>
+           </div>
         </div>
       </div>
     </div>

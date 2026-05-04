@@ -20,8 +20,8 @@ const planos = [
     botao: "Começar Agora",
   },
   {
-    nome: "Membro Fundador PRO",
-    precoOriginal: "R$ 29,90",
+    nome: "Membro Fundador",
+    precoOriginal: "R$ 19,90",
     preco: "R$ 0",
     periodo: "tempo limitado",
     descricao: "Para profissionais que querem escalar seu estúdio 3D.",

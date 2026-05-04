@@ -1,4 +1,8 @@
+import { useState } from "react";
+import { Package, Database, Activity } from "lucide-react";
 import { Dialogo } from "@/compartilhado/componentes/Dialogo";
+import { CabecalhoModalPremium } from "@/compartilhado/componentes/CabecalhoModalPremium";
+import { AbasModalPremium } from "@/compartilhado/componentes/AbasModalPremium";
 import { Insumo } from "@/funcionalidades/producao/insumos/tipos";
 import { usarFormularioInsumo } from "../hooks/usarFormularioInsumo";
 import { SecaoInformacoesBasicas } from "./formulario/SecaoInformacoesBasicas";
@@ -14,8 +18,7 @@ interface PropriedadesFormularioInsumo {
 }
 
 /**
- * Formulário de Cadastro/Edição de Insumos (Refatorado para Escalabilidade).
- * @lgpd Base legal: Execução de contrato (Art. 7º, V) - Gestão de insumos e suprimentos.
+ * 💎 Formulário de Cadastro/Edição de Insumos (Silent Premium Edition).
  */
 export function FormularioInsumo({ aberto, insumoEditando, aoCancelar, aoSalvar }: PropriedadesFormularioInsumo) {
   const {
@@ -38,42 +41,73 @@ export function FormularioInsumo({ aberto, insumoEditando, aoCancelar, aoSalvar 
     onSubmit,
   } = usarFormularioInsumo({ aberto, insumoEditando, aoSalvar, aoCancelar });
 
+  const [abaAtiva, definirAbaAtiva] = useState("identificacao");
+
   if (!aberto) return null;
+
+  const abas = [
+    { id: "identificacao", rotulo: "Identificação", icone: Package },
+    { id: "estoque", rotulo: "Estoque e Custos", icone: Database },
+    { id: "tecnico", rotulo: "Rendimento", icone: Activity },
+  ];
 
   return (
     <Dialogo
       aberto={aberto}
       aoFechar={lidarComTentativaFechamento}
-      titulo={estaEditando ? "Editar Insumo" : "Novo Insumo"}
       larguraMax="max-w-2xl"
     >
-      <div className="bg-white dark:bg-[#18181b]">
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col bg-white dark:bg-[#18181b]">
-          <div className="p-6 space-y-10">
-            
-            <SecaoInformacoesBasicas 
-              register={register}
-              errors={errors}
-              categoriaAtiva={categoriaAtiva || "Geral"}
-              aoMudarCategoria={(cat) => setValue("categoria", cat, { shouldDirty: true })}
-            />
+      <div className="bg-white dark:bg-[#0a0a0a] overflow-hidden rounded-2xl shadow-2xl">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
+          
+          <CabecalhoModalPremium 
+            titulo={estaEditando ? "Editar Insumo" : "Novo Insumo"}
+            subtitulo={
+              estaEditando 
+                ? <span className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">{insumoEditando?.nome}</span>
+                : <span className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Almoxarifado de Apoio Logístico</span>
+            }
+            icone={<Package className="text-sky-500" size={28} strokeWidth={2.5} />}
+            aoFechar={lidarComTentativaFechamento}
+            corTema="sky-500"
+          />
 
-            <SecaoEstoquePreco 
-              register={register}
-              errors={errors}
-              setValue={setValue}
-              unidadeMedidaAtiva={unidadeMedidaAtiva}
-            />
+          <AbasModalPremium 
+            abas={abas}
+            abaAtiva={abaAtiva}
+            aoMudarAba={definirAbaAtiva}
+            corTema="sky-500"
+          />
 
-            <SecaoRendimentoFracionado 
-              register={register}
-              errors={errors}
-              setValue={setValue}
-              itemFracionavelAtivo={itemFracionavelAtivo || false}
-              unidadeConsumoAtiva={unidadeConsumoAtiva || ""}
-              custoEfetivo={custoEfetivo}
-            />
+          <div className="p-8 min-h-[400px]">
+            {abaAtiva === "identificacao" && (
+              <SecaoInformacoesBasicas 
+                register={register}
+                errors={errors}
+                categoriaAtiva={categoriaAtiva || "Geral"}
+                aoMudarCategoria={(cat) => setValue("categoria", cat, { shouldDirty: true })}
+              />
+            )}
 
+            {abaAtiva === "estoque" && (
+              <SecaoEstoquePreco 
+                register={register}
+                errors={errors}
+                setValue={setValue}
+                unidadeMedidaAtiva={unidadeMedidaAtiva}
+              />
+            )}
+
+            {abaAtiva === "tecnico" && (
+              <SecaoRendimentoFracionado 
+                register={register}
+                errors={errors}
+                setValue={setValue}
+                itemFracionavelAtivo={itemFracionavelAtivo || false}
+                unidadeConsumoAtiva={unidadeConsumoAtiva || ""}
+                custoEfetivo={custoEfetivo}
+              />
+            )}
           </div>
 
           <RodapeFormulario 

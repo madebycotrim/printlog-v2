@@ -24,6 +24,7 @@ const fontesDisponiveis = [
   { id: "inter", label: "Inter" },
   { id: "montserrat", label: "Montserrat" },
   { id: "poppins", label: "Poppins" },
+  { id: "outfit", label: "Outfit" },
 ];
 
 interface CardAparenciaProps {
