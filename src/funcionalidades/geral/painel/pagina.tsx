@@ -21,7 +21,6 @@ import { StatusPedido } from "@/compartilhado/tipos/modelos";
 
 // Componentes do Painel
 import { BannerPro } from "./componentes/BannerPro";
-import { SecaoKPIs } from "./componentes/SecaoKPIs";
 import { SecaoAnalytics } from "./componentes/SecaoAnalytics";
 import { SecaoOperacional } from "./componentes/SecaoOperacional";
 import { ModalPatrimonio } from "./componentes/ModalPatrimonio";
@@ -80,7 +79,6 @@ export function PaginaInicial() {
 
   // 🧮 CÁLCULOS DE KPI
   const metricasInventario = servicoInventario.gerarRelatorioConsolidado(materiais, insumos);
-  const maquinasAtivas = impressoras.filter((i) => !i.dataAposentadoria).length;
   const pedidosAtivos = pedidos.filter(
     (p) => p.status !== StatusPedido.CONCLUIDO && p.status !== StatusPedido.ARQUIVADO,
   ).length;

@@ -6,7 +6,6 @@ import {
   History,
 } from "lucide-react";
 import { Insumo, CategoriaInsumo } from "@/funcionalidades/producao/insumos/tipos";
-import { Dica } from "@/compartilhado/componentes/Dica";
 import { centavosParaReais } from "@/compartilhado/utilitarios/formatadores";
 
 /** Mapa de cores por categoria para a barra lateral do card */
@@ -27,7 +26,6 @@ interface PropriedadesCardInsumo {
   aoRepor: (insumo: Insumo) => void;
   aoExcluir: (insumo: Insumo) => void;
   aoVerHistorico: (insumo: Insumo) => void;
-  aoAlternarFavorito: (id: string) => void;
 }
 
 export function CardInsumo({
@@ -37,7 +35,6 @@ export function CardInsumo({
   aoRepor,
   aoExcluir,
   aoVerHistorico,
-  aoAlternarFavorito,
 }: PropriedadesCardInsumo) {
   const estaComEstoqueBaixo = insumo.quantidadeAtual <= insumo.quantidadeMinima;
   const corDaCategoria = CORES_CATEGORIA[insumo.categoria] || "bg-gray-400 dark:bg-zinc-500";

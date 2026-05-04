@@ -139,7 +139,6 @@ export function PaginaInsumos() {
                             aoExcluir={acoes.abrirArquivamento}
                             aoRepor={acoes.abrirReposicao}
                             aoVerHistorico={acoes.abrirHistorico}
-                            aoAlternarFavorito={acoes.alternarFavorito}
                           />
                         ))}
                       </div>
